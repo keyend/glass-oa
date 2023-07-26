@@ -1,4 +1,4 @@
-<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Member\index.html";i:1690386238;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Member\index.html";i:1690390260;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -160,7 +160,6 @@
         }),
 
         form.on('switch(user-enable)', function(obj){
-            console.log(obj);
             active['status'].call(this, obj.elem.value, obj.elem.checked)
         }),
 

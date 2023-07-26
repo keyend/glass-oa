@@ -175,7 +175,7 @@ class Member extends Controller
      */
     public function palst(Users $user_model, OrderPay $order_pay)
     {
-        if($this->request->isAjax()) {
+        if($this->request->isAjax() || $this->request->isPost()) {
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ''],
                 ['search_value', ''],

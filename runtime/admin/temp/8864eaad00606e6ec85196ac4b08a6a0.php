@@ -1,4 +1,4 @@
-<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Member\palst.html";i:1690389407;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Member\palst.html";i:1690391113;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,7 +29,7 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" enctype="application/x-www-form-urlencoded" method="post" action="">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" enctype="application/x-www-form-urlencoded" method="POST">
                 <ul class="layui-tab-title">
                     <li><a href="<?php echo url('member'); ?>">会员列表</a></li>
                     <li class="layui-this"><a href="<?php echo url('memberPalst'); ?>">收款账单</a></li>
@@ -60,10 +60,17 @@
                             </div>
                             <div class="layui-inline">
                                 <input type="hidden" name="customer_id" value="<?php echo htmlentities($customer_id); ?>" />
-                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
-                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
-                                    搜索结果
-                                </button>
+                                <input type="hidden" name="export" id="export" value="" />
+                                <span class="layui-btn-group">
+                                    <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                        搜索结果
+                                    </button>
+                                    <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-export" lay-submit>
+                                        <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
+                                        导出记录
+                                    </button>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -80,11 +87,13 @@
 </div>
 
 <script type="text/html" id="user-bar">
+    {{# if(d.pay_info.voucher) { }}
     <div class="layui-btn-group">
         <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="voucher">
             <i class="layui-icon layui-icon-eye"></i>查看收据
         </button>
     </div>
+    {{# } }}
 </script>
 
 <script type="text/html" id="user-createTime">
@@ -152,33 +161,8 @@
             }),
 
             table.on("tool(LAY-list-table)", function(e) {
-                if ("remove" === e.event) {
-                    parent.layer.confirm('您确定要删除该客户？', {
-                        title: '友情提示',
-                        icon: 3,
-                        btn: ['是的', '再想想']
-                    }, function(i) {
-                        parent.layer.close(i),
-                        ns.silent("<?php echo url('memberDel'); ?>", {id: e.data.id}, res => {
-                            if (res.code == 0) {
-                                setTimeout(() => pageTable.reload(), 100)
-                            } else {
-                                layer.alert(res.message)
-                            }
-                        })
-                    });
-                } else if ("edit" === e.event) {
-                    ns.open("<?php echo url('memberEdit'); ?>?id=" + e.data.id, '编辑客户').then(() => {
-                        var ret = ns.getReload();
-                        ret && pageTable.reload()
-                    })
-                } else if("payable" === e.event) {
-                    ns.open("<?php echo url('memberPay'); ?>?id=" + e.data.id, '记录【' + e.data.nickname + '】收款').then(() => {
-                        var ret = ns.getReload();
-                        ret && pageTable.reload()
-                    })
-                } else if("palst" === e.event) {
-                    location.href = "<?php echo url('memberPalst'); ?>?mid=" + e.data.id;
+                if ("voucher" === e.event) {
+                    window.open(e.data.pay_info.voucher);
                 }
             });
         }
@@ -186,13 +170,18 @@
         // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
-            // // 执行重载
+            // 执行重载
             table.reload('LAY-list-table', {
                 where: field
             });
             return false;
         }),
-        
+
+        form.on('submit(LAY-list-back-export)', function(obj) {
+            $("#export").val("1"),
+            setTimeout(() => $("#export").val(""), 1000)
+        }),
+
         // 搜索时间
         laydate.render({ elem: '#search_time', type: 'datetime', range: true }),
         renderTable();

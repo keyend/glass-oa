@@ -178,8 +178,8 @@ class Order extends Model
             $category_data = Category::where("id", $itm["category_id"])->find();
             if (empty($category_data)) {
                 throw new \Exception("无对应类目 category_id {$itm['category_id']}");
-            }elseif (!isset($category[$row["category_id"]]) || empty($category[$itm["category_id"]])) {
-                throw new \Exception("未设置{$customer['nickname']}的{$category_data['category']}价格!");
+            // }elseif (!isset($category[$row["category_id"]]) || empty($category[$itm["category_id"]])) {
+            //     throw new \Exception("未设置{$customer['nickname']}的{$category_data['category']}价格!");
             }
 
             $craft_id = (float)$row["craft_id"];
