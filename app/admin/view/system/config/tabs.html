@@ -1,0 +1,4 @@
+<ul class="layui-tab-title">
+    {if checkAccess('sysConfigBasic')}<li{if $rule=='sysConfigBasic'} class="layui-this"{/if}><a href="{:url('sysConfigBasic')}">基础参数</a></li>{/if}
+    {if checkAccess('sysConfigApi')}<li{if $rule=='sysConfigApi'} class="layui-this"{/if}><a href="{:url('sysConfigApi')}">API参数</a></li>{/if}
+</ul>

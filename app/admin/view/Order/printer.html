@@ -1,0 +1,177 @@
+{extend name="base" /}
+{block name="resources"}
+<style>
+    .layui-table {
+        border-color: #000000!important;
+        border-spacing: 1px 1px;
+    }
+    .layui-table td, .layui-table th {
+        text-align: center;
+        padding: 2.25px 3.25px!important;
+    }
+</style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <h1 style="text-align: center; line-height: 60px; margin-bottom: 10px; margin-top: -20px;">
+                <span style="display: inline-block; border-bottom: 2px solid #eee;">{$option.site_title}</span>
+            </h1>
+            <div class="layui-row">
+                <div class="layui-col-xs6">
+                    收货人：{$delivery.order.member.nickname}<br />
+                    收货地址：{$delivery.order.member.desc}
+                </div>
+                <div class="layui-col-xs6">
+                    单号：{$delivery.order.trade_no}<br />
+                    日期：{:date('Y年m月d日',strtotime($delivery['create_time']))}
+                </div>
+            </div>
+            <table class="layui-table" width="100%" border-color="#666666" border="1" style="margin-top: 10px;">
+                <colgroup>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col width="200">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>序号</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>产品名称</span></p>
+                        </th>
+                        <th colspan="2">
+                        <p class="MsoNormal"><span>规格</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>数量</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>面积</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>单价</span></p>
+                        </th>                   
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>加工费</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>金额</span></p>
+                        </th>
+                        <th rowspan="2">
+                        <p class="MsoNormal"><span>备注</span></p>
+                        </th>
+                       </tr>
+                       <tr>
+                        <th>
+                        <p class="MsoNormal"><span>宽</span><span lang="EN-US">mn</span></p>
+                        </th>
+                        <th>
+                        <p class="MsoNormal"><span>高</span><span lang="EN-US">mm</span></p>
+                        </th>
+                       </tr>
+                </thead>
+                <tbody>
+                {foreach $delivery.goods as $key => $goods}
+                <tr>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{:$key+1}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.category}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.width|floatval}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.height|floatval}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.num|intval}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.area|floatval}m²</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{if $manual == 1}{$goods.unitprice}元{/if}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{if $manual == 1}{$goods.manual_money}元{/if}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{if $manual == 1}{$goods.delivery_money+$goods.manual_money}元{/if}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$goods.remark}</span></p>
+                 </td>
+                </tr>
+                {/foreach}
+                <tr>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">合计</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{$delivery.delivery_num}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{if $manual == 1}{$delivery.manual_money}元{/if}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">{if $manual == 1}{$delivery.delivery_money}元{/if}</span></p>
+                 </td>
+                 <td>
+                 <p class="MsoNormal"><span lang="EN-US">&nbsp;</span></p>
+                 </td>
+                </tr>
+               </tbody>
+            </table>
+            <div class="layui-row" style="margin-top: 12px;">
+                <div class="layui-col-xs12">
+                    注：{$delivery.remark}
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-xs6">
+                    地址：{$option.site_address}<br />
+                    电话：{$option.site_contact}
+                </div>
+                <div class="layui-col-xs6">
+                    收货人：<br />
+                    收货日期：
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script>
+    layui.config({ base: '/static/admin/' }).use(['index', 'form', 'laytpl', 'table'], function(){
+        // window.print();
+    })
+</script>
+{/block}

@@ -1,0 +1,82 @@
+{extend name="base" /}
+{block name="resources"}
+<style>
+    .page-member-form .layui-tab-content {
+        padding: 15px 15px 0 0!important;
+    }
+    .page-member-form .layui-card {
+        padding-bottom: 5px;
+    }
+</style>
+{/block}
+{block name="body"}
+<div class="layui-fluid page-member-form">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding: 0px!important;">
+                    <form class="layui-form" action="" lay-filter="component-form-element">
+                        <input type="hidden" name="id" value="{$data['id']}"/>
+                        <div class="layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                            <ul class="layui-tab-title">
+                                {if $info.id}
+                                <li class="layui-this"><a>基本信息</a></li>
+                                <li><a>价格参数</a></li>
+                                <li><a>其它信息</a></li>
+                                {else}
+                                <li class="layui-this"><a>会员信息</a></li>
+                                <li><a>价格参数</a></li>
+                                {/if}
+                            </ul>
+                            <!---->
+                            <div class="layui-tab-content">
+                                <div class="layui-tab-item layui-show">
+                                    {include file="member/tabs/base" /}
+                                </div>
+                                <div class="layui-tab-item">
+                                    {include file="member/tabs/price" /}
+                                </div>
+                                {if $info.id}
+                                <div class="layui-tab-item">
+                                    {include file="member/tabs/attr" /}
+                                </div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn layui-btn-sm" lay-submit lay-filter="component-form-element">立即提交</button>
+                                <button type="reset" class="layui-btn layui-btn-sm layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+{include file="Common/uploadImage" /}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'laytpl', 'table'], function(){
+        var $ = layui.$
+        ,admin = layui.admin
+        ,element = layui.element
+        ,form = layui.form
+        ,table = layui.table;
+
+        form.on('submit(component-form-element)', function(obj) {
+            ns.wost(location.href, obj.field, res => {
+                ns.close(res)
+            });
+            return false;
+        })
+    });
+</script>
+{/block}

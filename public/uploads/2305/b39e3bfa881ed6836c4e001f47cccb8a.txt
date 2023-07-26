@@ -1,0 +1,27 @@
+CLASSPATH WIN7 jdk1.8.0_22 .;%JAVA_HOME%\lib;%JAVA_HOME%\lib\tools.jar
+Path %JAVA_HOME%\bin
+
+CLASSPATH WIN7 jdk1.6.0_45 ;%JAVA_HOME%\bin;%JAVA_HOME%\jre\bin
+Path %JAVA_HOME%\bin
+多一个 %JAVA_HOME\jre\bin
+
+food best burst equip pulse federal ticket gate illegal upgrade mouse sort
+opera space category chapter pill fork clog ride pull section sadness strategy
+
+roland.helena
+helena351872@gmail.com
+Aa538@roland
+
+LiquidityPool Liquidity Pool
+
+10 SUN = 1能量
+1px 2rpx 
+
+1rem = 16px
+.1rem = 1.6px
+.1rem = 3.2rpx
+
+12px=0.75em
+10px=0.625em
+
+21428能量 = 214280 SUN

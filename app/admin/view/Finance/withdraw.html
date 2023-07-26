@@ -1,0 +1,223 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+    <style>
+        .bg-green {
+            background-color: rgb(1, 129, 1)!important;
+        }
+        .bg-red {
+            background-color: rgb(255, 132, 132)!important;
+        }
+    </style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                <ul class="layui-tab-title">
+                    <li{if $status_id=='all'} class="layui-this"{/if}><a href="{:url('withdraw')}">全部记录</a></li>
+                    <li{if $status_id==0 && $status_id!='all'} class="layui-this"{/if}><a href="{:url('withdrawList', ['id' => 0])}">待处理</a></li>
+                    <li{if $status_id==1} class="layui-this"{/if}><a href="{:url('withdrawList', ['id' => 1])}">已成功</a></li>
+                    <li{if $status_id==2} class="layui-this"{/if}><a href="{:url('withdrawList', ['id' => 2])}">已退回</a></li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show" style="margin-top: 10px;">
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索类型</label>
+                            <div class="layui-input-inline">
+                                <select name="search_type" lay-verify="required" class="layui-select">
+                                    <option value="trade_no">订单号</option>
+                                    <option value="out_trade_no">支付订单号</option>
+                                    <option value="username">用户名</option>
+                                    <option value="mobile">手机号</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索内容</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                搜索结果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <table id="LAY-list-table" lay-filter="LAY-list-table"></table>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script type="text/html" id="user-toolbar">
+    <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin bg-green" lay-event="batchApproved" data-type="batchApproved">
+        <i class="layui-icon layui-icon-ok"></i>
+        批量通过
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchDecline" data-type="batchDecline">
+        <i class="layui-icon layui-icon-close"></i>
+        批量退回
+    </button>
+</script>
+
+<script type="text/html" id="user-bar">
+    {{#if (d.status == 0) { }}
+    <button class="pear-btn pear-btn-primary pear-btn-sm bg-green" lay-event="approved" title="提现成功"><i class="layui-icon layui-icon-ok"></i></button>
+    <button class="pear-btn pear-btn-primary pear-btn-sm bg-red" lay-event="decline" title="退回金额"><i class="layui-icon layui-icon-close"></i></button>
+    {{# } }}
+</script> 
+
+<script type="text/html" id="user-auth">
+    {{#if (d.status == 0) { }}
+    <span class="layui-badge layui-bg-orange">待处理</span>
+    {{# }else if(d.status == 1){ }}
+    <span class="layui-badge layui-bg-blue">已提现</span>
+    {{# }else if(d.status == 2){ }}
+    <span class="layui-badge layui-bg-red">已退回</span>
+    {{# } }}
+</script>
+
+<!---->
+<script>
+
+    layui.config({
+        base: '/static/admin/'
+    }).use(['table', 'form'], function(){
+        var $ = layui.$
+            ,form = layui.form
+            ,table = layui.table
+            ,pageTable;
+
+        var active = {
+            batchApproved: function(v) {
+                parent.layer.confirm('您确定要通过这些申请？', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('withdrawAudit')}", {id: ns.tableSelected(v, "id"), status: 1}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                });
+            },
+            batchDecline: function(v) {
+                parent.layer.confirm('您确定要退回这些申请？', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('withdrawAudit')}", {id: ns.tableSelected(v, "id"), status: 1}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                });
+            }
+        };
+
+        // 监听搜索
+        form.on('submit(LAY-list-back-search)', function(data){
+            var field = data.field;
+
+            // 执行重载
+            table.reload('LAY-list-table', {
+                where: field
+            });
+        }),
+
+        renderTable();
+
+        // 渲染表格
+        function renderTable() {
+            pageTable = table.render({
+                elem: "#LAY-list-table",
+                url: "{:url('withdrawList', ['id' => $status_id])}",
+                toolbar: '#user-toolbar',
+                cols: [[     
+                    {type: 'checkbox'},
+                    {title: '提交用户', field: 'username', width: 160},
+                    {title: '提现金额', field: 'money', width: 100},
+                    {title: '提现方式', field: 'account_name', width: 100},
+                    {title: '姓名', field: 'name', width: 100},
+                    {title: '帐号', field: 'account'},
+                    {title: '状态', field: 'status', align: 'center', templet: '#user-auth', width: 82},
+                    {title: '提交时间', field: 'create_time', width: 160},
+                    {title: '操作', toolbar: '#user-bar', align: 'center', width: 130}
+                ]],
+                parseData: function(res) {
+                    return {
+                        code: res.code,
+                        msg: res.message,
+                        count: res.data.count,
+                        data: res.data.list
+                    }
+                },
+                done: function() {
+                    ns.page = this.page.curr;
+                },
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: "对不起，加载出现异常！"
+            });
+
+            table.on('toolbar(LAY-list-table)', function(o) {
+                active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("tool(LAY-list-table)", function(e) {
+                if ("approved" === e.event) {
+                    parent.layer.confirm('您确定要通过该申请？', {
+                        title: '友情提示',
+                        icon: 3,
+                        btn: ['是的', '再想想']
+                    }, function(i) {
+                        parent.layer.close(i),
+                        ns.silent("{:url('withdrawAudit')}", {id: e.data.id, status: 1}, res => {
+                            if (res.code == 0) {
+                                setTimeout(() => pageTable.reload(), 100)
+                            } else {
+                                layer.alert(res.message)
+                            }
+                        })
+                    });
+                } else if("decline" === e.event) {
+                    parent.layer.confirm('您确定要退回该申请？', {
+                        title: '友情提示',
+                        icon: 3,
+                        btn: ['是的', '再想想']
+                    }, function(i) {
+                        parent.layer.close(i),
+                        ns.silent("{:url('withdrawAudit')}", {id: e.data.id, status: 2}, res => {
+                            if (res.code == 0) {
+                                setTimeout(() => pageTable.reload(), 100)
+                            } else {
+                                layer.alert(res.message)
+                            }
+                        })
+                    });
+                }
+            });
+        }
+    });
+
+</script>
+{/block}

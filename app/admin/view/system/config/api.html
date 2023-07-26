@@ -1,0 +1,82 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+{/block}
+{block name="body"}
+<div class="layui-fluid" style="padding-top: 15px;">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                {include file="system/config/tabs" /}
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <form class="layui-form" action="" lay-filter="component-form-element">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">API密钥</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <input type="text" name="secret_key" id="secretKey" value="{$option.secret_key}" required  lay-verify="required" autocomplete="off" class="layui-input">
+                                    <div class="layui-form-mid layui-word-aux">参数签名密钥 <a href="javascript:;" class="text-danger" id="btn-build-key">【生成密钥】</a></div>
+                                </div>
+                            </div>
+
+                            <br>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="save">保存设置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+{include file="Common/uploadImage" /}
+<script type="text/javascript" src="/static/admin/modules/base58.js"></script>
+<script>
+    layui.use(['form', 'jquery'],function(){
+        let form = layui.form;
+        let $ = layui.jquery;
+
+        if (window['Base58']) {
+            $('#btn-build-key').show(),
+            $('#btn-build-key').on('click', function() {
+                let str = location.host + '_' + (new Date()).getTime();
+                let text = new TextEncoder();
+                let secretKey = Base58.encode(text.encode(str));
+
+                $('#secretKey').val(secretKey)
+            })
+        }
+
+        form.on('submit(save)', function(data){
+            $.ajax({
+                data:JSON.stringify(data.field),
+                dataType:'json',
+                contentType:'application/json',
+                type:'post',
+                success:function(res){
+                    if(res && res.code == 999){
+                        parent.layer.msg(res.message, {
+                            icon: 5,
+                            time: 2000,
+                        })
+                        return false;
+                    }else if(res.code == 0){
+                        parent.layer.msg(res.message,{icon:1,time:1000},function(){
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        });
+                    }else{
+                        parent.layer.msg(res.message,{icon:2,time:1000});
+                    }
+                }
+            })
+            return false;
+        });
+    })
+</script>
+{/block}

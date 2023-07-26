@@ -1,0 +1,74 @@
+<?php
+namespace app\common\model\crebo;
+use think\Model;
+use think\facade\Db;
+
+class OrderDelivery extends Model
+{
+    protected $name = "users_delivery";
+
+    /**
+     * 配送单明细
+     * @collection relation.model
+     */
+    public function goods()
+    {
+        return $this->hasMany(OrderDeliveryGoods::class, 'delivery_id', 'id');
+    }
+
+    /**
+     * 订单
+     * @collection relation.model
+     */
+    public function order()
+    {
+        return $this->hasOne(Order::class, "id", "order_id");
+    }
+
+    /**
+     * 列表
+     *
+     * @param int page
+     * @param int limit 页码
+     * @param array 筛选条件
+     * @return array
+     */
+    public function getList($page, $limit, $filter = [])
+    {
+        $condition = [];
+        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
+            if (in_array($filter['search_type'], ["trade_no", "out_trade_no"])) {
+                $condition[] = "order.{$filter['search_type']} LIKE '%{$filter['search_value']}%'";
+            } elseif (in_array($filter["search_type"], ["nickname", "address"])) {
+                $condition[] = "member.{$filter["search_type"]} LIKE '%{$filter['search_value']}%'";
+            }
+        }
+        if (isset($filter['status']) && !empty($filter['status']) && $filter['status'] != 0) {
+            $condition[] = "order.is_trash = " . (int)$filter['status'];
+        }
+
+        $prefix = env("database.prefix", "");
+        $tables = "{$prefix}{$this->name} `delivery` LEFT JOIN " .
+        "{$prefix}users_orders `order` ON (`delivery`.order_id = `order`.id) LEFT JOIN " . 
+        "{$prefix}users `member` ON (`order`.customer_id = `member`.id)";
+
+        $condition = implode(" ) AND (", $condition);
+        if (!empty($condition)) {
+            $condition  = " WHERE ({$condition})";
+        }
+        $count_query = Db::query("SELECT COUNT(*) AS think_count FROM {$tables} {$condition}");
+        $count = (int)$count_query[0]['think_count'];
+        $list = Db::query("SELECT delivery.*,member.nickname,member.mobile FROM {$tables} {$condition} LIMIT " . (($page - 1) * $limit) . ",{$limit}");
+        $sql = $this->getLastSql();
+        foreach($list as &$row) {
+            $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
+            $row["goods"] = OrderDeliveryGoods::where("delivery_id", $row["id"])->select();
+            foreach($row["goods"] as &$goods) {
+                $goods["umb"] = floatval($goods['width']) . "mm X " . floatval($goods['height']) . "mm X {$goods['num']} = " . round($goods['area'] * $goods['num'], 2) . "m² X {$goods['unitprice']}元 = {$goods['delivery_money']}元";
+            }
+            $row["total_money"] = $row["manual_money"] + $row["delivery_money"];
+        }
+
+        return compact('count', 'list', 'sql');
+    }
+}

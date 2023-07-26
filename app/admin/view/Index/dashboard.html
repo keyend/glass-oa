@@ -1,0 +1,180 @@
+{extend name="base" /}
+{block name="resources"}
+<link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+<link rel="stylesheet" href="/static/admin/css/other/console1.css" />
+{/block}
+{block name="body"}
+<div class="layui-fluid" style="padding-top: 15px;">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-xs6 layui-col-md3">
+                    <div class="layui-card top-panel">
+                        <div class="layui-card-header">用户数量</div>
+                        <div class="layui-card-body">
+                            <div class="layui-row layui-col-space5">
+                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                                    {$count.user}
+                                </div>
+                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6e0;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs6 layui-col-md3">
+                    <div class="layui-card top-panel">
+                        <div class="layui-card-header">订单数量</div>
+                        <div class="layui-card-body">
+                            <div class="layui-row layui-col-space5">
+                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                                    {$count.vip}
+                                </div>
+                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                                    <span class="icon pear-icon" style="font-size: 40px">&#xe697;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs6 layui-col-md3">
+                    <div class="layui-card top-panel">
+                        <div class="layui-card-header">今日订单</div>
+                        <div class="layui-card-body">
+                            <div class="layui-row layui-col-space5">
+                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                                    {$count.file}
+                                </div>
+                                <div class="layui-col-xs4 layui-col-md4  top-panel-tips">
+                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6a4;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-xs6 layui-col-md3">
+                    <div class="layui-card top-panel">
+                        <div class="layui-card-header">本月订单</div>
+                        <div class="layui-card-body">
+                            <div class="layui-row layui-col-space5">
+                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                                    {$count.size}
+                                </div>
+                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6ad;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-body">
+                            <div class="layui-tab custom-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+                                <div id="echarts-records" style="background-color:#ffffff;min-height:400px;padding: 10px"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script>
+    layui.config({
+        base: '/static/admin/'
+    }).extend({
+        echarts: 'lib/echarts'
+    }).use(['layer', 'echarts', 'element'], function() {
+        var $ = layui.jquery,
+            layer = layui.layer,
+            element = layui.element,
+            echarts = layui.echarts;
+
+        var echartsRecords = echarts.init(document.getElementById('echarts-records'), 'walden');
+
+        var option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: [{
+                type: 'category',
+                data: [{$time_type|raw}],
+                axisLine: {
+                    lineStyle: {
+                        color: "#999"
+                    }
+                }
+            }],
+            yAxis: [{
+                type: 'value',
+                splitNumber: 4,
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed',
+                        color: '#DDD'
+                    }
+                },
+                axisLine: {
+                    show: false,
+                    lineStyle: {
+                        color: "#333"
+                    },
+                },
+                nameTextStyle: {
+                    color: "#999"
+                },
+                splitArea: {
+                    show: false
+                }
+            }],
+            tooltip: {
+                valueSuffix: ' 个',
+                    crosshairs: true,
+                    shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 0
+            },
+            series: [
+            {
+                name: '交易金额',
+                type: 'line',
+                color: 'rgba(0,242,59,246)', marker: { radius: 6 }, data: [{$series_reg|raw}]
+            },
+            {
+                name: '成功订单',
+                type: 'line',
+                color: 'rgba(0,15,182,59)', marker: { radius: 6 }, data: [{$series_order|raw}]
+            },
+            {
+                name: '客单价',
+                type: 'line',
+                color: 'rgba(0,92,219,192)', marker: { radius: 6 }, data: [{$series_money|raw}]
+            }
+            ]
+        };
+
+        echartsRecords.setOption(option);
+
+        window.onresize = function() {
+            echartsRecords.resize();
+        }
+
+    });
+</script>
+{/block}

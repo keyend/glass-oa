@@ -1,0 +1,110 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+    <script src="/static/component/pear/pear.js"></script>
+{/block}
+{block name="body"}
+<div class="layui-fluid" style="padding-top: 15px;">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                {include file="system/config/tabs" /}
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <form class="layui-form" action="" lay-filter="component-form-element">
+                            <input type="hidden" name="domain" value="{:request()->domain(true)}" />
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">系统名称</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <input type="text" name="site_title" value="{$option.site_title}" required  lay-verify="required" autocomplete="off" class="layui-input">
+                                    <div class="layui-form-mid layui-word-aux">系统的名称，将会展示在个页面的标题尾部、邮件中。</div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">系统图标</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+								    <div class="image-uploader" data-limit="1">
+                                        <input type="hidden" name="site_logo" value="{$option.site_logo}" required lay-verify="required" />
+                                        <div class="inner"></div>
+                                    </div>
+                                    <div class="layui-form-mid layui-word-aux">系统logo路径</div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item" style="display: none;">
+                                <label class="layui-form-label">网站首页</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <select name="index_theme" lay-verify="required">
+                                        <option value="default" {eq name="$option.index_theme" value="default"}selected{/eq}>新版主题</option>
+                                        <option value="new1" {eq name="$option.index_theme" value="new1"}selected{/eq}>旧版主题</option>
+                                    </select>
+                                    <div class="layui-form-mid layui-word-aux">网站首页主题</div>
+                                </div>
+                            </div>
+
+                            <br>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">厂家地址</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <input type="text" name="site_address" value="{$option.site_address}" autocomplete="off" class="layui-input">
+                                    <div class="layui-form-mid layui-word-aux"></div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">厂家电话</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <input type="text" name="site_contact" value="{$option.site_contact}" autocomplete="off" class="layui-input">
+                                    <div class="layui-form-mid layui-word-aux"></div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="save">保存设置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+{include file="Common/uploadImage" /}
+<script>
+    layui.use(['form','jquery'],function(){
+        let form = layui.form;
+        let $ = layui.jquery;
+
+        form.on('submit(save)', function(data){
+            $.ajax({
+                data:JSON.stringify(data.field),
+                dataType:'json',
+                contentType:'application/json',
+                type:'post',
+                success:function(res){
+                    if(res && res.code == 999){
+                        parent.layer.msg(res.message, {
+                            icon: 5,
+                            time: 2000,
+                        })
+                        return false;
+                    }else if(res.code == 0){
+                        parent.layer.msg(res.message,{icon:1,time:1000},function(){
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        });
+                    }else{
+                        parent.layer.msg(res.message,{icon:2,time:1000});
+                    }
+                }
+            })
+            return false;
+        });
+    })
+</script>
+{/block}

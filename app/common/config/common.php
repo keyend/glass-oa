@@ -1,0 +1,23 @@
+<?php
+return array (
+  'page' => '20',
+  'status' => '1',
+  'wechat' => NULL,
+  'wechat_appId' => 'wxd6c4dab2ed08e0a8',
+  'wechat_token' => '2ed08e0a8',
+  'wechat_encodingaes' => '3vFjMIeaKn2mSbmAxJj39EoTZ2wQz75xPwwVnCYRJM5',
+  'wechat_secret' => '60cc2f37cbe1de8210b20cab3ba587c7',
+  'wechat_template_expire' => '_wB0xbo8KPsSeMAcBvsOiRl-oCSxg9Mn8CqRhhYZiXI',
+  'room_release' => NULL,
+  'room_release_condi' => '3',
+  'room_release_allowed' => '5',
+  'alicloud' => NULL,
+  'alicloud_appId' => 'LTAI98n7WZnBzWYT',
+  'alicloud_secret' => 'BCj8OzCx0oBbfJVkiExXTrxPXj5iyk',
+  'luat' => NULL,
+  'luat_uri' => 'http://api.openluat.com',
+  'luat_appId' => 'cUTPGFSYr55YBjMO',
+  'luat_secret' => '3vR0ABlyquyXhCyjQlmUDE9546cWPdMBBbDROohOEiTbPwPyEdwuXVSRSrh4hG2X',
+  'luat_account' => '13779953060',
+  'luat_balance' => '93.00',
+);

@@ -1,0 +1,193 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+    <style>
+        .bg-green {
+            background-color: rgb(82, 161, 82)!important;
+        }
+        .bg-red {
+            background-color: rgb(255, 132, 132)!important;
+        }
+    </style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                {include file="Help/tabs" /}
+                <div class="layui-tab-content" style="margin-top: 15px;">
+                    <div class="layui-tab-item layui-show">
+                        <form class="layui-form" action="" lay-filter="component-form-element">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">内容标题</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <input type="text" name="title" value="{$e.title}" required lay-verify="required" autocomplete="off" class="layui-input" {if $e.help_id}disabled{/if} />
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">所属分类</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <select name="type" lay-verify="required" {if $e.help_id}disabled{/if}>
+                                        <option value="0" {eq name="$e.type" value="0"}selected{/eq}>帮助中心</option>
+                                        <option value="1" {eq name="$e.type" value="1"}selected{/eq}>常见问题</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">上级栏目</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <select name="parent_id">
+                                        <option value="">----</option>
+                                        {foreach name="parentList" id="v"}
+                                        <option value="{$v.help_id}" {if $v['help_id']==$e['parent_id']} selected{/if}>{$v.title}</option>
+                                        {/foreach}
+                                    </select>
+                                    <div class="layui-form-mid layui-word-aux">上级栏目只有在所属分类为帮助中心时有效，最多两级</div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">搜索字典</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <div style="width: 100%; height: 206px; overflow: auto; background-color: #f7f7f7; padding: 3px;">
+                                        <input type="hidden" name="keywords" id="keywords" value="" />
+                                        <table id="table-kw-list" lay-filter="keywords-list" class="layui-table-liner"></table>
+                                    </div>
+                                    <div class="layui-inline" style="padding: 7px 0; background-color: #f0f0f0; width: 100%;">
+                                        <label class="layui-form-label">新增关键字</label>
+                                        <div class="layui-input-inline layui-input-wrap">
+                                            <input type="text" autocomplete="off" lay-affix="clear" class="layui-input demo-phone" id="new-keyword" />
+                                        </div>
+                                        <div class="layui-form-mid" style="padding: 0!important;"> 
+                                            <button type="button" class="layui-btn layui-btn-sm layui-btn-success btn-keyword-apply" lay-on="get-vercode">添加</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">内容明细</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <script id="container" name="content" type="text/plain">{$e.content|raw}</script>
+                                </div>
+                            </div>
+
+                            <br />
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-sm" lay-submit lay-filter="save">立即提交</button>
+                                    <button type="reset" class="layui-btn layui-btn-sm layui-btn-primary">重置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script src="__STATIC__/common/js/ueditor/ueditor.config.js"></script>
+<script src="__STATIC__/common/js/ueditor/ueditor.all.js"></script>
+<script type="text/html" id="kwToolbar">
+    <div class="layui-clear-space layui-btn-group">
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="remove">
+            <i class="layui-icon layui-icon-delete"></i>删除
+        </a>
+    </div>
+</script>
+<script>
+    const keywords = {:json_encode($e['keywords'])};
+
+    layui.use(['form','jquery','table'],function(){
+        var $ = layui.$
+        ,form = layui.form
+        ,table = layui.table
+        ,_tdl
+        ,_tds = keywords;
+
+        var ue = UE.getEditor('container', {
+            toolbars: [
+                [
+                    'fullscreen', 'source', 'undo', 'redo', '|', 'bold', 'italic', 
+                    'underline', 'fontborder', 'strikethrough', 'removeformat', 
+                    'formatmatch', 'simpleupload', '|', 'forecolor', 'backcolor',
+                    'fontsize', 'link'
+                ]
+            ],
+            initialFrameHeight: 210,
+            zIndex : 0
+        });
+
+        function load_tdl() {
+            _tdl = table.render({
+                elem: '#table-kw-list'
+                ,id: 'keywords-list'
+                ,cols: [[
+                    {field: 'keyword', title: '关键字'}
+                    ,{title: '操作', width: 100, toolbar: '#kwToolbar'}
+                ]]
+                ,data: _tds
+                ,done: function(res, curr, count) {
+                    $('#keywords').val(JSON.stringify(res.data))
+                }
+            })
+        }
+
+        load_tdl(),
+        
+        table.on('tool(keywords-list)', function(obj) {
+            console.log(obj.data);
+            switch(obj.event) {
+                case 'remove':
+                    _tds.forEach((v,i) => {
+                        v.id == obj.data.id && _tds.splice(i, 1)
+                    }),
+                    load_tdl();
+                    break;
+            }
+        }),
+
+        $('.btn-keyword-apply').on("click", function() {
+            var $that = $("#new-keyword");
+            _tds.unshift({
+                id: "t_" + (new Date()).getTime(),
+                keyword: $that.val() 
+            }),
+            $that.val(""),
+            load_tdl()
+        });
+
+
+        form.on('submit(save)', function(data){
+            $.ajax({
+                data:JSON.stringify(data.field),
+                dataType:'json',
+                contentType:'application/json',
+                type:'post',
+                success:function(res){
+                    if(res && res.code == 999){
+                        parent.layer.msg(res.message, {
+                            icon: 5,
+                            time: 2000,
+                        })
+                        return false;
+                    }else if(res.code == 0){
+                        parent.layer.msg(res.message,{icon:1,time:1000},function(){
+                            location.replace(document.referrer);
+                        });
+                    }else{
+                        parent.layer.msg(res.message,{icon:2,time:1000});
+                    }
+                }
+            })
+            return false;
+        });
+    })
+</script>
+{/block}

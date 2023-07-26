@@ -1,0 +1,58 @@
+
+<div class="layui-form-item">
+    <label class="layui-form-label">客户头像</label>
+    <div class="layui-input-block">
+        <div class="image-uploader" data-limit="1">
+            <input type="hidden" name="avatar" value="{$info.avatar}" />
+            <div class="inner"></div>
+        </div>
+    </div>
+</div>
+
+<div class="layui-form-item" style="display: none;">
+    <label class="layui-form-label">用户帐号</label>
+    <div class="layui-input-block">
+        {if $info.id}
+        <div class="layui-form-mid layui-word-aux">{$info.username}</div>
+        {else}
+        <input type="text" name="username" lay-verify="required" placeholder="请输入用户帐号" autocomplete="off" class="layui-input" value="{$info.username}" />
+        {/if}
+    </div>
+</div>
+
+<div class="layui-form-item">
+    <label class="layui-form-label">客户名称</label>
+    <div class="layui-input-block">
+        <input type="text" name="nickname" lay-verify="required" placeholder="请输入客户名称" autocomplete="off" class="layui-input" value="{$info.nickname}" />
+    </div>
+</div>
+
+{if $info.id}
+<div class="layui-form-item">
+    <label class="layui-form-label">联系电话</label>
+    <div class="layui-input-block">
+        <input type="mobile" name="mobile" value="{$info.mobile}"  placeholder="请输入手机号，如果不修改请忽略本参数" class="layui-input">
+    </div>
+</div>
+{else}
+<div class="layui-form-item">
+    <label class="layui-form-label">联系电话</label>
+    <div class="layui-input-block">
+        <input type="mobile" name="mobile" value="{$info.mobile}"  placeholder="请输入手机号" class="layui-input">
+    </div>
+</div>
+{/if}
+
+<div class="layui-form-item">
+    <label class="layui-form-label">配送地址</label>
+    <div class="layui-input-block">
+        <input type="text" name="desc" lay-verify="required" placeholder="请输入客户名称" autocomplete="off" class="layui-input" value="{$info.desc}" />
+    </div>
+</div>
+
+<div class="layui-form-item">
+    <label class="layui-form-label">保底面积</label>
+    <div class="layui-input-block">
+        <input type="number" name="minarea" lay-verify="required" autocomplete="off" class="layui-input" value="{$info.minarea}" />
+    </div>
+</div>

@@ -1,0 +1,181 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+    <style>
+        .bg-green {
+            background-color: rgb(82, 161, 82)!important;
+        }
+        .bg-red {
+            background-color: rgb(255, 132, 132)!important;
+        }
+    </style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                {include file="Help/tabs" /}
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show" style="margin-top: 10px;">
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索类型</label>
+                            <div class="layui-input-inline">
+                                <select name="search_type" lay-verify="required" class="layui-select">
+                                    <option value="keyword">关键字</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索内容</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                搜索结果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <table id="LAY-list-table" lay-filter="LAY-list-table"></table>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script type="text/html" id="user-toolbar">
+    <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
+        <i class="layui-icon layui-icon-add-1"></i>新增问题
+    </button>
+    <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
+        <i class="layui-icon layui-icon-delete"></i>
+        批量删除
+    </button>
+</script>
+
+<script type="text/html" id="user-bar">
+    <button class="pear-btn pear-btn-primary pear-btn-sm" lay-event="edit"><i class="layui-icon layui-icon-edit"></i></button>
+    <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i class="layui-icon layui-icon-delete"></i></button>
+</script> 
+
+<script type="text/html" id="user-auth">
+    {{#if (d.status == 0) { }}
+    <span class="layui-badge layui-bg-orange">未处理</span>
+    {{# }else if(d.status == 1){ }}
+    <span class="layui-badge layui-bg-blue">已处理</span>
+    {{# } }}
+</script>
+
+<!---->
+<script>
+
+    layui.config({
+        base: '/static/admin/'
+    }).use(['table', 'form'], function(){
+        var $ = layui.$
+            ,form = layui.form
+            ,table = layui.table
+            ,pageTable;
+
+        var active = {
+            add: function(){
+                location.href = "{:url('helpAdd')}";
+            },
+            batchRemove: function(v) {
+                parent.layer.confirm('您确定要删除这些内容？', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('helpDel')}", {id: ns.tableSelected(v, "help_id")}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                });
+            }
+        };
+
+        // 监听搜索
+        form.on('submit(LAY-list-back-search)', function(data){
+            var field = data.field;
+
+            // 执行重载
+            table.reload('LAY-list-table', {
+                where: field
+            });
+        }),
+
+        renderTable();
+
+        // 渲染表格
+        function renderTable() {
+            pageTable = table.render({
+                elem: "#LAY-list-table",
+                url: "{:url('helpList')}",
+                toolbar: '#user-toolbar',
+                cols: [[
+                    {type: 'checkbox'},
+                    {title: '内容标题', field: 'title'},
+                    {title: '上级内容', field: 'parent_title', width: 260},
+                    {title: '内容类别', field: 'type_text', width: 160},
+                    {title: '编辑时间', field: 'update_time', width: 156},
+                    {title: '操作', toolbar: '#user-bar', align: 'center', width: 130}
+                ]],
+                parseData: function(res) {
+                    return {
+                        code: res.code,
+                        msg: res.message,
+                        count: res.data.count,
+                        data: res.data.list
+                    }
+                },
+                done: function() {
+                    ns.page = this.page.curr;
+                },
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: "对不起，加载出现异常！"
+            });
+
+            table.on('toolbar(LAY-list-table)', function(o) {
+                active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("tool(LAY-list-table)", function(e) {
+                if ("remove" === e.event) {
+                    parent.layer.confirm('您确定要删除该内容？', {
+                        title: '友情提示',
+                        icon: 3,
+                        btn: ['是的', '再想想']
+                    }, function(i) {
+                        parent.layer.close(i),
+                        ns.silent("{:url('helpDel')}", {id: e.data.help_id}, res => {
+                            if (res.code == 0) {
+                                setTimeout(() => pageTable.reload(), 100)
+                            } else {
+                                layer.alert(res.message)
+                            }
+                        })
+                    });
+                } else if ("edit" === e.event) {
+                    location.href = "{:url('helpEdit')}?id=" + e.data.help_id
+                }
+            });
+        }
+    });
+
+</script>
+{/block}

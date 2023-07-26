@@ -1,0 +1,15 @@
+{foreach $categorys as $category}
+<div class="layui-form-item">
+    <label class="layui-form-label">{$category.group}</label>
+    <div class="layui-input-block">
+        {foreach $category.list as $vo}
+        <div class="layui-inline layui-input-inline-group">
+            <label class="layui-form-label">{$vo.category}</label>
+            <div class="layui-input-inline layui-input-wrap">
+                <input type="number" name="category[{$vo.id}]" autocomplete="off" lay-affix="clear" class="layui-input" value="{$info['category'][$vo.id]}" />
+            </div>
+        </div>
+        {/foreach}
+    </div>
+</div> 
+{/foreach}
