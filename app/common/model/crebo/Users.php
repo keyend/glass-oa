@@ -132,6 +132,8 @@ class Users extends Model
         }
         $data["status"] = 1;
         $data["create_time"] = TIMESTAMP;
+        $data["openid"] = uniqid();
+        $data["device_type"] = "H5";
         self::insert($data);
         $data["id"] = self::getLastInsID();
         event("UserRegister", $data);

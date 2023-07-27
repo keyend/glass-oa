@@ -1,4 +1,4 @@
-<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690289723;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690467905;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -167,7 +167,7 @@
                     KH: data.customer,
                     DD: data.out_trade_no,
                     MC: v.category,
-                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.area + "m²",
+                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高→" + v.num,
                     GY: v.craft,
                     XH: v.remark
                 })
@@ -179,7 +179,7 @@
             var loader = parent.layer.load(2, { shade: ['#fff', .3] });
             console.log(JSON.stringify(data));
             $.ajax({
-                url: 'http://192.168.1.21:31580/Printer',
+                url: 'http://127.0.0.1:31580/Printer',
                 type: 'POST',
                 dataType: 'json',
                 data: JSON.stringify(data),

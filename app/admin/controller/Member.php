@@ -105,6 +105,7 @@ class Member extends Controller
 				$update['mobile'] = $data['mobile'];
 			}
             $update["id"] = $id;
+            $update['nickname'] = $data['nickname'];
             $update['desc'] = $data['desc'];
             $update['minarea'] = (float)$data['minarea'];
             $update["category"] = $data["category"] ?? [];
@@ -157,7 +158,7 @@ class Member extends Controller
                     "pay_status"    => 1,
                     "pay_time"      => TIMESTAMP
                 ]);
-                return $this->success($pay_id);
+                return $this->success();
             } catch(\Exception $e) {
                 return $this->fail($e->getMessage());
             }
@@ -180,9 +181,11 @@ class Member extends Controller
                 ['search_type', ''],
                 ['search_value', ''],
                 ['search_time', ''],
-                ['customer_id', 0]
+                ['customer_id', 0],
+                ['export', 0]
             ]);
             $filter["customer_id"] = (int)$filter["customer_id"];
+            $filter["export"] = (int)$filter["export"];
             [$page, $limit] = $this->getPaginator();
             $data = $order_pay->getList($page, $limit, $filter);
             return $this->success($data);

@@ -1,0 +1,170 @@
+{extend name="base" /}
+{block name="resources"}
+<style>
+    .layui-table {
+        border-color: #000000!important;
+        border-spacing: 1px 1px;
+    }
+    .layui-table td, .layui-table th {
+        text-align: center;
+        padding: 2.25px 3.25px!important;
+    }
+</style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <h1 style="text-align: center; line-height: 60px; margin-bottom: 10px; margin-top: -20px;">
+                <span style="display: inline-block; border-bottom: 2px solid #eee;">{$option.site_title}订单汇总</span>
+            </h1>
+            <div class="layui-row">
+                <div class="layui-col-xs6">
+                    当前时间：{:date("Y-m-d H:i")}<br />
+                </div>
+                <div class="layui-col-xs6">
+                    操作员：{:S2}
+                </div>
+            </div>
+            <table cellspacing="0" cellpadding="0" border="0" class="layui-table" style="width: 100%;">
+                <thead>
+                <tr>
+                    <th data-field="id" data-key="1-0-0" title="#">
+                    <div class="layui-table-cell laytable-cell-1-0-0" align="center">
+                    <span>#</span>
+                    </div></th>
+                    <th data-field="create_time" data-key="1-0-1" title="开单时间">
+                    <div class="layui-table-cell laytable-cell-1-0-1">
+                    <span>开单时间</span>
+                    </div></th>
+                    <th data-field="delivery_time" data-key="1-0-2" title="送货时间">
+                    <div class="layui-table-cell laytable-cell-1-0-2">
+                    <span>送货时间</span>
+                    </div></th>
+                    <th data-field="customer" data-key="1-0-3" title="客户名称">
+                    <div class="layui-table-cell laytable-cell-1-0-3">
+                    <span>客户名称</span>
+                    </div></th>
+                    <th data-field="trade_no" data-key="1-0-4" title="订单编号">
+                    <div class="layui-table-cell laytable-cell-1-0-4">
+                    <span>订单编号</span>
+                    </div></th>
+                    <th data-field="category" data-key="1-0-5" title="产品名称">
+                    <div class="layui-table-cell laytable-cell-1-0-5">
+                    <span>产品名称</span>
+                    </div></th>
+                    <th data-field="craft" data-key="1-0-6" title="工艺">
+                    <div class="layui-table-cell laytable-cell-1-0-6">
+                    <span>工艺</span>
+                    </div></th>
+                    <th data-field="width" data-key="1-0-7" title="宽mm">
+                    <div class="layui-table-cell laytable-cell-1-0-7">
+                    <span>宽mm</span>
+                    </div></th>
+                    <th data-field="height" data-key="1-0-8" title="高mm">
+                    <div class="layui-table-cell laytable-cell-1-0-8">
+                    <span>高mm</span>
+                    </div></th>
+                    <th data-field="area" data-key="1-0-9" title="面积m&sup2;">
+                    <div class="layui-table-cell laytable-cell-1-0-9">
+                    <span>面积m&sup2;</span>
+                    </div></th>
+                    <th data-field="num" data-key="1-0-10" title="数量">
+                    <div class="layui-table-cell laytable-cell-1-0-10">
+                    <span>数量</span>
+                    </div></th>
+                    <th data-field="unitprice" data-key="1-0-11" title="单价">
+                    <div class="layui-table-cell laytable-cell-1-0-11">
+                    <span>单价</span>
+                    </div></th>
+                    <th data-field="manual_money" data-key="1-0-12" title="加工费">
+                    <div class="layui-table-cell laytable-cell-1-0-12">
+                    <span>加工费</span>
+                    </div></th>
+                    <th data-field="total_money" data-key="1-0-13" title="金额">
+                    <div class="layui-table-cell laytable-cell-1-0-13">
+                    <span>金额</span>
+                    </div></th>
+                    <th data-field="remark" data-key="1-0-14" title="备注" width="300">
+                    <div class="layui-table-cell laytable-cell-1-0-14">
+                    <span>备注</span>
+                    </div></th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach data.list as $i => $v}
+                  <tr data-index="0">
+                    <td data-field="id" data-key="1-0-0">
+                      <div class="layui-table-cell laytable-cell-1-0-0" align="center">{$i+1}</div>
+                    </td>
+                    <td data-field="create_time" data-key="1-0-1">
+                      <div class="layui-table-cell laytable-cell-1-0-1">{$v.create_time}</div>
+                    </td>
+                    <td data-field="delivery_time" data-key="1-0-2">
+                      <div class="layui-table-cell laytable-cell-1-0-2">{$v.delivery_time}</div>
+                    </td>
+                    <td data-field="customer" data-key="1-0-3">
+                      <div class="layui-table-cell laytable-cell-1-0-3">{$v.customer}</div>
+                    </td>
+                    <td data-field="trade_no" data-key="1-0-4">
+                      <div class="layui-table-cell laytable-cell-1-0-4">{$v.trade_no}</div>
+                    </td>
+                    <td data-field="category" data-key="1-0-5">
+                      <div class="layui-table-cell laytable-cell-1-0-5">{$v.category}</div>
+                    </td>
+                    <td data-field="craft" data-key="1-0-6">
+                      <div class="layui-table-cell laytable-cell-1-0-6">{$v.craft}</div>
+                    </td>
+                    <td data-field="width" data-key="1-0-7">
+                      <div class="layui-table-cell laytable-cell-1-0-7">{$v.width}</div>
+                    </td>
+                    <td data-field="height" data-key="1-0-8">
+                      <div class="layui-table-cell laytable-cell-1-0-8">{$v.height}</div>
+                    </td>
+                    <td data-field="area" data-key="1-0-9">
+                      <div class="layui-table-cell laytable-cell-1-0-9">{$v.area}</div>
+                    </td>
+                    <td data-field="num" data-key="1-0-10">
+                      <div class="layui-table-cell laytable-cell-1-0-10">{$v.num}</div>
+                    </td>
+                    <td data-field="unitprice" data-key="1-0-11">
+                      <div class="layui-table-cell laytable-cell-1-0-11">{$v.unitprice}</div>
+                    </td>
+                    <td data-field="manual_money" data-key="1-0-12">
+                      <div class="layui-table-cell laytable-cell-1-0-12">{$v.manual_money}</div>
+                    </td>
+                    <td data-field="total_money" data-key="1-0-13">
+                      <div class="layui-table-cell laytable-cell-1-0-13">{$v.total_money}</div>
+                    </td>
+                    <td data-field="remark" data-key="1-0-14">
+                      <div class="layui-table-cell laytable-cell-1-0-14">{$v.remark}</div>
+                    </td>
+                  </tr>
+                {/foreach}
+                </tbody>
+                <tfoot>
+                    <tr bgcolor="#f0f0f0">
+                        <td colspan="10">
+                            <div class="layui-table-cell" style="text-align: left;">
+                                合计共有 {$data.count} 条记录
+                            </div>
+                        </td>
+                        <td>{:array_sum(array_values(array_column($data['list'], "num")))}</td>
+                        <td></td>
+                        <td>{:array_sum(array_values(array_column($data['list'], "manual_money")))}</td>
+                        <td>{:array_sum(array_values(array_column($data['list'], "total_money")))}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script>
+    layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table'], function(){
+        window.print();
+    })
+</script>
+{/block}

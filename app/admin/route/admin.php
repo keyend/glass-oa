@@ -94,13 +94,6 @@ Route::group(function() {
             Route::rule("palst", '/palst')->name("memberPalst");
         });
     })->prefix('member');
-    // 储存策略
-    Route::group('policy', function() {
-        Route::get('', '/index')->name('policy');
-        Route::rule('add', '/add', 'POST|GET')->name('policyAdd');
-        Route::rule('edit', '/edit', 'POST|GET')->name('policyEdit');
-        Route::rule('delete', '/delete', 'POST|GET')->name('policyDel');
-    })->prefix('policy');
     // 订单管理
     Route::group('order', function() {
         Route::get('', '/index')->name('order');
@@ -110,32 +103,10 @@ Route::group(function() {
         Route::post('trash', '/trash')->name('orderTrash');
         Route::rule("delivery/list", '/deliveryList', 'POST|GET')->name('delivery');
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
+        Route::rule('converge', '/converge')->name("orderConverge");
+        Route::rule('label', '/label')->name("orderLabel");
         Route::get('print', '/print')->name('orderPrint');
     })->prefix('order');
-    // 提现管理
-    Route::group('withdraw', function() {
-        Route::get('', '/withdraw')->name('withdraw');
-        Route::get('list/:id', '/getWithdrawList')->name('withdrawList');
-        Route::rule('audit', '/auditWithdraw', 'POST|GET')->name('withdrawAudit');
-    })->prefix('finance');
-    // 举报处理
-    Route::group('tipoff', function() {
-        Route::get('', '/index')->name('tipoff');
-        Route::get('list/:id', '/getList')->name('tipoffList');
-        Route::get('detail', '/detail', 'POST|GET')->name('tipoffDetail');
-        Route::rule('update', '/update', 'POST|GET')->name('tipoffUpdate');
-    })->prefix('tipoff');
-    // 帮助中心
-    Route::group('help', function() {
-        Route::get('', '/index')->name('help');
-        Route::get('list', '/getList')->name('helpList');
-        Route::rule('add', '/add', 'POST|GET')->name('helpAdd');
-        Route::rule('edit', '/edit', 'POST|GET')->name('helpEdit');
-        Route::rule('delete', '/delete', 'POST|GET')->name('helpDel');
-        Route::get('feedback/list/:id', '/getFeedbackList')->name('helpFeedbackList');
-        Route::rule('feedback/detail', '/getFeedbackDetail', 'POST|GET')->name('helpFeedbackDetail');
-        Route::get('feedback', '/feedback')->name('helpFeedback');
-    })->prefix('help');
 })->middleware('ConsoleAuthorize', true);
 
 // 必需登录

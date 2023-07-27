@@ -1,4 +1,4 @@
-<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Index\index.html";i:1689598196;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Index\index.html";i:1690468458;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -117,6 +117,10 @@
                             <dd><a lay-href="<?php echo url('order'); ?>">订单管理</a></dd>
                             <?php endif; if(checkAccess('delivery')): ?>
                             <dd><a lay-href="<?php echo url('delivery'); ?>">配送列表</a></dd>
+                            <?php endif; if(checkAccess('orderLabel')): ?>
+                            <dd><a lay-href="<?php echo url('orderLabel'); ?>">标签列表</a></dd>
+                            <?php endif; if(checkAccess('orderConverge')): ?>
+                            <dd><a lay-href="<?php echo url('orderConverge'); ?>">订单汇总</a></dd>
                             <?php endif; ?>
                         </dl>
                     </li>

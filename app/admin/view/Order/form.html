@@ -62,7 +62,7 @@
             <table class="layui-table">
                 <colgroup>
                     <col width="70" />
-                    <col width="160" />
+                    <col width="200" />
                     <col width="160" />
                     <col width="100" />
                     <col />
@@ -114,7 +114,7 @@
             </select>
         </td>
         <td>
-            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select">
+            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft">
                 {foreach $crafts as $craft}
                 <option value="{$craft.id}">{$craft.craft}</option>
                 {/foreach}
@@ -287,6 +287,11 @@
             data[id]['category_id'] = obj.value,
 
             that.find('input[data-name="num"]').trigger("input")
+        }),
+
+        form.on("select(craft)", function(obj) {
+            var that = $(obj.elem).parent().parent(), id = that.attr("id").replace('item_', '');
+            data[id]['craft_id'] = obj.value;
         }),
 
         form.on('submit(form1)', function(obj) {

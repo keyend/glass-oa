@@ -1,11 +1,11 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => NULL,
+        'reference' => '0b489f79c8650e81f11df923f7753d99817fcf7a',
         'name' => 'topthink/think',
         'dev' => true,
     ),
@@ -152,6 +152,15 @@
             'install_path' => __DIR__ . '/../overtrue/wechat',
             'aliases' => array(),
             'reference' => '52af4cbe777cd4aea307beafa0a4518c347467b1',
+            'dev_requirement' => false,
+        ),
+        'phpoffice/phpexcel' => array(
+            'pretty_version' => '1.8.2',
+            'version' => '1.8.2.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpoffice/phpexcel',
+            'aliases' => array(),
+            'reference' => '1441011fb7ecdd8cc689878f54f8b58a6805f870',
             'dev_requirement' => false,
         ),
         'pimple/pimple' => array(
@@ -494,12 +503,12 @@
             'dev_requirement' => false,
         ),
         'topthink/think' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => NULL,
+            'reference' => '0b489f79c8650e81f11df923f7753d99817fcf7a',
             'dev_requirement' => false,
         ),
         'topthink/think-captcha' => array(

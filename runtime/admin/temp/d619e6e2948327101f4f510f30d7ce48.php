@@ -1,4 +1,4 @@
-<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\index.html";i:1690187389;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\index.html";i:1690467442;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -175,8 +175,8 @@
                 toolbar: '#user-toolbar',
                 cols: [[
                     {type: 'checkbox'},
-                    {title: '订单号', field: 'trade_no', width: 215},
-                    {title: '客户', field: 'customer', width: 120},
+                    {title: '订单号', field: 'trade_no', width: 115},
+                    {title: '客户', field: 'customer', width: 220},
                     {title: '客户手机', field: 'mobile', width: 110},
                     {title: '订单金额', field: 'order_money', width: 100},
                     {title: '已收金额', field: 'pay_money', width: 100},

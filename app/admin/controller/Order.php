@@ -3,7 +3,9 @@ namespace app\admin\controller;
 use app\admin\Controller;
 use app\common\model\system\ConfigModel;
 use app\common\model\crebo\Order as OrderModel;
+use app\common\model\crebo\OrderGoods;
 use app\common\model\crebo\OrderDelivery;
+use app\common\model\crebo\OrderDeliveryGoods;
 use app\common\model\crebo\Category;
 use app\common\model\crebo\Craft;
 use app\common\model\crebo\Users;
@@ -187,6 +189,39 @@ class Order extends Controller
     }
 
     /**
+     * 订单汇总
+     *
+     * @param OrderDeliveryGoods $order_delivery_model
+     * @return void
+     */
+    public function converge(OrderDeliveryGoods $order_delivery_model, ConfigModel $config_model, Users $user_model)
+    {
+        if($this->request->isAjax() || $this->request->isPost()) {
+            $filter = array_keys_filter($this->request->param(), [
+                ['search_type', ""],
+                ["search_value", ""],
+                ['search_time', ''],
+                ['export', 0],
+                ['print', 0]
+            ]);
+            [$page, $limit] = $this->getPaginator();
+            $data = $order_delivery_model->getConverge($page, $limit, $filter);
+            if ($filter["print"] == 1) {
+                $options = $this->getOptions($config_model, "basic");
+                $this->assign('option', $options);
+                $this->assign('data', $data);
+                return $this->fetch('Order/converge_print');
+            } else {
+                return $this->success($data);
+            }
+        } else {
+            $customers = $user_model->where("status", 1)->field("id,nickname")->select();
+            $this->assign("customers", $customers);
+            return $this->fetch('Order/converge');
+        }
+    }
+
+    /**
      * 配送明细
      *
      * @param OrderModel $order_model
@@ -332,5 +367,28 @@ class Order extends Controller
         $this->assign("delivery", $delivery);
         $this->assign('option', $options);
         return $this->fetch('Order/printer');
+    }
+
+    /**
+     * 标签列表
+     *
+     * @param OrderGoods $order_goods
+     * @return void
+     */
+    public function label(OrderGoods $order_goods)
+    {
+        if($this->request->isAjax() || $this->request->isPost()) {
+            $filter = array_keys_filter($this->request->param(), [
+                ['search_type', ""],
+                ["search_value", ""],
+                ['search_time', ''],
+                ['print', 0]
+            ]);
+            [$page, $limit] = $this->getPaginator();
+            $data = $order_goods->getList($page, $limit, $filter);
+            return $this->success($data);
+        } else {
+            return $this->fetch('Order/label');
+        }
     }
 }
