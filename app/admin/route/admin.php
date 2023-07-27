@@ -108,7 +108,6 @@ Route::group(function() {
         Route::get('print', '/print')->name('orderPrint');
     })->prefix('order');
 })->middleware('ConsoleAuthorize', true);
-
 // 必需登录
 Route::group(function() {
     Route::group('user', function() {
