@@ -1,4 +1,4 @@
-<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690387450;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690472305;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,6 +44,9 @@
         }
         .layui-btn-fill .layui-btn {
             width: 100%;
+        }
+        .layui-table {
+            width: 100%!important;
         }
     </style>
 </head>
@@ -180,7 +183,6 @@
 
         // 渲染表格
         function renderTable(filter) {
-            console.log(filter);
             $.ajax({
                 url: location.href,
                 type: 'POST',

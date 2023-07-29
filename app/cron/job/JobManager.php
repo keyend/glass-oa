@@ -6,6 +6,7 @@ namespace app\cron\job;
  * @version 1.0.0
  * @suggest topthink/think-queue
  */
+use think\queue;
 use think\queue\Job;
 use think\facade\Log;
 

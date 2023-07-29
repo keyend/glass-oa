@@ -1,4 +1,4 @@
-<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690467075;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690631983;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,6 +29,9 @@
     }
     .layui-number:not(:first-of-type) {
         margin-left: 6px;
+    }
+    .layui-table {
+        width: 100%!important;
     }
 </style>
 </head>
@@ -116,7 +119,7 @@
 <script id="row" type="text/html">
     <tr id="item_{{ d.id }}"> 
         <td>
-            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm">
+            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-delete>
                 <i class="layui-icon layui-icon-delete"></i>
             </button>
         </td>
@@ -221,6 +224,10 @@
                 var that = $(this);
                 data[id][that.data("name")] = that.val();
             }),
+            context.find(rid).find('button[lay-delete]').on('click', function() {
+                delete data[id];
+                context.find(rid).remove()
+            }),
             context.find(rid).find('input[type="number"]').on("focus", function() {
                 this.select();
             }).on("input propertychange", function() {
@@ -306,7 +313,6 @@
         form.on("select(craft)", function(obj) {
             var that = $(obj.elem).parent().parent(), id = that.attr("id").replace('item_', '');
             data[id]['craft_id'] = obj.value;
-            console.log(data, id);
         }),
 
         form.on('submit(form1)', function(obj) {

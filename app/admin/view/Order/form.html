@@ -16,6 +16,9 @@
     .layui-number:not(:first-of-type) {
         margin-left: 6px;
     }
+    .layui-table {
+        width: 100%!important;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -102,7 +105,7 @@
 <script id="row" type="text/html">
     <tr id="item_{{ d.id }}"> 
         <td>
-            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm">
+            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-delete>
                 <i class="layui-icon layui-icon-delete"></i>
             </button>
         </td>
@@ -206,6 +209,10 @@
             context.find(rid).find('input[type="text"]').on("input propertychange", function() {
                 var that = $(this);
                 data[id][that.data("name")] = that.val();
+            }),
+            context.find(rid).find('button[lay-delete]').on('click', function() {
+                delete data[id];
+                context.find(rid).remove()
             }),
             context.find(rid).find('input[type="number"]').on("focus", function() {
                 this.select();
