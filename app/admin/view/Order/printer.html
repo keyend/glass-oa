@@ -1,16 +1,35 @@
 {extend name="base" /}
 {block name="resources"}
 <style>
-    .layui-table {
-        border-color: #000000!important;
-        border-spacing: 1px 1px;
+    html, body, * {
+        color: #000000!important;
+        font-family: "microsoft yahei";
     }
     .layui-table td, .layui-table th {
         text-align: center;
         padding: 2.25px 3.25px!important;
     }
     .layui-table {
+        color: #000000;
         width: 100%!important;
+        border-color: #000000!important;
+        background-color: #000000!important;
+        border-collapse: separate!important;
+        border-spacing: 0px 0px!important;
+        border-collapse: collapse;
+        border-left: 1px solid #000000!important;
+        border-top: 1px solid #000000!important;
+    }
+    .layui-table td,
+    .layui-table th {
+        border-color: transparent!important;
+        background-color: white;
+        border-bottom: 1px solid #000000!important;
+        border-right: 1px solid #000000!important;
+    }
+    .layui-table th {
+        background-color: #E7E7E7!important;
+        border-bottom-width: 2px!important;
     }
 </style>
 {/block}
@@ -19,11 +38,11 @@
     <div class="layui-card">
         <div class="layui-card-body">
             <h1 style="text-align: center; line-height: 60px; margin-bottom: 10px; margin-top: -20px;">
-                <span style="display: inline-block; border-bottom: 2px solid #eee;">{$option.site_title}</span>
+                <span style="display: inline-block; border-bottom: 2px solid #000000; color: #000000; line-height: 50px; margin-top: 10px;">{$option.site_title}送货清单</span>
             </h1>
             <div class="layui-row">
                 <div class="layui-col-xs6">
-                    收货人：{$delivery.order.member.nickname}<br />
+                    收货人：{$delivery.order.customer}<br />
                     收货地址：{$delivery.order.member.desc}
                 </div>
                 <div class="layui-col-xs6">
@@ -31,7 +50,7 @@
                     日期：{:date('Y年m月d日',strtotime($delivery['create_time']))}
                 </div>
             </div>
-            <table class="layui-table" width="100%" border-color="#666666" border="1" style="margin-top: 10px;">
+            <table class="layui-table" width="100%" style="margin-top: 10px;" cellspacing="0" cellpadding="0">
                 <colgroup>
                     <col>
                     <col>
@@ -173,8 +192,50 @@
 {/block}
 {block name="scripts"}
 <script>
+    var delivery = {:json_encode($delivery, JSON_UNESCAPED_SLASH)};
+
     layui.config({ base: '/static/admin/' }).use(['index', 'form', 'laytpl', 'table'], function(){
-        // window.print();
+        function getPrintArr(data, id) {
+            var result = {};
+            id = id || 0,
+            result.data = [],
+            data.goods.forEach(v => {
+                result.data.push({
+                    KH: data.customer,
+                    DD: data.out_trade_no,
+                    MC: v.category,
+                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
+                    GY: v.craft,
+                    XH: v.remark
+                })
+            });
+            return result;
+        }
+
+        function requestPrint(data) {
+            var loader = parent.layer.load(2, { shade: ['#fff', .3] });
+            console.log(JSON.stringify(data));
+            return false;
+            $.ajax({
+                url: 'http://127.0.0.1:31580/Printer2',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                processData: false,
+                contentType: "application/json; charset=utf-8",
+                complete: function(xhr) {
+                    parent.layer.close(loader);
+                    var r = JSON.parse(xhr.responseText);
+                    if (r.ret == 0) {
+                        parent.layer.msg("SUCCESS");
+                    } else {
+                        parent.layer.alert(r.msg)
+                    }
+                }
+            });
+        }
+
+        requestPrint(getPrintArr())
     })
 </script>
 {/block}

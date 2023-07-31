@@ -1,4 +1,4 @@
-<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690631983;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690632180;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -258,7 +258,6 @@
                 ,that.find(".label-price").text(data[id]['price'])
                 updateTotal()
             }),
-
             form.render()
         }
 

@@ -46,6 +46,14 @@ class OrderDelivery extends Model
         if (isset($filter['status']) && !empty($filter['status']) && $filter['status'] != 0) {
             $condition[] = "order.is_trash = " . (int)$filter['status'];
         }
+        if (isset($filter['search_time']) && !empty($filter['search_time'])) {
+            $times = explode(" - ", $filter['search_time']);
+            if (count($times) === 2) {
+                $times[0] = strtotime($times[0] . " 00:00:00");
+                $times[1] = strtotime($times[1] . " 23:59:59");
+                $condition[] = "delivery.create_time BETWEEN " . implode( " AND " , $times);
+            }
+        }
 
         $prefix = env("database.prefix", "");
         $tables = "{$prefix}{$this->name} `delivery` LEFT JOIN " .
@@ -58,7 +66,7 @@ class OrderDelivery extends Model
         }
         $count_query = Db::query("SELECT COUNT(*) AS think_count FROM {$tables} {$condition}");
         $count = (int)$count_query[0]['think_count'];
-        $list = Db::query("SELECT delivery.*,member.nickname,member.mobile FROM {$tables} {$condition} LIMIT " . (($page - 1) * $limit) . ",{$limit}");
+        $list = Db::query("SELECT delivery.*,member.nickname,member.mobile FROM {$tables} {$condition} ORDER BY delivery.id DESC LIMIT " . (($page - 1) * $limit) . ",{$limit}");
         $sql = $this->getLastSql();
         foreach($list as &$row) {
             $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);

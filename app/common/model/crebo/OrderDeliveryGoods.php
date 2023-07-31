@@ -77,8 +77,8 @@ class OrderDeliveryGoods extends Model
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
             if (count($times) === 2) {
-                $times[0] = strtotime($times[0]);
-                $times[1] = strtotime($times[1]);
+                $times[0] = strtotime($times[0] . " 00:00:00");
+                $times[1] = strtotime($times[1] . " 23:59:59");
                 $query->where('delivery.create_time', 'BETWEEN', $times);
             }
         }

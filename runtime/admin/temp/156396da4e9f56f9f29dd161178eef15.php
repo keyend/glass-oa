@@ -1,4 +1,4 @@
-<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery.html";i:1690385506;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery.html";i:1690634440;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -43,6 +43,9 @@
     }
     .layui-btn-fill .layui-btn {
         width: 100%;
+    }
+    .layui-table {
+        width: 100%!important;
     }
 </style>
 </head>
@@ -200,6 +203,7 @@
 
 <script>
     var printUrl = "<?php echo url('orderPrint'); ?>";
+    var defaultPrompt = "<?php echo htmlentities($option['order_printrm']); ?>";
 
     layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table'], function(){
         var $ = layui.$, goodsNums = {}, form = layui.form;
@@ -221,7 +225,7 @@
                 return false;
             }
 
-            parent.layer.prompt({title: '核算无误进行生成配送单？', formType: 2, value: '玻璃加工正常误差±2mm,如发现驶腐质量问题应在验收当天反映，逾期不予受理零'}, function(text, i){
+            parent.layer.prompt({title: '核算无误进行生成配送单？', formType: 2, value: defaultPrompt}, function(text, i){
                 parent.layer.close(i),
                 obj.field["remark"] = text,
                 ns.silent(location.href, obj.field, res => {

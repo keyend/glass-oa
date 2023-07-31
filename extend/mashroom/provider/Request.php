@@ -56,7 +56,7 @@ class Request extends \think\Request
         }
 
         $this->user = array_merge($this->user, $user);
-        $expireTime = 3600;
+        $expireTime = 43200;
         redis()->tag("login")->set("usr.{$this->user['SESSION_ID']}", $this->user, $expireTime);
 
         return [

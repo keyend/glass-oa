@@ -1,4 +1,4 @@
-<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690472305;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690638489;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -212,7 +212,7 @@
         }
 
         // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'datetime', range: true });
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
 
         // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){

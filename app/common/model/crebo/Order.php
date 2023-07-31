@@ -58,7 +58,7 @@ class Order extends Model
      */
     public function getList($page, $limit, $filter = [])
     {
-        $query = $this->order('order.id desc')->withJoin(["member"], "left");
+        $query = $this->withJoin(["member"], "left");
         if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
             if (in_array($filter['search_type'], ["trade_no", "out_trade_no"])) {
                 $query->where("order.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
@@ -66,13 +66,17 @@ class Order extends Model
                 $query->where("member.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
             }
         }
-        if (isset($filter['status']) && !empty($filter['status']) && $filter['status'] != "all") {
-            $query->where('order.status', '=', (int)$filter['status']);
+        if (isset($filter['status']) && $filter['status'] != "all") {
+            if ($filter['status'] != 3) {
+                $query->where('order.status', '=', (int)$filter['status'])->where("order.is_trash", 0);
+            } else {
+                $query->where('order.is_trash', '=', 1);
+            }
         }
         $list = [];
         $pay_types = ['alipay' => '支付宝','wxpay' => '微信', 'app' => 'APP'];
         $count = $query->count();
-        $query->page($page,$limit)->select()
+        $query->page($page,$limit)->order('order.id desc')->select()
         ->each(function ($item) use ($pay_types, &$list) {
             $row = array_merge($item->member?$item->member->toArray():[], $item->getData());
             $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);

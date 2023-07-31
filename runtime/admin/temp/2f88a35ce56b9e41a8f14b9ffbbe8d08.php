@@ -1,4 +1,4 @@
-<?php /*a:4:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\system\config\basic.html";i:1690292861;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;s:82:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\system\config\tabs.html";i:1689573915;s:82:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Common\uploadImage.html";i:1680162746;}*/ ?>
+<?php /*a:4:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\system\config\basic.html";i:1690634217;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;s:82:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\system\config\tabs.html";i:1689573915;s:82:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Common\uploadImage.html";i:1680162746;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -74,6 +74,14 @@
                                 <label class="layui-form-label">厂家电话</label>
                                 <div class="layui-input-block" style="max-width: 800px;">
                                     <input type="text" name="site_contact" value="<?php echo htmlentities($option['site_contact']); ?>" autocomplete="off" class="layui-input">
+                                    <div class="layui-form-mid layui-word-aux"></div>
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">送货单备注</label>
+                                <div class="layui-input-block" style="max-width: 800px;">
+                                    <textarea name="order_printrm" placeholder="默认送货单配置" class="layui-textarea"><?php echo htmlentities($option['order_printrm']); ?></textarea>
                                     <div class="layui-form-mid layui-word-aux"></div>
                                 </div>
                             </div>

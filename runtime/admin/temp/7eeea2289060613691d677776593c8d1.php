@@ -1,4 +1,4 @@
-<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690467905;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690633167;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,6 +58,9 @@
     }
     .layui-bg-red {
         background-color: rgb(175, 1, 1)!important;
+    }
+    .layui-table {
+        width: 100%!important;
     }
 </style>
 </head>
@@ -167,7 +170,7 @@
                     KH: data.customer,
                     DD: data.out_trade_no,
                     MC: v.category,
-                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高→" + v.num,
+                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
                     GY: v.craft,
                     XH: v.remark
                 })

@@ -1,5 +1,7 @@
 /.idea
 /.vscode
 /runtime
+/public/uploads
+
 *.log
 .env

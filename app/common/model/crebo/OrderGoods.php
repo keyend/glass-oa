@@ -36,8 +36,8 @@ class OrderGoods extends Model
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
             if (count($times) === 2) {
-                $times[0] = strtotime($times[0]);
-                $times[1] = strtotime($times[1]);
+                $times[0] = strtotime($times[0] . " 00:00:00");
+                $times[1] = strtotime($times[1] . " 23:59:59");
                 $query->where('order.create_time', 'BETWEEN', $times);
             }
         }
@@ -47,14 +47,14 @@ class OrderGoods extends Model
         }
         $list = [];
         $count = $query->count();
-        $fields = "order_goods.*,order.trade_no,order.customer";
+        $fields = "order_goods.*,order.trade_no,order.customer,order.order_num";
         $query->when($uspage, function($query) use($page, $limit) {
             $query->page($page,$limit);
         })->field($fields)->chunk(100, function ($lists) use (&$list) {
             foreach($lists as $item) {
                 $row = $item->toArray();
                 $row["height"] = (int)$row["height"];
-                $row["width"] = (int)$row["width"];
+                $row["width"]  = (int)$row["width"];
                 $list[] = $row;
             }
         }, "order_goods.id", "desc");

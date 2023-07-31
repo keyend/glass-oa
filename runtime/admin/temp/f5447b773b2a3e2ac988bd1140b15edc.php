@@ -1,4 +1,4 @@
-<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\label.html";i:1690472332;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\label.html";i:1690638554;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,7 +134,7 @@
                         KH: v.customer,
                         DD: v.trade_no,
                         MC: v.category,
-                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高→" + v.num,
+                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + v.order_num,
                         GY: v.craft,
                         XH: v.remark
                     })
@@ -242,7 +242,7 @@
         }),
 
         // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'datetime', range: true }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
         form.render();
         renderTable();
     });

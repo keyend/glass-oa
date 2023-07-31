@@ -120,7 +120,7 @@
                         KH: v.customer,
                         DD: v.trade_no,
                         MC: v.category,
-                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高→" + v.num,
+                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + v.order_num,
                         GY: v.craft,
                         XH: v.remark
                     })
@@ -228,7 +228,7 @@
         }),
 
         // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'datetime', range: true }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
         form.render();
         renderTable();
     });

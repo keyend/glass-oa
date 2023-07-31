@@ -227,7 +227,7 @@ class Order extends Controller
      * @param OrderModel $order_model
      * @return void
      */
-    public function delivery(OrderModel $order_model)
+    public function delivery(OrderModel $order_model, ConfigModel $config_model)
     {
         $orderid = input("order_id", 0);
         $order = $order_model->with(['goods', 'user', 'delivery', 'delivery.goods'])->find($orderid);
@@ -301,6 +301,10 @@ class Order extends Controller
             }
 		} else {
             $this->assign("order", $order_info);
+            $options = $this->getOptions($config_model, "basic");
+            $options["order_printrm"] = preg_replace(PHP_EOL, "\\n", $options["order_printrm"]);
+            str_replace("", "", $options["order_printrm"]);
+            $this->assign('option', $options);
             return $this->fetch('Order/delivery');
         }
     }
