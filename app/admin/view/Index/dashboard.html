@@ -2,69 +2,74 @@
 {block name="resources"}
 <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
 <link rel="stylesheet" href="/static/admin/css/other/console1.css" />
+<style>
+    .top-panel-number {
+        font-size: 21px!important;
+    }
+    .layui-tab-chart .layui-tab-item {
+        height: 360px;
+        overflow: auto;
+    }
+</style>
 {/block}
 {block name="body"}
 <div class="layui-fluid" style="padding-top: 15px;">
-    <div class="layui-card">
-        <div class="layui-card-body">
-            <div class="layui-row layui-col-space10">
-                <div class="layui-col-xs6 layui-col-md3">
-                    <div class="layui-card top-panel">
-                        <div class="layui-card-header">用户数量</div>
-                        <div class="layui-card-body">
-                            <div class="layui-row layui-col-space5">
-                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                                    {$count.user}
-                                </div>
-                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
-                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6e0;</span>
-                                </div>
-                            </div>
+    <div class="layui-row layui-col-space10">
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card top-panel">
+                <div class="layui-card-header">今日订单(单数/金额)</div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space5">
+                        <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                            {$today.count} / &yen;{$today.money}
+                        </div>
+                        <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                            <span class="icon pear-icon" style="font-size: 40px">&#xe6e0;</span>
                         </div>
                     </div>
                 </div>
-                <div class="layui-col-xs6 layui-col-md3">
-                    <div class="layui-card top-panel">
-                        <div class="layui-card-header">订单数量</div>
-                        <div class="layui-card-body">
-                            <div class="layui-row layui-col-space5">
-                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                                    {$count.vip}
-                                </div>
-                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
-                                    <span class="icon pear-icon" style="font-size: 40px">&#xe697;</span>
-                                </div>
-                            </div>
+            </div>
+        </div>
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card top-panel">
+                <div class="layui-card-header">今日配送(单数/金额)</div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space5">
+                        <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                            {$delivery.count} / &yen;{$delivery.money}
+                        </div>
+                        <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                            <span class="icon pear-icon" style="font-size: 40px">&#xe697;</span>
                         </div>
                     </div>
                 </div>
-                <div class="layui-col-xs6 layui-col-md3">
-                    <div class="layui-card top-panel">
-                        <div class="layui-card-header">今日订单</div>
-                        <div class="layui-card-body">
-                            <div class="layui-row layui-col-space5">
-                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                                    {$count.file}
-                                </div>
-                                <div class="layui-col-xs4 layui-col-md4  top-panel-tips">
-                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6a4;</span>
-                                </div>
-                            </div>
+            </div>
+        </div>
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card top-panel">
+                <div class="layui-card-header">本月订单(单数/金额)</div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space5">
+                        <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                            {$month.count} / &yen;{$month.money}
+                        </div>
+                        <div class="layui-col-xs4 layui-col-md4  top-panel-tips">
+                            <span class="icon pear-icon" style="font-size: 40px">&#xe6a4;</span>
                         </div>
                     </div>
                 </div>
-                <div class="layui-col-xs6 layui-col-md3">
-                    <div class="layui-card top-panel">
-                        <div class="layui-card-header">本月订单</div>
-                        <div class="layui-card-body">
-                            <div class="layui-row layui-col-space5">
-                                <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                                    {$count.size}
-                                </div>
-                                <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
-                                    <span class="icon pear-icon" style="font-size: 40px">&#xe6ad;</span>
-                                </div>
-                            </div>
+            </div>
+        </div>
+        <div class="layui-col-xs6 layui-col-md3">
+            <div class="layui-card top-panel">
+                <div class="layui-card-header">订单总览(单数/金额)</div>
+                <div class="layui-card-body">
+                    <div class="layui-row layui-col-space5">
+                        <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
+                            {$total.count} / &yen;{$total.money}
+                        </div>
+                        <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
+                            <span class="icon pear-icon" style="font-size: 40px">&#xe6ad;</span>
                         </div>
                     </div>
                 </div>
@@ -72,19 +77,29 @@
         </div>
     </div>
 
-    <div class="layui-card">
+    <div class="layui-card" style="margin-top: 15px;">
         <div class="layui-card-body">
-            <div class="layui-row layui-col-space10">
-                <div class="layui-col-md12">
-                    <div class="layui-card">
-                        <div class="layui-card-body">
-                            <div class="layui-tab custom-tab layui-tab-brief" lay-filter="docDemoTabBrief">
-                                <div id="echarts-records" style="background-color:#ffffff;min-height:400px;padding: 10px"></div>
-                            </div>
-                        </div>
+            <div class="layui-tab layui-tab-brief" lay-filter="demo-filter-tab">
+                <ul class="layui-tab-title">
+                    <li id="tab_default">活跃柱形图</li>
+                    <li>活跃分布图</li>
+                    <li>业务概览</li>
+                    <li>配送概览</li>
+                </ul>
+                <div class="layui-tab-content layui-tab-chart">
+                    <div class="layui-tab-item layui-show">
+                        <div data-role="chart" id="shape"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <div data-role="chart" id="pie"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <div data-role="chart" id="order"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <div data-role="chart" id="delivery"></div>
                     </div>
                 </div>
-        
             </div>
         </div>
     </div>
@@ -97,84 +112,75 @@
     }).extend({
         echarts: 'lib/echarts'
     }).use(['layer', 'echarts', 'element'], function() {
-        var $ = layui.jquery,
-            layer = layui.layer,
-            element = layui.element,
-            echarts = layui.echarts;
-
-        var echartsRecords = echarts.init(document.getElementById('echarts-records'), 'walden');
-
-        var option = {
-            tooltip: {
-                trigger: 'axis'
-            },
-            xAxis: [{
-                type: 'category',
-                data: [{$time_type|raw}],
-                axisLine: {
-                    lineStyle: {
-                        color: "#999"
-                    }
-                }
-            }],
-            yAxis: [{
-                type: 'value',
-                splitNumber: 4,
-                splitLine: {
-                    lineStyle: {
-                        type: 'dashed',
-                        color: '#DDD'
-                    }
-                },
-                axisLine: {
-                    show: false,
-                    lineStyle: {
-                        color: "#333"
+        var $ = layui.jquery
+        , layer = layui.layer
+        , element = layui.element
+        , echarts = layui.echarts
+        , loader
+        , active = {
+            shape(data) {
+                var height = 50 * data.customer.length
+                ,myChart
+                ,option;
+                this.height(height),
+                myChart = echarts.init(this[0]),
+                option = {
+                    title: null,
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
                     },
+                    legend: {},
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'value',
+                        boundaryGap: [0, 0.01]
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: data.customer
+                    },
+
+                    series: data.list
                 },
-                nameTextStyle: {
-                    color: "#999"
-                },
-                splitArea: {
-                    show: false
-                }
-            }],
-            tooltip: {
-                valueSuffix: ' 个',
-                    crosshairs: true,
-                    shared: true
-            },
-            legend: {
-                layout: 'vertical',
-                    align: 'right',
-                    verticalAlign: 'middle',
-                    borderWidth: 0
-            },
-            series: [
-            {
-                name: '交易金额',
-                type: 'line',
-                color: 'rgba(0,242,59,246)', marker: { radius: 6 }, data: [{$series_reg|raw}]
-            },
-            {
-                name: '成功订单',
-                type: 'line',
-                color: 'rgba(0,15,182,59)', marker: { radius: 6 }, data: [{$series_order|raw}]
-            },
-            {
-                name: '客单价',
-                type: 'line',
-                color: 'rgba(0,92,219,192)', marker: { radius: 6 }, data: [{$series_money|raw}]
+                myChart.setOption(option);
             }
-            ]
         };
 
-        echartsRecords.setOption(option);
+        element.on('tab(demo-filter-tab)', function(data){
+            var that = data.elem.find('div[data-role="chart"]').eq(data.index), id = that.attr("id");
+            if (that.data("init") != 1) {
+                that.data("init", 1),
+                loader = top.layer.load(2),
+                $.ajax({
+                    type: 'GET',
+                    url: location.href + "?patch=" + id,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    complete: () => top.layer.close(loader),
+                    success(r) {
+                        if (r.code != 0) {
+                            top.layer.msg(r.message);
+                        }
+
+                        active[id].call(that,r.data)
+                    }
+                })
+            }
+        }),
+        
+        $('#tab_default').trigger("click");
 
         window.onresize = function() {
             echartsRecords.resize();
         }
-
     });
 </script>
 {/block}

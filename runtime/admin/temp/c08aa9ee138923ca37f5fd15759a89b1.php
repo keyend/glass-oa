@@ -1,4 +1,4 @@
-<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Index\index.html";i:1690468458;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Index\index.html";i:1690816193;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>
@@ -117,8 +117,10 @@
                             <dd><a lay-href="<?php echo url('order'); ?>">订单管理</a></dd>
                             <?php endif; if(checkAccess('delivery')): ?>
                             <dd><a lay-href="<?php echo url('delivery'); ?>">配送列表</a></dd>
+                            <?php endif; if(checkAccess('orderDeliveryPrintList')): ?>
+                            <dd><a lay-href="<?php echo url('orderDeliveryPrintList'); ?>">配送打印</a></dd>
                             <?php endif; if(checkAccess('orderLabel')): ?>
-                            <dd><a lay-href="<?php echo url('orderLabel'); ?>">标签列表</a></dd>
+                            <dd><a lay-href="<?php echo url('orderLabel'); ?>">标签打印</a></dd>
                             <?php endif; if(checkAccess('orderConverge')): ?>
                             <dd><a lay-href="<?php echo url('orderConverge'); ?>">订单汇总</a></dd>
                             <?php endif; ?>

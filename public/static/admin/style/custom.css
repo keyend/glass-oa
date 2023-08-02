@@ -62,15 +62,14 @@
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px!important;
 }
 ::-webkit-scrollbar-track-piece {
-  background-color: #e0e0e0;
+  background-color: #e7e7e7;
 }
-
 ::-webkit-scrollbar-thumb {
-  border-radius: 5px;
-  background-color: #999;
+  border-radius: 4px!important;
+  background-color: #999!important;
 }
 
 .layui-input, .layui-select {

@@ -102,6 +102,7 @@ Route::group(function() {
         Route::rule('detail', '/detail', 'GET')->name('orderDetail');
         Route::post('trash', '/trash')->name('orderTrash');
         Route::rule("delivery/list", '/deliveryList', 'POST|GET')->name('delivery');
+        Route::rule('delivery/print', '/deliveryPrint', 'POST|GET')->name('orderDeliveryPrintList');
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
         Route::rule('converge', '/converge')->name("orderConverge");
         Route::rule('label', '/label')->name("orderLabel");

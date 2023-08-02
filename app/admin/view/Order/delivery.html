@@ -52,6 +52,7 @@
             <blockquote class="layui-elem-quote title">
                 <p>
                     <span>订单号：{$order.trade_no}</span>
+                    <span>客户名称：{$order.customer}</span>
                     <span>录单人员：{$order.user.username}</span>
                     <span>总金额：{$order.order_money}</span>
                     <span>优惠金额：{$order.discount_money}</span>
@@ -93,7 +94,7 @@
                         {if $order.status < 2}
                         <td>
                             {if $goods.max > 0}
-                            <input type="number" name="num[{$goods.id}]" data-id="{$goods.id}" data-max="{$goods.max}" lay-filter="delivery-num" placeholder="0" class="layui-input layui-number" />
+                            <input type="number" name="num[{$goods.id}]" data-id="{$goods.id}" data-max="{$goods.max}" lay-filter="delivery-num" placeholder="0" class="layui-input layui-number" value="{$goods.max}" />
                             {else}
                             配送完成
                             {/if}
@@ -227,7 +228,9 @@
         form.on('submit(print)', function(obj) {
             var data = JSON.parse(obj.field.delivery_data);
             window.open(printUrl + '?id=' + data.id + '&manual=' + (obj.field.manual || 0))
-        })
+        }),
+
+        $('input[lay-filter="delivery-num"]').trigger("input")
     })
 </script>
 {/block}

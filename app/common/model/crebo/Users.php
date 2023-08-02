@@ -4,6 +4,7 @@ namespace app\common\model\crebo;
 use app\common\exception\LoginError;
 use think\Exception;
 use think\facade\Session;
+use think\facade\Cache;
 use think\Model;
 
 class Users extends Model
@@ -260,5 +261,87 @@ class Users extends Model
             ->where('status',1)
             ->field('name,idcard,create_time')
             ->find();
-    }	
+    }
+
+    /**
+     * 返回统计数据
+     *
+     * @return void
+     */
+    public function getChartData()
+    {
+        $timestamp = time();
+        $currentMonthBegin = strtotime(date("Y-m-01", $timestamp));
+        $currentMonthLast = strtotime(date("Y-m-t", $timestamp));
+        $previousMonth = $currentMonthBegin - 86400;
+        $previousMonthBegin = strtotime(date("Y-m-01", $previousMonth));
+        $previousMonthLast = strtotime(date("Y-m-t", $previousMonth));
+        $version = date("ymdH");
+        $maps = [$currentMonthBegin,$currentMonthLast,$previousMonthBegin,$previousMonthLast,$version];
+        $version = md5(json_encode($maps));
+        $cache = Cache::get("shape");
+        if (!empty($cache)) {
+            // return $cache;
+        }
+        $customers = self::where("status", 1)->column("nickname", "id");
+        $result = [];
+        $result["list"] = [];
+        $previousData = $this->getDataItem($customers, [$previousMonthBegin, $previousMonthLast]);
+        $currentData = $this->getDataItem($customers, [$currentMonthBegin, $currentMonthLast]);
+        $values = $this->sortValues([$previousData, $currentData, $customers]);
+        $result["customer"] = $values["customer"];
+        $result["list"][] = [
+            "name" => date("m", $previousMonthBegin) . "月份",
+            "type" => "bar",
+            "data" => $values["previous"]
+        ];
+        $result["list"][] = [
+            "name" => date("m", $currentMonthBegin) . "月份",
+            "type" => "bar",
+            "data" => $values["current"]
+        ];
+        Cache::set("shape", $result);
+        return $result;
+    }
+
+    /**
+     * 返回混合排序值
+     *
+     * @param [type] $data
+     * @return void
+     */
+    public function sortValues($data) 
+    {
+        $sorts = [];
+        foreach($data[0] as $id => $value) {
+            $sorts[$id] = (string)floatval(($value + $data[1][$id]) * 100);
+        }
+        $sorts = array_flip($sorts);
+        ksort($sorts);
+        $res = [
+            "customer" => [],
+            "previous" => [],
+            "current" => []
+        ];
+        foreach($sorts as $value => $id) {
+            $res["previous"][] = $data[0][$id];
+            $res["current"][] = $data[1][$id];
+            $res["customer"][] = $data[2][$id];
+        }
+        return $res;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function getDataItem($customers, $times)
+    {
+        $result = [];
+        foreach($customers as $customer_id => $customer) {
+            $result[$customer_id] = Order::where("customer_id", $customer_id)->where("create_time", 'BETWEEN', $times)->where("is_trash", 0)->sum("order_money");
+        }
+        return $result;
+    }
 }

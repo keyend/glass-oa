@@ -1,4 +1,4 @@
-<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690633167;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:76:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\detail.html";i:1690977060;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>
@@ -82,6 +82,7 @@
             <blockquote class="layui-elem-quote title">
                 <p>
                     <span>订单号：<?php echo htmlentities($order['trade_no']); ?></span>
+                    <span>客户名称：<?php echo htmlentities($order['customer']); ?></span>
                     <?php if($order['is_trash']): ?>
                     <span class="layui-badge layui-bg-dark">已作废</span>
                     <?php endif; ?>
@@ -166,21 +167,22 @@
             id = id || 0,
             result.data = [],
             data.goods.forEach(v => {
-                result.data.push({
-                    KH: data.customer,
-                    DD: data.out_trade_no,
-                    MC: v.category,
-                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
-                    GY: v.craft,
-                    XH: v.remark
-                })
+                if (id == v.id || id == 0) {
+                    result.data.push({
+                        KH: data.customer,
+                        DD: data.out_trade_no,
+                        MC: v.category,
+                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
+                        GY: v.craft,
+                        XH: v.remark
+                    })
+                }
             });
             return result;
         }
 
         function requestPrint(data) {
             var loader = parent.layer.load(2, { shade: ['#fff', .3] });
-            console.log(JSON.stringify(data));
             $.ajax({
                 url: 'http://127.0.0.1:31580/Printer',
                 type: 'POST',
@@ -207,7 +209,7 @@
 
         $('button[lay-filter="print"]').on("click", function(e) {
             var that = $(this), field = JSON.parse($("#delivery_data_" + that.data("orderid")).val());
-            requestPrint(getPrintArr(field), that.data("id"));
+            requestPrint(getPrintArr(field, that.data("id")));
         })
     })
 </script>

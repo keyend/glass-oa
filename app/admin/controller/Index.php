@@ -1,9 +1,9 @@
 <?php
 namespace app\admin\controller;
 use app\admin\Controller;
-use app\common\model\crebo\Profit;
-use app\common\model\crebo\Stores;
 use app\common\model\crebo\Users;
+use app\common\model\crebo\Order;
+use app\common\model\crebo\OrderDelivery;
 
 /**
  * 后台管理首页
@@ -27,105 +27,31 @@ class Index extends Controller
      *
      * @return void
      */
-    public function dashboard()
+    public function dashboard(Order $order_model, OrderDelivery $order_delivery)
     {
-        // error_reporting(E_ALL);
-        // $es = app('mushroom')->ES('hello');
-        // $query = $es->find(5);
-        // // $query->title = $query->title . "###";
-        // $query->delete();
-        // die;
-        // // var_dump($query->toArray());
-        // // die;
-        // // $query = $es->where(['title', 'LIKE', '我'])->order('id ASC')->field('id,title,content')->select();
-        // // die;
-        // // $es->create([[...]]);
-        // // $es->insert([]);
-        // // $es->insertAll([[],[]]);
-        // // $es->find();
-        // // $es->where()->find();
-        // // $query = $es->insert([
-        // //     'id' => 6,
-        // //     'title' => 'The IteratorAggregate interface ',
-        // //     'content' => 'It might seem obvious, but you can return a compiled generator from your IteratorAggregate::getIterator() implementation.'
-        // // ]);
-        // $query = $es->select();
-        // var_dump($query->toArray());
-        // 获取当月所有时间
-        $month_time = [];
-        $time_type = [];
-
-        for ($i = 0;$i < 30;$i++){
-            $month_time[] = strtotime('-'.$i.' day');
-            $time_type[] = "'".date('m-d',strtotime('-'.$i.' day'))."'";
-        }
-
-        $time_type = array_reverse($time_type);
-        $time_type = implode(',',$time_type);
-
-        // 获取当月间隔时间
-        $start_time = strtotime(date('Y-m-d',strtotime('-29 day')));
-        $end_time = strtotime('now');
-
-        // 获取30天的统计记录
-        $profit = Profit::whereTime('create_time','>=',$start_time)
-            ->whereTime('create_time','<=',$end_time)
-            ->order('create_time desc')
-            ->select();
-
-
-        // 图表统计
-        $series_reg = str_split(str_repeat('0',30),1);
-        $series_order = str_split(str_repeat('0',30),1);
-        $series_money = str_split(str_repeat('0',30),1);
-
-        foreach ($month_time as $key => $item){
-            $item_time = date('Y-m-d',$item);
-            foreach ($profit as $profit_item){
-                $profit_time = date('Y-m-d',$profit_item['create_time']);
-                if($item_time == $profit_time){
-                    $series_reg[$key] = $profit_item['count_reg'];
-                    $series_order[$key] = $profit_item['count_order_yes'];
-                    $series_money[$key] = $profit_item['count_money'];
-                }
+        if (request()->isAjax()) {
+            $patch = input("patch", "");
+            if ($patch == "shape") {
+                $model = new Users();
+                $res = $model->getChartData();
             }
+
+            return $this->success($res);
+        } else {
+            $today_first = mktime(0,0,0);
+            $today_last = mktime(23,59,59);
+            $today = $order_model->getBetweenData([$today_first, $today_last]);
+            $this->assign("today", $today);
+            $month_first = strtotime(date("Y-m-01", time()));
+            $month_last = strtotime(date("Y-m-t", time()));
+            $month = $order_model->getBetweenData([$month_first, $month_last]);
+            $this->assign("month", $month);
+            $total = $order_model->getBetweenData([0, $today_last]);
+            $this->assign("total", $total);
+            $delivery = $order_delivery->getBetweenData([$today_first, $today_last]);
+            $this->assign("delivery", $delivery);
+            return $this->fetch();
         }
-
-        $series_reg = array_reverse($series_reg);
-        $series_reg = implode(',',$series_reg);
-
-        $series_order = array_reverse($series_order);
-        $series_order = implode(',',$series_order);
-
-        $series_money = array_reverse($series_money);
-        $series_money = implode(',',$series_money);
-
-        // 用户数量统计
-
-        $default_group = config('register.default_group');
-        $vip_group = config('vip.vip_group');
-
-        $default_user = Users::where('group',$default_group)->count();
-        $vip_user = Users::where('group',$vip_group)->count();
-
-        $file = Stores::count();
-        $size = Stores::sum('size');
-
-        $this->assign('count',[
-            'user' => $default_user,
-            'vip' => $vip_user,
-            'file' => $file,
-            'size' => countSize($size)
-        ]);
-
-        $this->assign('profit',$profit);
-
-        $this->assign('series_reg',$series_reg);
-        $this->assign('series_order',$series_order);
-        $this->assign('series_money',$series_money);
-        $this->assign('time_type',$time_type);
-
-        return $this->fetch();
     }
 
     /**

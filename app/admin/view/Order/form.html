@@ -110,14 +110,14 @@
             </button>
         </td>
         <td>
-            <select name="category_id[{{ d.id }}]" data-name="category" class="layui-select" lay-filter="category">
+            <select name="category_id[{{ d.id }}]" data-name="category" class="layui-select" lay-filter="category" lay-search>
                 {foreach $categorys as $category}
                 <option value="{$category.id}">{$category.category}</option>
                 {/foreach}
             </select>
         </td>
         <td>
-            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft">
+            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft" lay-search>
                 {foreach $crafts as $craft}
                 <option value="{$craft.id}">{$craft.craft}</option>
                 {/foreach}

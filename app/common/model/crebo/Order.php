@@ -272,4 +272,17 @@ class Order extends Model
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
     }
+
+    /**
+     * 返回订单数据
+     *
+     * @return void
+     */
+    public function getBetweenData($times= [])
+    {
+        $count = (int)self::where("create_time", "BETWEEN", $times)->count();
+        $money = (float)self::where("create_time", "BETWEEN", $times)->sum("order_money");
+        $money = number_format($money, 2, '.', '');
+        return compact('count', 'money');
+    }
 }

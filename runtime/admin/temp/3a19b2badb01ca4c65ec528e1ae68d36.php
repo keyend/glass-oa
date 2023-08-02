@@ -1,4 +1,4 @@
-<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690638489;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:83:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery_list.html";i:1690898215;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>
@@ -87,10 +87,12 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <input type="hidden" name="page" value="1" id="list-page" />
                             <input type="hidden" name="is_trash" value="<?php echo htmlentities($is_trash); ?>" />
-                            <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
-                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
-                                搜索结果
-                            </button>
+                            <span class="layui-btn-group">
+                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                    搜索结果
+                                </button>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -110,7 +112,7 @@
         <form class="layui-card-body layui-form">
             <blockquote class="layui-elem-quote title">
                 <p>
-                    <span>配送号：{{= v.trade_no }}</span>
+                    <span>配送号：{{= v.trade_no }} <span class="layui-badge layui-bg-blue">{{= v.nickname}}</span></span>
                     <span>配送时间：{{= v.create_time }}</span>
                     <span>配送数量：{{= v.delivery_num }}</span>
                     <span>配送金额：{{= v.delivery_money }}</span>
@@ -168,18 +170,46 @@
     {{#  }) }} 
 </script>
 
+<script type="text/html" id="print_pop">
+    <div class="layui-card" style="box-shadow: none;">
+        <div class="layui-form layui-card-body" style="padding-top: 20px;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">配送记录</label>
+                <div class="layui-input-block">
+                    <div class="layui-form-mid layui-text-em">共有记录 419 条</div>
+                    <div class="layui-input-inline">
+                        <input type="checkbox" name="manual" value="1" lay-filter="print-price" title="打印价格" lay-skin="tag" /> 
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit lay-filter="sendprint" disabled>开始打印</button>
+                    <button type="submit" class="layui-btn layui-btn-primary" lay-filter="cancel">取消</button>
+                </div>
+            </div>
+            <div style="margin-top: 36px;">
+                <div class="layui-progress" lay-showpercent="true">
+                    <div class="layui-progress-bar" lay-percent="30%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
 <script>
     var printUrl = "<?php echo url('orderPrint'); ?>";
 
-    layui.config({ base: '/static/admin/' }).use(['table', 'form', 'laydate', 'laytpl', 'laypage'], function(){
+    layui.config({ base: '/static/admin/' }).use(['table', 'form', 'laydate', 'laytpl', 'laypage', 'element'], function(){
         var $ = layui.$
         ,form = layui.form
         ,table = layui.table
         ,laytpl = layui.laytpl
+        ,element = layui.element
         ,laypage = layui.laypage
         ,pageTable
         ,laydate = layui.laydate
-        ,init = 0;
+        ,init = 0
+        ,poper;
 
         // 渲染表格
         function renderTable(filter) {
@@ -218,6 +248,33 @@
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
             renderTable(field);
+        }),
+
+        // 监听打印
+        form.on('submit(LAY-list-print)', function(data) {
+            var field = data.field, html, readyState = 0;
+            field['print'] = 1;
+            html = laytpl(document.getElementById("print_pop").innerHTML).render(field),
+            poper = top.layer.open({
+                type: 1,
+                title: "打印配送单",
+                area: ['500px', '240px'],
+                shade: 0.6,
+                shadeClose: false,
+                content: html,
+                cancel() {
+                    return false;
+                },
+                success(dom) {
+                    form.render(),
+                    element.render(),
+                    dom.find('button[lay-filter="cancel"]').on('click', function() {
+                        if (readyState === 0) {
+                            top.layer.close(poper)
+                        }
+                    })
+                }
+            })
         }),
 
         form.on('submit(print)', function(obj) {

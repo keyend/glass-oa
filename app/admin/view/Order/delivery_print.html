@@ -1,0 +1,403 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+    <style>
+        .page-member-form .layui-tab-content {
+            padding: 15px 15px 0 0!important;
+        }
+        .page-member-form .layui-card {
+            padding-bottom: 5px;
+        }
+        .layui-number {
+            width: 60px; 
+            display: inline-block; 
+            text-align: center; 
+            margin-right: 6px;
+        }
+        .layui-number:not(:first-of-type) {
+            margin-left: 6px;
+        }
+        .order-delivery .layui-elem-quote.title span {
+            margin-right: 12px;
+        }
+        .order-delivery .layui-number {
+            text-align: left;
+            width: 100%;
+        }
+        .layui-btn-fill {
+            padding: 0px!important;
+            margin: -1px;
+        }
+        .layui-btn-fill .layui-btn {
+            width: 100%;
+        }
+        .layui-table {
+            width: 100%!important;
+        }
+    </style>
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索类型</label>
+                            <div class="layui-input-inline">
+                                <select name="search_type" lay-verify="required" class="layui-select">
+                                    <option value="trade_no">订单编号</option>
+                                    <option value="nickname">客户名称</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">搜索内容</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">配送时间</label>
+                            <div class="layui-input-inline">
+                              <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
+                            </div>
+                          </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <input type="hidden" name="page" value="1" id="list-page" />
+                            <input type="hidden" name="is_trash" value="{$is_trash}" />
+                            <span class="layui-btn-group">
+                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                    搜索结果
+                                </button>
+                                <button lay-submit lay-filter="LAY-list-print" id="btn-print-all" style="display: none;"></button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="LAY-list-table" lay-filter="LAY-list-table" style="margin-bottom: 20px;"></div>
+    <div class="layui-card order-delivery-page">
+        <div class="layui-card-body">
+            <div id="LAY-list-page" layer-filter="LAY-list-page"></div>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="tpl_table_list">
+    {{#  layui.each(d.list, function(index, v){ }}
+    <div class="layui-card order-delivery">
+        <form class="layui-card-body layui-form">
+            <blockquote class="layui-elem-quote title">
+                <p>
+                    <span>配送号：{{= v.trade_no }}</span>
+                    <span>配送时间：{{= v.create_time }}</span>
+                    <span>配送数量：{{= v.delivery_num }}</span>
+                    <span>配送金额：{{= v.delivery_money }}</span>
+                    <span>加工金额：{{= v.manual_money }}</span>
+                </p>
+            </blockquote>
+            <table class="layui-table">
+                <colgroup>
+                    <col width="160">
+                    <col width="160">
+                    <col>
+                    <col width="120">
+                    <col width="120">
+                </colgroup>
+                <thead> 
+                    <tr>
+                        <th>品类名称</th>
+                        <th>工艺</th>
+                        <th>规格</th>
+                        <th>加工费</th>
+                        <th>配送数量</th>
+                    </tr> 
+                </thead> 
+                <tbody id="order-content">
+                    {{#  layui.each(v.goods, function(index, goods){ }}
+                    <tr>
+                        <td>{{= goods.category }}</td>
+                        <td>{{= goods.craft }}</td>
+                        <td>{{= goods.umb }}</td>
+                        <td>{{= goods.manual_money }}</td>
+                        <td>{{= goods.num }}</td>
+                    </tr>
+                    {{#  }) }} 
+                </tbody>
+                <tfoot>
+                    <tr style="background-color:#f7f7f7;">
+                        <td colspan="2">
+                            <input type="checkbox" name="manual" value="1" data-id="{{= v.id}}" lay-filter="delivery" title="打印价格" lay-skin="tag" /> 
+                            <span style="margin-left: 36px;">总计应收：{{= v.total_money }}元</span>
+                        </td>
+                        <td><span>{{= v.delivery_money }}元</span></td>
+                        <td><span>{{= v.manual_money }}元</span></td>
+                        <td><span>{{= v.delivery_num }}</span></td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="layui-btn-fill">
+                            <input type="hidden" name="delivery_data" value="{{= JSON.stringify(v) }}" />
+                            <button type="button" class="layui-btn layui-btn-normal" lay-filter="print" lay-submit>打印配送单</button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+    </div>
+    {{#  }) }} 
+</script>
+{/block}
+{block name="scripts"}
+<script type="text/html" id="user-toolbar">
+    <span class="layui-btn-group">
+        <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-primary layui-border-blue" lay-event="print" data-type="print">
+            <i class="layui-icon layui-icon-print"></i>打印勾选配送单
+        </button>
+        <button class="layui-btn layuiadmin-btn-admin layui-btn-sm" lay-event="printall" data-type="printall">
+            <i class="layui-icon layui-icon-print"></i>打印全部配送单
+        </button>
+    </span>
+</script>
+<script>
+    var loader = null
+    ,process
+    ,failure = 0
+    ,total = 0
+    ,readyState = 0;
+
+    layui.config({
+        base: '/static/admin/'
+    }).use(['table', 'form', 'laydate'], function(){
+        var $ = layui.$
+        ,form = layui.form
+        ,table = layui.table
+        ,laydate = layui.laydate
+        ,pageTable;
+
+        var active = {
+            init() {
+                var data = this.getValue();
+                if (data != null) {
+                    console.log(data);
+                    top.layer.confirm('存在未完成的打印任务，是否继绩进行？', {icon: 3}, function(index){
+                        top.layer.close(index),
+                        requestPrint(data, 0)
+                    }, function(){
+                        active.setValue(null)
+                    });
+                }
+            },
+            getValue() {
+                var value = sessionStorage.getItem("delivery.print");
+                if (value) {
+                    return JSON.parse(value);
+                }
+                return null;
+            },
+            setValue(value) {
+                if (value == null) {
+                    sessionStorage.removeItem("delivery.print");
+                } else {
+                    sessionStorage.setItem("delivery.print", JSON.stringify(value));
+                }
+            },
+            print(o) {
+                var id = o.config.id;
+                var checkStatus = table.checkStatus(id);
+                var data = active.getData(checkStatus.data);
+                if (data.length > 0) {
+                    requestPrint(data, 0);
+                }
+            },
+            printall(o) {
+                top.layer.confirm('确认要打印所有匹配的配送单吗？', {icon: 3}, function(index){
+                    top.layer.close(index),
+                    $('#btn-print-all').trigger("click")
+                })
+            },
+            getData(data) {
+                var ds = {}, dates;
+                data.length > 0 && data.forEach(v => {
+                    dates = v.create_time.split(' ');
+                    ds[v.id] = {
+                        KH: v.nickname,
+                        DZ: v.address,
+                        DD: v.trade_no,
+                        RQ: dates[1],
+                        MX: 0,
+                        data: []
+                    };
+                    v.goods.forEach(d => {
+                        ds[v.id].data.push({
+                            name: d.category + d.craft,
+                            w: d.width,
+                            h: d.height,
+                            num: d.num,
+                            area: d.area,
+                            price: d.unitprice,
+                            fee: d.manual_money,
+                            total: d.manual_money + d.delivery_money,
+                            desc: d.remark
+                        })
+                    })
+                });
+                return Object.values(ds)
+            }
+        };
+
+        function requestPrint(data, stage) {
+            if (stage === 0) {
+                loader = parent.layer.msg('<span id="process"></span>', { icon: 16, time: 86400, shade: [0.3, '#000'], success(dom) {
+                    process = dom.find('#process'),
+                    process.html('准备就绪..'),
+                    total = data.length,
+                    setTimeout(() => {
+                        process.html('发送打印 1/' + total),
+                        requestPrint(data, 1)
+                    });
+                } });
+                return false;
+            }
+            if(total < stage) {
+                active.setValue(null),
+                setTimeout(() => parent.layer.close(loader), 2000);
+                return false;
+            }
+            if (readyState === 1) {
+                return false;
+            }
+            readyState = 1,
+
+            $.ajax({
+                url: 'http://127.0.0.1:31580/Printer2',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify(data[0]),
+                processData: false,
+                contentType: "application/json; charset=utf-8",
+                complete: function(xhr) {
+                    readyState = 0;
+                    try {
+                        var r = JSON.parse(xhr.responseText);
+                        if (r.ret == 0) {
+                            process.html('打印成功 ' + stage + '/' + total),
+                            stage += 1,
+                            failed = 0,
+                            setTimeout(() => {
+                                data.splice(0, 1),
+                                active.setValue(data),
+                                requestPrint(data, stage)
+                            }, 1000);
+                        } else {
+                            failure += 1;
+                            if (failure > 4) {
+                                parent.layer.close(loader),
+                                parent.layer.alert(r.msg)
+                            } else {
+                                process.html('打印失败 ' + stage + '/' + total + ' 2秒后重试(' + failure + ')')
+                                setTimeout(() => requestPrint(data, stage), 2000);
+                            }
+                        }
+                    } catch (e) {
+                        failure += 1;
+                        process.html('打印失败 ' + stage + '/' + total + ' 2秒后重试(' + failure + ')')
+                        if (failure > 4) {
+                            setTimeout(() => {
+                                parent.layer.close(loader),
+                                parent.layer.alert(e.toString())
+                            }, 1000)
+                        } else {
+                            setTimeout(() => requestPrint(data, stage), 2000)
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染表格
+        function renderTable() {
+            pageTable = table.render({
+                elem: "#LAY-list-table",
+                url: "{:url('delivery')}",
+                toolbar: '#user-toolbar',
+                cols: [[
+                    {type: 'checkbox'},
+                    {title: '配送时间', field: 'create_time', width: 160},
+                    {title: '客户名称', field: 'nickname', width: 160},
+                    {title: '配送单号', field: 'trade_no', width: 140},
+                    {title: '配送数量', field: 'delivery_num', width: 100},
+                    {title: '配送总金额', field: 'total_money', width: 100},
+                    {title: '配送地址', field: 'address'}
+                ]],
+                parseData: function(res) {
+                    return {
+                        code: res.code,
+                        msg: res.message,
+                        count: res.data.count,
+                        data: res.data.list
+                    }
+                },
+                done: function() {
+                    ns.page = this.page.curr;
+                    active.init()
+                },
+                page: !0,
+                limit: 20,
+                limits: [20, 50, 200, 500, 1000],
+                height: "full-220",
+                text: "对不起，加载出现异常！"
+            });
+
+            table.on('toolbar(LAY-list-table)', function(o) {
+                active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("tool(LAY-list-table)", function(e) {
+                active[e.event] ? active[e.event].call(this, e) : '';
+            });
+        }
+
+        // 监听搜索
+        form.on('submit(LAY-list-back-search)', function(data){
+            var field = data.field;
+            // 执行重载
+            table.reload('LAY-list-table', {
+                where: field
+            });
+            return false;
+        }),
+
+        form.on('submit(LAY-list-print)', function(obj) {
+            var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });
+            field["print"] = 1;
+            $.ajax({
+                type: 'POST',
+                url: "{:url('delivery')}",
+                data: field,
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function(r) {
+                    if (r.code == 0) {
+                        top.layer.close(loader);
+                        var data = active.getData(r.data.list);
+                        requestPrint(data, 0);
+                    } else {
+                        top.layer.close(loader);
+                        top.layer.msg(r.message);
+                    }
+                }
+            });
+            return false;
+        }),
+
+        // 搜索时间
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
+        form.render();
+        renderTable();
+    });
+</script>
+{/block}

@@ -200,7 +200,7 @@ class Order extends Controller
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
                 ["search_value", ""],
-                ['search_time', ''],
+                ['search_time', ""],
                 ['export', 0],
                 ['print', 0]
             ]);
@@ -250,7 +250,7 @@ class Order extends Controller
                 return $this->fail("INVALID_PARAM");
             }
 
-            $delivery_length = max(array_values(array_column($order_list["delivery"], "id"))) + 1;
+            $delivery_length = count($order_info["delivery"]) + 1;
             $delivery = [
                 "order_id" => $order["id"],
                 "trade_no" => $order["trade_no"] . "_" . $delivery_length,
@@ -302,8 +302,7 @@ class Order extends Controller
 		} else {
             $this->assign("order", $order_info);
             $options = $this->getOptions($config_model, "basic");
-            $options["order_printrm"] = preg_replace(PHP_EOL, "\\n", $options["order_printrm"]);
-            str_replace("", "", $options["order_printrm"]);
+            $options["order_printrm"] = str_replace(PHP_EOL, "\\n", $options["order_printrm"]);
             $this->assign('option', $options);
             return $this->fetch('Order/delivery');
         }
@@ -322,7 +321,8 @@ class Order extends Controller
         if ($this->request->isAjax()) {
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
-                ["search_value", ""]
+                ["search_value", ""],
+                ["search_time", ""]
             ]);
             if ($is_trash != 0) {
                 $filter["is_trash"] = $is_trash;
@@ -333,6 +333,34 @@ class Order extends Controller
         } else {
             $this->assign("is_trash", $is_trash);
             return $this->fetch('Order/delivery_list');
+        }
+    }
+
+    /**
+     * 配送单打印列表
+     *
+     * @param OrderDelivery $order_delivery_model
+     * @return void
+     */
+    public function deliveryPrint(OrderDelivery $model, Users $user_model)
+    {
+        if($this->request->isAjax() || $this->request->isPost()) {
+            $filter = array_keys_filter($this->request->param(), [
+                ['search_type', ""],
+                ["search_value", ""],
+                ['search_time', ""],
+                ['is_trash', 0],
+                ['export', 0],
+                ['print', 0]
+            ]);
+            [$page, $limit] = $this->getPaginator();
+            $data = $model->getPrintList($page, $limit, $filter);
+            return $this->success($data);
+        } else {
+            $is_trash = input("is_trash", 0);
+            $customers = $user_model->where("status", 1)->field("id,nickname")->select();
+            $this->assign("customers", $customers);
+            return $this->fetch('Order/delivery_print');
         }
     }
 
@@ -359,16 +387,20 @@ class Order extends Controller
      * @param OrderDelivery $order_delivery_model
      * @return void
      */
-    public function print(OrderDelivery $order_delivery_model, ConfigModel $config_model)
+    public function print(OrderDelivery $order_delivery_model, ConfigModel $config_model, OrderGoods $order_goods)
     {
         $id = input("id", 0);
         $delivery = $order_delivery_model->with(['goods', 'order', 'order.member'])->find($id);
         if (empty($delivery)) {
             return $this->fail("配送记录不存在!");
         }
+        foreach ($delivery['goods'] as &$goods) {
+            $goods["remark"] = $order_goods->where("id", $goods["goods_id"])->value("remark");
+        }
         $options = $this->getOptions($config_model, "basic");
         $this->assign("manual", input("manual", 0));
         $this->assign("delivery", $delivery);
+        $this->assign("delivery_string", json_encode($delivery, JSON_UNESCAPED_UNICODE));
         $this->assign('option', $options);
         return $this->fetch('Order/printer');
     }

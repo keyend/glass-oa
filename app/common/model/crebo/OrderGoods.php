@@ -41,23 +41,22 @@ class OrderGoods extends Model
                 $query->where('order.create_time', 'BETWEEN', $times);
             }
         }
-        $uspage = true;
-        if (!isset($filter['print']) || $filter['print'] != 1) {
-            $uspage = false;
-        }
         $list = [];
-        $count = $query->count();
         $fields = "order_goods.*,order.trade_no,order.customer,order.order_num";
-        $query->when($uspage, function($query) use($page, $limit) {
-            $query->page($page,$limit);
-        })->field($fields)->chunk(100, function ($lists) use (&$list) {
-            foreach($lists as $item) {
-                $row = $item->toArray();
-                $row["height"] = (int)$row["height"];
-                $row["width"]  = (int)$row["width"];
-                $list[] = $row;
-            }
-        }, "order_goods.id", "desc");
+        $count = $query->count();
+        $query->field($fields);
+        if (isset($filter['print']) && $filter['print'] == 1) {
+            $query->chunk(100, function ($lists) use (&$list) {
+                foreach($lists as $item) {
+                    $row = $item->toArray();
+                    $row["height"] = (int)$row["height"];
+                    $row["width"]  = (int)$row["width"];
+                    $list[] = $row;
+                }
+            }, "order_goods.id", "desc");
+        } else {
+            $list = $query->page($page,$limit)->order("order_goods.id DESC")->select();
+        }
         $sql = $query->getLastSql();
         return compact('count', 'list', 'sql');
     }

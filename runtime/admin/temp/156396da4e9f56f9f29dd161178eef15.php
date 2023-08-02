@@ -1,4 +1,4 @@
-<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery.html";i:1690634440;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\delivery.html";i:1690977203;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>
@@ -67,6 +67,7 @@
             <blockquote class="layui-elem-quote title">
                 <p>
                     <span>订单号：<?php echo htmlentities($order['trade_no']); ?></span>
+                    <span>客户名称：<?php echo htmlentities($order['customer']); ?></span>
                     <span>录单人员：<?php echo htmlentities($order['user']['username']); ?></span>
                     <span>总金额：<?php echo htmlentities($order['order_money']); ?></span>
                     <span>优惠金额：<?php echo htmlentities($order['discount_money']); ?></span>
@@ -108,7 +109,7 @@
                         <?php if($order['status'] < 2): ?>
                         <td>
                             <?php if($goods['max'] > 0): ?>
-                            <input type="number" name="num[<?php echo htmlentities($goods['id']); ?>]" data-id="<?php echo htmlentities($goods['id']); ?>" data-max="<?php echo htmlentities($goods['max']); ?>" lay-filter="delivery-num" placeholder="0" class="layui-input layui-number" />
+                            <input type="number" name="num[<?php echo htmlentities($goods['id']); ?>]" data-id="<?php echo htmlentities($goods['id']); ?>" data-max="<?php echo htmlentities($goods['max']); ?>" lay-filter="delivery-num" placeholder="0" class="layui-input layui-number" value="<?php echo htmlentities($goods['max']); ?>" />
                             <?php else: ?>
                             配送完成
                             <?php endif; ?>
@@ -241,7 +242,9 @@
         form.on('submit(print)', function(obj) {
             var data = JSON.parse(obj.field.delivery_data);
             window.open(printUrl + '?id=' + data.id + '&manual=' + (obj.field.manual || 0))
-        })
+        }),
+
+        $('input[lay-filter="delivery-num"]').trigger("input")
     })
 </script>
 

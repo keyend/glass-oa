@@ -54,29 +54,49 @@ class OrderDelivery extends Model
                 $condition[] = "delivery.create_time BETWEEN " . implode( " AND " , $times);
             }
         }
-
+        if (!isset($filter["print"]) || $filter["print"] != 1) {
+            $limit = " LIMIT " . (($page - 1) * $limit) . ",{$limit}";
+        } else {
+            $limit = "";
+        }
         $prefix = env("database.prefix", "");
         $tables = "{$prefix}{$this->name} `delivery` LEFT JOIN " .
         "{$prefix}users_orders `order` ON (`delivery`.order_id = `order`.id) LEFT JOIN " . 
         "{$prefix}users `member` ON (`order`.customer_id = `member`.id)";
-
         $condition = implode(" ) AND (", $condition);
         if (!empty($condition)) {
             $condition  = " WHERE ({$condition})";
         }
         $count_query = Db::query("SELECT COUNT(*) AS think_count FROM {$tables} {$condition}");
         $count = (int)$count_query[0]['think_count'];
-        $list = Db::query("SELECT delivery.*,member.nickname,member.mobile FROM {$tables} {$condition} ORDER BY delivery.id DESC LIMIT " . (($page - 1) * $limit) . ",{$limit}");
+        $list = Db::query("SELECT delivery.*,member.nickname,member.desc as `address`,member.mobile FROM {$tables} {$condition} ORDER BY delivery.id DESC {$limit}");
         $sql = $this->getLastSql();
         foreach($list as &$row) {
             $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
             $row["goods"] = OrderDeliveryGoods::where("delivery_id", $row["id"])->select();
+            $row["order"] = Order::where("id", $row["order_id"])->field("customer,address,trade_no,order_money,order_num,is_trash")->find();
             foreach($row["goods"] as &$goods) {
                 $goods["umb"] = floatval($goods['width']) . "mm X " . floatval($goods['height']) . "mm X {$goods['num']} = " . round($goods['area'] * $goods['num'], 2) . "m² X {$goods['unitprice']}元 = {$goods['delivery_money']}元";
+                $goods["remark"] = OrderGoods::where("id", $goods["goods_id"])->value("remark");
             }
             $row["total_money"] = $row["manual_money"] + $row["delivery_money"];
         }
 
         return compact('count', 'list', 'sql');
+    }
+
+    /**
+     * 返回订单数据
+     *
+     * @return void
+     */
+    public function getBetweenData($times= [])
+    {
+        $count = (int)self::where("create_time", "BETWEEN", $times)->sum("delivery_num");
+        $delivery_money = (float)self::where("create_time", "BETWEEN", $times)->sum("delivery_money");
+        $manual_money = (float)self::where("create_time", "BETWEEN", $times)->sum("manual_money");
+        $money = round($delivery_money + $manual_money, 4);
+        $money = number_format($money, 2, '.', '');
+        return compact('count', 'money');
     }
 }

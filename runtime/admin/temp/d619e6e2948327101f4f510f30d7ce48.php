@@ -1,4 +1,4 @@
-<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\index.html";i:1690472329;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:75:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\index.html";i:1690472329;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>

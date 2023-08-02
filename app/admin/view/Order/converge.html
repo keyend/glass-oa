@@ -35,7 +35,7 @@
                         </select>
                     </div>
                     <div class="layui-input-inline">
-                        <select name="search_value" class="layui-select">
+                        <select name="search_value" class="layui-select" lay-search>
                             <option value="">客户名称</option>
                             {foreach $customers as $customer}
                             <option value="{$customer.nickname}">{$customer.nickname}</option>

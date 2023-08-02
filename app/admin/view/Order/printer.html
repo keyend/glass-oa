@@ -192,21 +192,32 @@
 {/block}
 {block name="scripts"}
 <script>
-    var delivery = {:json_encode($delivery, JSON_UNESCAPED_SLASH)};
+    var delivery = {$delivery_string|raw};
 
-    layui.config({ base: '/static/admin/' }).use(['index', 'form', 'laytpl', 'table'], function(){
+    layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table'], function(){
+        var $ = layui.$;
         function getPrintArr(data, id) {
-            var result = {};
+            var result = {
+                KH: data.order.customer,
+                DZ: data.order.member.desc,
+                DD: data.order.trade_no,
+                RQ: "{:date('Y-m-d',strtotime($delivery['create_time']))}",
+                MX: {$manual},
+                data: []
+            };
             id = id || 0,
             result.data = [],
             data.goods.forEach(v => {
                 result.data.push({
-                    KH: data.customer,
-                    DD: data.out_trade_no,
-                    MC: v.category,
-                    GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
-                    GY: v.craft,
-                    XH: v.remark
+                    name: v.category + v.craft,
+                    w: parseFloat(v.width),
+                    h: parseFloat(v.height),
+                    num: v.num,
+                    area: v.area,
+                    price: v.unitprice,
+                    fee: v.manual_money,
+                    total: parseFloat(v.manual_money) + parseFloat(v.delivery_money),
+                    desc: v.remark
                 })
             });
             return result;
@@ -214,8 +225,6 @@
 
         function requestPrint(data) {
             var loader = parent.layer.load(2, { shade: ['#fff', .3] });
-            console.log(JSON.stringify(data));
-            return false;
             $.ajax({
                 url: 'http://127.0.0.1:31580/Printer2',
                 type: 'POST',
@@ -235,7 +244,7 @@
             });
         }
 
-        requestPrint(getPrintArr())
+        requestPrint(getPrintArr(delivery))
     })
 </script>
 {/block}

@@ -1,4 +1,4 @@
-<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690632180;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:74:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\form.html";i:1690907855;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1690966367;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="/static/layui-v2.8.4/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
-    <link rel="stylesheet" href="/static/admin/style/custom.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/custom.css?_=1.0.1" media="all">
     <link rel="stylesheet" href="/static/common/fonts/iconfont.css" />
     <script src="/static/layui-v2.8.4/layui/layui.js"></script>
     <script src="/static/admin/ns.js"></script>
@@ -124,14 +124,14 @@
             </button>
         </td>
         <td>
-            <select name="category_id[{{ d.id }}]" data-name="category" class="layui-select" lay-filter="category">
+            <select name="category_id[{{ d.id }}]" data-name="category" class="layui-select" lay-filter="category" lay-search>
                 <?php foreach($categorys as $category): ?>
                 <option value="<?php echo htmlentities($category['id']); ?>"><?php echo htmlentities($category['category']); ?></option>
                 <?php endforeach; ?>
             </select>
         </td>
         <td>
-            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft">
+            <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft" lay-search>
                 <?php foreach($crafts as $craft): ?>
                 <option value="<?php echo htmlentities($craft['id']); ?>"><?php echo htmlentities($craft['craft']); ?></option>
                 <?php endforeach; ?>

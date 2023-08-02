@@ -1,4 +1,4 @@
-<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\converge.html";i:1690638356;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
+<?php /*a:2:{s:78:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\Order\converge.html";i:1690907896;s:68:"D:\xampp\cygwin\www\wwwroot\cloud\or.xmr.la\app\admin\view\base.html";i:1688009496;}*/ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +50,7 @@
                         </select>
                     </div>
                     <div class="layui-input-inline">
-                        <select name="search_value" class="layui-select">
+                        <select name="search_value" class="layui-select" lay-search>
                             <option value="">客户名称</option>
                             <?php foreach($customers as $customer): ?>
                             <option value="<?php echo htmlentities($customer['nickname']); ?>"><?php echo htmlentities($customer['nickname']); ?></option>
