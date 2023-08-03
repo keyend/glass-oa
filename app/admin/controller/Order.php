@@ -29,7 +29,8 @@ class Order extends Controller
         if ($this->request->isAjax()) {
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
-                ["search_value", ""]
+                ["search_value", ""],
+                ["search_time", ""]
             ]);
             if ($id != 'all') {
                 $filter["status"] = $id;
@@ -201,6 +202,7 @@ class Order extends Controller
                 ['search_type', ""],
                 ["search_value", ""],
                 ['search_time', ""],
+                ['keyword', ''],
                 ['export', 0],
                 ['print', 0]
             ]);
@@ -426,5 +428,27 @@ class Order extends Controller
         } else {
             return $this->fetch('Order/label');
         }
+    }
+
+    /**
+     * 打印次数记录
+     *
+     * @param OrderGoods $order_goods
+     * @return void
+     */
+    public function printRecord(OrderGoods $order_goods)
+    {
+        $ids = input("post.ids", "");
+        if (is_string($ids)) {
+            $ids = explode(",", $ids);
+        }
+        $goodsList = $order_goods->where("id", "IN", $ids)->select();
+        foreach($goodsList as $goods) {
+            $origin = $goods->toArray();
+            $goods->inc("print_label")->update();
+            $after = $goods->toArray();
+            $this->logger('logs.order.label.print', 'UPDATED', [$origin, $after]);
+        }
+        return $this->success();
     }
 }

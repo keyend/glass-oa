@@ -34,8 +34,13 @@ class Index extends Controller
             if ($patch == "shape") {
                 $model = new Users();
                 $res = $model->getChartData();
+            } elseif($patch == "pie") {
+                $model = new Users();
+                $res = $model->getPieData();
+            } elseif($path == "order") {
+                $model = new Order();
+                $res = $model->getChartData();
             }
-
             return $this->success($res);
         } else {
             $today_first = mktime(0,0,0);

@@ -48,6 +48,14 @@
     .layui-table {
         width: 100%!important;
     }
+    .detail-title {
+        position: relative;
+    }
+    .detail-title .layui-btn {
+        position: absolute;
+        top: -5px;
+        right: 30px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -65,7 +73,7 @@
     <div class="layui-card order-delivery">
         <form class="layui-card-body layui-form" method="POST" enctype="application/x-www-form-urlencoded">
             <blockquote class="layui-elem-quote title">
-                <p>
+                <p class="detail-title">
                     <span>订单号：{$order.trade_no}</span>
                     <span>客户名称：{$order.customer}</span>
                     {if $order.is_trash}
@@ -76,47 +84,45 @@
                     <span>优惠金额：{$order.discount_money}</span>
                     <span>实际金额：{:number_format($order['order_money'] - $order['discount_money'], 2, '.', '')}</span>
                     <span>已付金额：{$order.pay_money}</span>
+                    {if $order.status < 2}
+                    <button class="layui-btn layui-btn-sm" lay-filter="edit" lay-submit style="display: none;">编辑订单</button>
+                    {/if}
                 </p>
             </blockquote>
-            <table class="layui-table">
-                <colgroup>
-                    <col>
-                    <col width="160">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                </colgroup>
+            <table id="parse-table-demo" lay-filter="parse-table-demo">
                 <thead> 
                     <tr>
-                        <th>品类名称</th>
-                        <th>工艺</th>
-                        <th>宽</th>
-                        <th>高</th>
-                        <th>面积</th>
-                        <th>单价</th>
-                        <th>加工费</th>
-                        <th>数量</th>
-                        <th></th>
+                        <th lay-data="{field:'id', hide: true}">#</th>
+                        <th lay-data="{field:'print_label', hide: true}"></th>
+                        <th lay-data="{field:'is_delete', hide: true}"></th>
+                        <th lay-data="{field:'category', sort:true, templet: '#col-category'}">品类名称</th>
+                        <th lay-data="{field:'craft', width:160, sort:true, templet: '#col-craft'}">工艺</th>
+                        <th lay-data="{field:'width', width:120, sort:true, templet: '#col-width'}">宽(mm)</th>
+                        <th lay-data="{field:'height', width:120, sort:true, templet: '#col-height'}">高(mm)</th>
+                        <th lay-data="{field:'area', width:120, sort:true}">面积(m²)</th>
+                        <th lay-data="{field:'unitprice', width:120, sort:true}">单价(元)</th>
+                        <th lay-data="{field:'manual_money', width:120, sort:true, templet: '#col-manual'}">加工费(元)</th>
+                        <th lay-data="{field:'num', width:100, sort:true}">数量</th>
+                        <th lay-data="{field:'deductnum', width:100, sort:true}">已配送</th>
+                        <th lay-data="{field:'operator', width:180, templet: '#col-operator'}"></th>
                     </tr> 
                 </thead> 
                 <tbody id="order-content">
                     {foreach $order.goods as $goods}
-                    <tr>
+                    <tr id="row_{$goods.id}">
+                        <td>{$goods.id}</td>
+                        <td>{$goods.print_label}</td>
+                        <td>{$goods.is_delete}</td>
                         <td>{$goods.category}</td>
                         <td>{$goods.craft}</td>
-                        <td>{$goods.width}mm</td>
-                        <td>{$goods.height}mm</td>
-                        <td>{$goods.area}m²</td>
-                        <td>{$goods.unitprice}元</td>
-                        <td>{$goods.manual_money}元</td>
+                        <td>{$goods.width|floatval}</td>
+                        <td>{$goods.height|floatval}</td>
+                        <td>{$goods.area}</td>
+                        <td>{$goods.unitprice}</td>
+                        <td>{$goods.manual_money}</td>
                         <td>{$goods.num}</td>
-                        <td>
-                            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" lay-filter="print" data-id="{$goods.id}" data-orderid="{$order.id}">打印标签</button>
-                        </td>
+                        <td>{$goods.deductnum}</td>
+                        <td></td>
                     </tr>
                     {/foreach}
                 </tbody>
@@ -142,15 +148,47 @@
         </form>
     </div>
 </div>
+
+<script type="text/html" id="col-category">
+    {{ d.category }}
+    {{# if(d.print_label > 0) { }}
+    <span class="layui-badge" title="已打印{{ d.print_label }}次">{{ d.print_label }}</span>
+    {{# } }}
+</script>
+
+<script type="text/html" id="col-craft">
+    {{ d.craft }}
+</script>
+
+<script type="text/html" id="col-width">
+    {{ d.width }}
+</script>
+
+<script type="text/html" id="col-height">
+    {{ d.height }}
+</script>
+
+<script type="text/html" id="col-manual">
+    {{ d.manual_money }}
+</script>
+
+<script type="text/html" id="col-operator">
+    <div class="layui-btn-group">
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="print" data-id="{{ d.id }}" data-orderid="{{ d.order_id }}">打印标签</button>
+    </div>
+</script>
 {/block}
 {block name="scripts"}
 <script>
-    layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table'], function(){
-        var $ = layui.$, goodsNums = {}, form = layui.form;
+    var goodsList = {:json_encode($order["goods"], JSON_UNESCAPED_UNICODE)};
+
+    layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table', 'util'], function(){
+        var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table;
 
         function getPrintArr(data, id) {
             var result = {};
             id = id || 0,
+            result.ids = [];
             result.data = [],
             data.goods.forEach(v => {
                 if (id == v.id || id == 0) {
@@ -161,19 +199,22 @@
                         GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
                         GY: v.craft,
                         XH: v.remark
-                    })
+                    }),
+                    result.ids.push(v.id);
                 }
             });
             return result;
         }
 
-        function requestPrint(data) {
-            var loader = parent.layer.load(2, { shade: ['#fff', .3] });
+        function requestPrint(rds) {
+            var loader = parent.layer.load(2, { shade: ['#fff', .3] }), ds = {
+                data: rds.data
+            };
             $.ajax({
                 url: 'http://127.0.0.1:31580/Printer',
                 type: 'POST',
                 dataType: 'json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(ds),
                 processData: false,
                 contentType: "application/json; charset=utf-8",
                 complete: function(xhr) {
@@ -181,6 +222,7 @@
                     var r = JSON.parse(xhr.responseText);
                     if (r.ret == 0) {
                         parent.layer.msg("SUCCESS");
+                        $.post("{:url('orderGoodsPrint')}", {ids: rds.ids});
                     } else {
                         parent.layer.alert(r.msg)
                     }
@@ -196,7 +238,17 @@
         $('button[lay-filter="print"]').on("click", function(e) {
             var that = $(this), field = JSON.parse($("#delivery_data_" + that.data("orderid")).val());
             requestPrint(getPrintArr(field, that.data("id")));
-        })
+        }),
+
+        table.init('parse-table-demo', {
+            done(res) {
+                console.log(res);
+            }
+        }),
+        table.on('edit(parse-table-demo)', function(obj) {
+            console.log(obj);
+            // 更新单元格
+        });
     })
 </script>
 {/block}

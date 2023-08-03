@@ -59,11 +59,16 @@ class Order extends Model
     public function getList($page, $limit, $filter = [])
     {
         $query = $this->withJoin(["member"], "left");
-        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            if (in_array($filter['search_type'], ["trade_no", "out_trade_no"])) {
-                $query->where("order.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
-            } elseif (in_array($filter["search_type"], ["username", "mobile"])) {
-                $query->where("member.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
+        if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
+            $filter['search_value'] = trim($filter['search_value']);
+            $query->where("order.trade_no|order.out_trade_no|member.nickname|member.mobile|member.desc", 'LIKE', "%{$filter['search_value']}%");
+        }
+        if (isset($filter['search_time']) && !empty($filter['search_time'])) {
+            $times = explode(" - ", $filter['search_time']);
+            if (count($times) === 2) {
+                $times[0] = strtotime($times[0] . " 00:00:00");
+                $times[1] = strtotime($times[1] . " 23:59:59");
+                $query->where('order.create_time', 'BETWEEN', $times);
             }
         }
         if (isset($filter['status']) && $filter['status'] != "all") {
@@ -284,5 +289,32 @@ class Order extends Model
         $money = (float)self::where("create_time", "BETWEEN", $times)->sum("order_money");
         $money = number_format($money, 2, '.', '');
         return compact('count', 'money');
+    }
+
+    /**
+     * 返回近月数据
+     *
+     * @return void
+     */
+    public function getChartData()
+    {
+        $timestamp = time();
+        $previousTime = strtotime(date("Y-m-d 00:00:00", $timestamp - 30 * 86400));
+        $version = date("ymdH");
+        $maps = [$previousTime,$timestamp,$version];
+        $version = md5(json_encode($maps));
+        $cache = Cache::get("shape_order_{$version}");
+        if (!empty($cache)) {
+            return $cache;
+        }
+
+        $result = [];
+        $result["names"] = ["订单数", "订单金额"];
+        $result["dates"] = [];
+        $result["list"] = [];
+        while($previousTime < $timestamp) {
+            $result["dates"][] = date("Y/m/d", $previousTime);
+            $previousTime += 86400;
+        }
     }
 }

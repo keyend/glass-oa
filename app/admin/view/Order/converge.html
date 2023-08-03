@@ -48,7 +48,12 @@
                     <div class="layui-input-inline">
                       <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
                     </div>
-                  </div>
+                </div>
+                <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                    <div class="layui-input-inline">
+                      <input type="text" class="layui-input" name="keyword" id="keyword" placeholder="名称、工艺、规格等" lay-affix="clear" />
+                    </div>
+                </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <input type="hidden" name="export" id="export" value="" />
                     <input type="hidden" name="print" id="print" value="" />
@@ -80,6 +85,10 @@
 {/block}
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
+    <span id="toolbar-totalmoney" class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue" style="display: none;">
+        总金额：
+        <font id="vl_totalmoney">{{= total_money}}</font>
+    </span>
 </script>
 
 <script type="text/html" id="user-bar">
@@ -114,6 +123,8 @@
 
 <!---->
 <script>
+    var total_money = 0;
+
     layui.config({
         base: '/static/admin/'
     }).use(['table', 'form', 'laydate'], function(){
@@ -146,6 +157,15 @@
             },
             detail: function(e) {
                 location.href = "{:url('orderDetail')}?order_id=" + e.data.id
+            },
+            setTotalMoney(value) {
+                var e = $('#toolbar-totalmoney');
+                if (value > 0) {
+                    e.find("#vl_totalmoney").text(value),
+                    e.show()
+                } else {
+                    e.hide()
+                }
             }
         };
 
@@ -173,6 +193,7 @@
                     {title: '备注', field: 'remark', width: 300}
                 ]],
                 parseData: function(res) {
+                    active.setTotalMoney(res.data.total_money);
                     return {
                         code: res.code,
                         msg: res.message,

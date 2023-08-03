@@ -279,9 +279,9 @@ class Users extends Model
         $version = date("ymdH");
         $maps = [$currentMonthBegin,$currentMonthLast,$previousMonthBegin,$previousMonthLast,$version];
         $version = md5(json_encode($maps));
-        $cache = Cache::get("shape");
+        $cache = Cache::get("shape_{$version}");
         if (!empty($cache)) {
-            // return $cache;
+            return $cache;
         }
         $customers = self::where("status", 1)->column("nickname", "id");
         $result = [];
@@ -300,7 +300,41 @@ class Users extends Model
             "type" => "bar",
             "data" => $values["current"]
         ];
-        Cache::set("shape", $result);
+        Cache::set("shape_{$version}", $result);
+        return $result;
+    }
+
+    public function getPieData()
+    {
+        $timestamp = time();
+        $currentMonthBegin = strtotime(date("Y-m-01", $timestamp));
+        $currentMonthLast = strtotime(date("Y-m-t", $timestamp));
+        $version = date("ymdH");
+        $maps = [$currentMonthBegin,$currentMonthLast,$version];
+        $version = md5(json_encode($maps));
+        $cache = Cache::get("pie_{$version}");
+        if (!empty($cache)) {
+            return $cache;
+        }
+        $customers = self::where("status", 1)->column("nickname", "id");
+        $result = [];
+        $result["list"] = [];
+        $result["customer"] = [];
+        $currentData = $this->getDataItem($customers, [$currentMonthBegin, $currentMonthLast]);
+        $sorts = [];
+        foreach($currentData as $customer_id => $sum) {
+            $sum = (string)floatval($sum * 100);
+            $sorts[$sum] = $customer_id;
+        }
+        ksort($sorts);
+        foreach($sorts as $value => $id) {
+            $result["list"][] = [
+                "name" => $customers[$id],
+                "value" => $currentData[$id]
+            ];
+            $result["customer"][] = $customers[$id];
+        }
+        Cache::set("pie_{$version}", $result);
         return $result;
     }
 

@@ -106,6 +106,7 @@ Route::group(function() {
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
         Route::rule('converge', '/converge')->name("orderConverge");
         Route::rule('label', '/label')->name("orderLabel");
+        Route::post('print/record', '/printRecord')->name('orderGoodsPrint');
         Route::get('print', '/print')->name('orderPrint');
     })->prefix('order');
 })->middleware('ConsoleAuthorize', true);
