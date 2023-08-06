@@ -26,12 +26,9 @@ class OrderGoods extends Model
     public function getList($page, $limit, $filter = [])
     {
         $query = $this->withJoin(["order"], "left");
-        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            if (in_array($filter["search_type"], ["customer", "trade_no"])) {
-                $query->where("order.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
-            } elseif(in_array($filter["search_type"], ["category", "craft"])) {
-                $query->where("order_goods.{$filter["search_type"]}", 'LIKE', "%{$filter['search_value']}%");
-            }
+        if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
+            $filter['search_value'] = trim($filter['search_value']);
+            $query->where("order_goods.category|order_goods.craft|order_goods.width|order_goods.height|order.customer|order.address|order.mobile", 'LIKE', "%{$filter['search_value']}%");
         }
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
@@ -41,6 +38,7 @@ class OrderGoods extends Model
                 $query->where('order.create_time', 'BETWEEN', $times);
             }
         }
+        $query->where("order_goods.is_delete", "=", 0);
         $list = [];
         $fields = "order_goods.*,order.trade_no,order.customer,order.order_num";
         $count = $query->count();
@@ -49,13 +47,17 @@ class OrderGoods extends Model
             $query->chunk(100, function ($lists) use (&$list) {
                 foreach($lists as $item) {
                     $row = $item->toArray();
-                    $row["height"] = (int)$row["height"];
-                    $row["width"]  = (int)$row["width"];
+                    $row["height"] = (float)$row["height"];
+                    $row["width"]  = (float)$row["width"];
                     $list[] = $row;
                 }
             }, "order_goods.id", "desc");
         } else {
-            $list = $query->page($page,$limit)->order("order_goods.id DESC")->select();
+            $list = $query->page($page,$limit)->order("order_goods.id DESC")->select()->each(function($row) {
+                $row["height"] = (float)$row["height"];
+                $row["width"]  = (float)$row["width"];
+                return $row;
+            });
         }
         $sql = $query->getLastSql();
         return compact('count', 'list', 'sql');

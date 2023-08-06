@@ -19,16 +19,33 @@
     .layui-table {
         width: 100%!important;
     }
+    .layui-table .layui-input {
+        margin-top: -10px;
+        margin-bottom: -10px;
+    }
+    .layui-table button,
+    .layui-table .layui-input-fill,
+    .layui-table .layui-form-select {
+        margin: -10px -10px;
+    }
+    .layui-order-form {
+        min-width: 1024px;
+    }
 </style>
 {/block}
 {block name="body"}
 <div class="layui-fluid">
-    <div class="layui-card">
+    <div class="layui-card layui-order-form">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
             <div class="layui-tab layui-tab-brief">
                 <ul class="layui-tab-title">
                     <li><a href="{:url('order')}">全部订单</a></li>
-                    <li class="layui-this"><a href="{:url('order')}">新增订单</a></li>
+                    {if isset($order['customer_id'])}
+                    <li><a href="{:url('orderAdd')}">新增订单</a></li>
+                    <li class="layui-this"><a style="color: #1e9fff;">编辑订单</a></li>
+                    {else}
+                    <li class="layui-this"><a href="{:url('orderAdd')}">新增订单</a></li>
+                    {/if}
                 </ul>
                 <div class="layui-tab-content">
                     <form
@@ -38,17 +55,54 @@
                         method="POST"
                         enctype="application/x-www-form-urlencoded"
                     >
+                        {if isset($order['customer_id'])}
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">客户名称</label>
                             <div class="layui-input-inline">
-                                <input name="aaaa" id="aaaa" placeholder="" type="hidden" value="22222" />
+                                <input type="hidden" name="id" value="{$order.id ?? 0}" />
                                 <select class="layui-select" name="customer_id" id="customer_id" lay-verify="required" lay-filter="customer" lay-search>
                                     {foreach $customers as $customer}
-                                    <option value="{$customer.id}" data-category='{$customer.category|raw}' data-minarea="{$customer.minarea|floatval}">{$customer.nickname}</option>
+                                    {if isset($order['customer_id']) && $order['customer_id'] == $customer['id']}
+                                    <option
+                                        value="{$customer.id}"
+                                        data-category='{$customer.category|raw}'
+                                        data-minarea="{$customer.minarea|floatval}"
+                                        selected="selected"
+                                    >{$customer.nickname}</option>
+                                    {/if}
                                     {/foreach}
                                 </select>
                             </div>
                         </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">订单编号</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{$order.trade_no}" disabled />
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">创建时间</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{$order.create_time|date='Y-m-d H:i'}" disabled />
+                            </div>
+                        </div>
+                        {else}
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <label class="layui-form-label">客户名称</label>
+                            <div class="layui-input-inline">
+                                <input type="hidden" name="id" value="{$order.id ?? 0}" />
+                                <select class="layui-select" name="customer_id" id="customer_id" lay-verify="required" lay-filter="customer" lay-search>
+                                    {foreach $customers as $customer}
+                                    <option
+                                        value="{$customer.id}"
+                                        data-category='{$customer.category|raw}'
+                                        data-minarea="{$customer.minarea|floatval}"
+                                    >{$customer.nickname}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        </div>
+                        {/if}
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-filter="form1" lay-submit>
                                 <i class="layui-icon layui-icon-release layuiadmin-button-btn"></i>
@@ -60,17 +114,17 @@
             </div>
         </div>
     </div>
-    <div class="layui-card">
+    <div class="layui-card layui-order-form">
         <div class="layui-card-body layui-form" style="padding: 15px 10px!important;">
             <table class="layui-table">
                 <colgroup>
-                    <col width="70" />
+                    <col width="42" />
                     <col width="200" />
                     <col width="160" />
-                    <col width="100" />
+                    <col width="80" />
                     <col />
-                    <col width="180" />
-                    <col width="100" />
+                    <col width="160" />
+                    <col width="150" />
                     <col width="100" />
                 </colgroup>
                 <thead> 
@@ -89,11 +143,64 @@
                         <th>合计金额</th>
                     </tr> 
                 </thead> 
-                <tbody id="order-content"></tbody>
+                <tbody id="order-content">
+                    {foreach $order.goods as $goods}
+                    <tr id="item_{$goods.id}">
+                        <td>
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-delete>
+                                <i class="layui-icon layui-icon-delete"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <select name="category_id[{$goods.id}]" data-name="category" class="layui-select" lay-filter="category">
+                                {foreach $categorys as $category}
+                                {if $goods.category_id == $category.id}
+                                <option value="{$category.id}" selected="selected">{$category.category}</option>
+                                {/if}
+                                {/foreach}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="craft_id[{$goods.id}]" data-name="craft" class="layui-select" lay-filter="craft">
+                                {foreach $crafts as $craft}
+                                {if $goods.craft == $craft.craft}
+                                <option value="{$craft.id}" selected="selected">{$craft.craft}</option>
+                                {/if}
+                                {/foreach}
+                            </select>
+                        </td>
+                        <td> 
+                            <input type="number" name="manual[{$goods.id}]" data-name="manual" placeholder="0.00" class="layui-input layui-number layui-input-fill" value="{$goods.manual}" />
+                        </td>
+                        <td> 
+                            <input type="number" name="width[{$goods.id}]" data-name="width" value="{$goods.width}" placeholder="宽" class="layui-input layui-number" /> X
+                            <input type="number" name="height[{$goods.id}]" data-name="height" value="{$goods.height}" placeholder="高" class="layui-input layui-number" /> X
+                            <input type="number" name="num[{$goods.id}]" data-name="num" value="{$goods.num}" placeholder="数量" class="layui-input layui-number" /> =
+                            <input type="hidden" name="area[{$goods.id}]" data-name="area" value="{$goods.area}" />
+                            <span class="area">
+                                <font class="label-area">{$goods.area}</font>m² X 
+                                <font class="label-unitprice">{$goods.unitprice}</font>元 = 
+                                <font class="label-price">{$goods.order_money}</font>元
+                            </span>
+                        </td>
+                        <td>
+                            <input type="text" name="remark[{$goods.id}]" data-name="remark" value="{$goods.remark}" placeholder="" class="layui-input layui-text layui-input-fill" />
+                        </td>
+                        <td>&yen;
+                            <span class="label-unitprice">{$goods.unitprice}</span>
+                        </td>
+                        <td>&yen;
+                            <span class="label-price">{$goods.order_money}</span>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </tbody>
                 <tfoot>
                     <tr style="background-color:#f7f7f7;">
                         <td colspan="7">总计：</td><td>&yen;
-                        <span id="row_count">--.--</span></td>
+                        <span id="row_count">
+                            {$order.order_money??'--.--'}
+                        </span></td>
                     </tr>
                 </tfoot>
             </table>
@@ -111,6 +218,7 @@
         </td>
         <td>
             <select name="category_id[{{ d.id }}]" data-name="category" class="layui-select" lay-filter="category" lay-search>
+                <option value=""></option>
                 {foreach $categorys as $category}
                 <option value="{$category.id}">{$category.category}</option>
                 {/foreach}
@@ -118,13 +226,14 @@
         </td>
         <td>
             <select name="craft_id[{{ d.id }}]" data-name="craft" class="layui-select" lay-filter="craft" lay-search>
+                <option value=""></option>
                 {foreach $crafts as $craft}
                 <option value="{$craft.id}">{$craft.craft}</option>
                 {/foreach}
             </select>
         </td>
         <td> 
-            <input type="number" name="manual[{{ d.id }}]" data-name="manual" placeholder="0.00" class="layui-input layui-number" />
+            <input type="number" name="manual[{{ d.id }}]" data-name="manual" placeholder="0.00" class="layui-input layui-number layui-input-fill" />
         </td>
         <td> 
             <input type="number" name="width[{{ d.id }}]" data-name="width" placeholder="宽" class="layui-input layui-number" /> X
@@ -138,10 +247,11 @@
             </span>
         </td>
         <td>
-            <input type="text" name="remark[{{ d.id }}]" data-name="remark" placeholder="" class="layui-input layui-text" />
+            <input type="text" name="remark[{{ d.id }}]" data-name="remark" placeholder="" class="layui-input layui-text layui-input-fill" />
         </td>
         <td>&yen;
             <span class="label-unitprice">--.--</span>
+            <span class="layui-badge undefined-price" style="display: none;">未设置</span>
         </td>
         <td>&yen;
             <span class="label-price">--.--</span>
@@ -153,9 +263,12 @@
     ,customer_id = "{$customer_id}"
     ,craft_id = "{$craft_id}"
     ,category_id = "{$category_id}"
+    ,min_length = 5
     ,category = {$customer_category|raw}
+
     ,customer_minarea = {$customer_minarea|floatval}
-    ,data = [];
+
+    ,data = {$data|raw};
 
     layui.config({
         base: '/static/admin/' //静态资源所在路径
@@ -167,6 +280,7 @@
         ,element = layui.element
         ,form = layui.form
         ,table = layui.table
+        ,tableButton
         ,context = $('#order-content');
 
         if (customer_id == "0") {
@@ -182,30 +296,25 @@
             return val;
         }
 
-        function getUnitPrice(cid) {
+        function getPrice(cid) {
             if (typeof(category[cid]) == "undefined") {
                 return 0;
             }
             return float(category[cid]);
         }
 
-        function updateTotal() {
+        function priceUpdate() {
             var total = 0;
+            console.log(total);
             Object.values(data).forEach(v => {
-                console.log(v),
                 total += v.price
             }),
             $('#row_count').text(total)
         }
 
-        function createRow() {
-            var id = (new Date()).getTime()
-            ,rid = "#item_" + id
-            ,templet = layui.laytpl(document.getElementById("row").innerHTML).render({ id: id });
+        function handleListener(id) {
+            var rid = "#item_" + id;
 
-            data[id] = {width: 0, height: 0, num: 0, manual: 0, unitprice: 0, category_id: category_id, craft_id: craft_id, status: 0, remark: ''},
-            data[id]["unitprice"] = getUnitPrice(category_id),
-            context.append(templet),
             context.find(rid).find('input[type="text"]').on("input propertychange", function() {
                 var that = $(this);
                 data[id][that.data("name")] = that.val();
@@ -215,7 +324,7 @@
                 context.find(rid).remove()
             }),
             context.find(rid).find('input[type="number"]').on("focus", function() {
-                this.select();
+                this.select()
             }).on("input propertychange", function() {
                 var that = $(this).parent().parent()
                 ,_w = that.find('input[data-name="width"]')
@@ -223,18 +332,19 @@
                 ,_n = that.find('input[data-name="num"]')
                 ,_m = that.find('input[data-name="manual"]')
                 ,_a = that.find('input[data-name="area"]')
-                ,_r = that.find('input[data-name="remark"]');
+                ,_r = that.find('input[data-name="remark"]')
+                ,_l = that.find(".undefined-price");
 
                 data[id]['width'] = float(_w.val())
                 ,data[id]['height'] = float(_h.val())
                 ,data[id]['num'] = float(_n.val())
                 ,data[id]['manual'] = float(_m.val())
                 ,data[id]['area'] = Math.round(float(data[id]['width'] * data[id]['height']) / 10000) / 100
-                ,console.log(data[id]['area'])
                 ,data[id]['area'] = data[id]['area'] < customer_minarea ? customer_minarea : data[id]['area']
                 ,data[id]['price'] = Math.round((float(data[id]['area'] * data[id]['num'] * data[id]['unitprice']) + (data[id]['manual'] * data[id]['num'])) * 100) / 100
                 ,data[id]['remark'] = _r.val()
                 ,data[id]['status'] = 1
+                ,data[id]["unitprice"] == 0 ? _l.show() : _l.hide()
                 ,_w.val(data[id]['width'])
                 ,_h.val(data[id]['height'])
                 ,_n.val(data[id]['num'])
@@ -242,14 +352,23 @@
                 ,that.find(".label-area").text(Math.round(data[id]['area'] * data[id]['num'] * 100) / 100)
                 ,that.find(".label-unitprice").text(data[id]['unitprice'])
                 ,that.find(".label-price").text(data[id]['price'])
-                updateTotal()
+                ,priceUpdate()
             }),
             form.render()
         }
 
-        $('.layui-table').find('button[lay-filter="add"]').on("click", function() {
-            createRow()
-        }).trigger("click"),
+        function addGoods() {
+            var id = (new Date()).getTime()
+            ,rid = "#item_" + id
+            ,templet = layui.laytpl(document.getElementById("row").innerHTML).render({ id: id });
+
+            data[id] = {width: 0, height: 0, num: 0, manual: 0, unitprice: 0, price: 0, category_id: 0, craft_id: 0, status: 0, remark: ''},
+            data[id]["unitprice"] = getPrice(category_id),
+            context.append(templet),
+            handleListener(id)
+        }
+
+        tableButton = $('.layui-table').find('button[lay-filter="add"]').on("click", () => addGoods()),
 
         form.on("select(customer)", function(obj) {
             obj.elem.childNodes.forEach((v,i) => {
@@ -265,7 +384,7 @@
             }),
 
             Object.keys(data).forEach(function (id) {
-                data[id]['unitprice'] = getUnitPrice(data[id]['category_id']);
+                data[id]['unitprice'] = getPrice(data[id]['category_id']);
                 $("#item_" + id).find('input[data-name="num"]').trigger("input")
             })
         }),
@@ -285,8 +404,9 @@
 
             var that = $(obj.elem).parent().parent(), id = that.attr("id").replace('item_', '');
             if (typeof(category[obj.value]) == "undefined") {
-                parent.layer.msg("错误：客户" + customer + "未定义" + title + "单价!");
-                return false;
+                // parent.layer.msg("错误：客户" + customer + "未定义" + title + "单价!");
+                // return false;
+                category[obj.value] = 0;
             }
 
             data[id]['unitprice'] = float(category[obj.value]),
@@ -303,7 +423,7 @@
         form.on('submit(form1)', function(obj) {
             obj.field["goods"] = [];
             Object.values(data).forEach(function(v) {
-                if (v.status) {
+                if (v.status || v.id) {
                     obj.field["goods"].push(v)
                 }
             });
@@ -321,7 +441,16 @@
             return false;
         }),
 
-        form.render()
+        Object.keys(data).forEach(id => handleListener(id)),
+        form.render();
+
+        if (data < min_length) {
+            for(var i = data.length; i < min_length; i++) {
+                tableButton.trigger("click")
+            }
+        } else {
+            tableButton.trigger("click")
+        }
     });
 </script>
 {/block}

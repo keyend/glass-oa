@@ -5,6 +5,9 @@
         .layui-bg-green, .bg-green {
             background-color: rgb(1, 129, 1)!important;
         }
+        .layui-bg-primary {
+            background-color: #16baaa!important;
+        }
         .layui-bg-green1 {
             background-color: rgb(93, 122, 78)!important;
         }
@@ -85,21 +88,24 @@
 </script>
 
 <script type="text/html" id="user-bar">
-    <a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>
-    {{# if (d.is_trash == 0 && d.status != 2) { }}
-    <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
-    {{# } }}
-    {{# if (d.is_trash == 0) { }}
-    {{# if (d.status == 0) { }}
-    <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送{{ d.process }}%</a>
-    {{# } }}
-    {{# if (d.status == 1) { }}
-    <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
-    {{# } }}
-    {{# if (d.status == 2) { }}
-    <a class="layui-badge layui-bg-green" lay-event="delivery" href="javascript:void(0);">已完成</a>
-    {{# } }}
-    {{# } }}
+    <div class="layui-btn-group">
+        <a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>
+        {{# if (d.is_trash == 0) { }}
+        {{# if (d.status < 2) { }}
+        <a class="layui-badge layui-bg-primary" lay-event="edit" href="javascript:void(0);">编辑</a>
+        <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
+        {{# } }}
+        {{# if (d.status == 0) { }}
+        <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送{{ d.process }}%</a>
+        {{# } }}
+        {{# if (d.status == 1) { }}
+        <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
+        {{# } }}
+        {{# if (d.status == 2) { }}
+        <a class="layui-badge layui-bg-green" lay-event="delivery" href="javascript:void(0);">已完成</a>
+        {{# } }}
+        {{# } }}
+    </div>
 </script> 
 
 <script type="text/html" id="user-auth">
@@ -149,6 +155,9 @@
             },
             detail: function(e) {
                 location.href = "{:url('orderDetail')}?order_id=" + e.data.id
+            },
+            edit: function(e) {
+                location.href = "{:url('orderEdit')}?order_id=" + e.data.id
             }
         };
 
@@ -183,7 +192,7 @@
                     {title: '优惠金额', field: 'discount_money', width: 100},
                     {title: '状态', field: 'status', align: 'center', templet: '#user-auth', width: 82},
                     {title: '下单时间', field: 'create_time', align: 'center'},
-                    {title: '操作', toolbar: '#user-bar', width: 220}
+                    {title: '操作', toolbar: '#user-bar', width: 230}
                 ]],
                 parseData: function(res) {
                     return {

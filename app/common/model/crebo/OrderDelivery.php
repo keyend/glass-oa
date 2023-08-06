@@ -36,15 +36,15 @@ class OrderDelivery extends Model
     public function getList($page, $limit, $filter = [])
     {
         $condition = [];
-        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            if (in_array($filter['search_type'], ["trade_no", "out_trade_no"])) {
-                $condition[] = "order.{$filter['search_type']} LIKE '%{$filter['search_value']}%'";
-            } elseif (in_array($filter["search_type"], ["nickname", "address"])) {
-                $condition[] = "member.{$filter["search_type"]} LIKE '%{$filter['search_value']}%'";
-            }
-        }
-        if (isset($filter['status']) && !empty($filter['status']) && $filter['status'] != 0) {
-            $condition[] = "order.is_trash = " . (int)$filter['status'];
+        $condition[] = "order.is_trash = {$filter['is_trash']}";
+        if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
+            $where = [];
+            $where[] = "`order`.customer LIKE '%{$filter['search_value']}%'";
+            $where[] = "`order`.address LIKE '%{$filter['search_value']}%'";
+            $where[] = "`order`.mobile LIKE '%{$filter['search_value']}%'";
+            $where[] = "`order`.trade_no LIKE '%{$filter['search_value']}%'";
+            $where[] = "`delivery`.trade_no LIKE '%{$filter['search_value']}%'";
+            $condition[] = "(" . implode(" OR ", $where) . ")";
         }
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
@@ -76,6 +76,8 @@ class OrderDelivery extends Model
             $row["goods"] = OrderDeliveryGoods::where("delivery_id", $row["id"])->select();
             $row["order"] = Order::where("id", $row["order_id"])->field("customer,address,trade_no,order_money,order_num,is_trash")->find();
             foreach($row["goods"] as &$goods) {
+                $goods["width"] = (float)$goods["width"];
+                $goods["height"] = (float)$goods["height"];
                 $goods["umb"] = floatval($goods['width']) . "mm X " . floatval($goods['height']) . "mm X {$goods['num']} = " . round($goods['area'] * $goods['num'], 2) . "m² X {$goods['unitprice']}元 = {$goods['delivery_money']}元";
                 $goods["remark"] = OrderGoods::where("id", $goods["goods_id"])->value("remark");
             }

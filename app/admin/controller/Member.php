@@ -107,6 +107,7 @@ class Member extends Controller
             $update["id"] = $id;
             $update['nickname'] = $data['nickname'];
             $update['desc'] = $data['desc'];
+            $update['sort'] = (int)$data['sort'];
             $update['minarea'] = (float)$data['minarea'];
             $update["category"] = $data["category"] ?? [];
 			$info->save($update);

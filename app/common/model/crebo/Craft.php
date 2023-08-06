@@ -19,7 +19,7 @@ class Craft extends Model
         $condition = [];
         $query = $this->where($condition);
         $count = $query->count();
-        $list = $query->page($page,$limit)->order('id desc')->select();
+        $list = $query->page($page,$limit)->order('sort DESC,id desc')->select();
         return compact('count', 'list');
     }
 

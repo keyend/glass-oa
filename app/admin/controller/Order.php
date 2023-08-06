@@ -9,6 +9,7 @@ use app\common\model\crebo\OrderDeliveryGoods;
 use app\common\model\crebo\Category;
 use app\common\model\crebo\Craft;
 use app\common\model\crebo\Users;
+use think\facade\Db;
 
 /**
  * 订单管理
@@ -124,8 +125,23 @@ class Order extends Controller
         if (empty($order)) {
             return $this->fail("订单记录不存在!");
         }
-        $this->assign("order", $order);
-        return $this->fetch();
+
+        if ($this->request->isPost()) {
+            $data = input("post.");
+            try {
+                if (!isset($data["filt"])) {
+                    throw new \Exception("INVALID_PARAM");
+                }
+                $data["num"] = (int)$data["num"];
+                call_user_func_array([$order, $data["filt"]], [$data["goods"]["id"], $data["num"], $data["remark"]]);
+            } catch(\Exception $e) {
+                return $this->fail($e->getMessage());
+            }
+            return $this->success();
+        } else {
+            $this->assign("order", $order);
+            return $this->fetch();
+        }
     }
 
     /**
@@ -176,6 +192,8 @@ class Order extends Controller
                 $craft_id = $crafts[0]["id"];
             }
 
+            $this->assign("data",       "[]");
+            $this->assign("order",      []);
             $this->assign("customers",  $customers);
             $this->assign("categorys",  $categorys);
             $this->assign("crafts",     $crafts);
@@ -187,6 +205,102 @@ class Order extends Controller
             $this->assign("craft_id",   $craft_id);
             return $this->fetch('Order/form');
 		}
+    }
+
+    /**
+     * 编辑订单
+     *
+     * @param OrderModel $order_model
+     * @param Users $user_model
+     * @param Category $category_model
+     * @param Craft $craft_model
+     * @return void
+     */
+    public function edit(OrderModel $order_model, Users $user_model, Category $category_model, Craft $craft_model)
+    {
+        $order_id = (int)input("order_id", 0);
+        $order = $order_model->with(['goods'])->find($order_id);
+        if (empty($order)) {
+            $this->fail("订单记录不存在!");
+        }
+
+        if($this->request->isPost()) {
+            $data = input("post.");
+            Db::startTrans();
+            try {
+                $res = $order->editOrder($data);
+                Db::commit();
+                return $this->success($res);
+            } catch (\Exception $e) {
+                Db::rollback();
+                return $this->fail($e->getMessage());
+            }
+        } else {
+            $customers_result = $user_model->getList(1, 9999, ["status" => 1]);
+            $customers = [];
+            $customer_id = $order["customer_id"];
+            $customer_minarea = 0;
+            $category = [];
+            foreach($customers_result["list"] as $row) {
+                $item = $row->toArray();
+                $item["category"] = json_encode($row->category, JSON_UNESCAPED_SLASHES);
+                $customers[] = $item;
+                if ($customer_id === $row["id"]) {
+                    $customer = $row["nickname"];
+                    $customer_minarea = $row["minarea"];
+                    $customer_category = $item["category"];
+                }
+            }
+
+            $categorys_result = $category_model->getList(1, 9999);
+            $categorys = $categorys_result["list"];
+            $category_id = 0;
+            if (!empty($categorys)) {
+                $category_id = $categorys[0]["id"];
+            }
+
+            $crafts_result = $craft_model->getList(1, 9999);
+            $crafts = $crafts_result["list"];
+            $craft_id = 0;
+            if (!empty($crafts)) {
+                $craft_id = $crafts[0]["id"];
+            }
+
+            $crafts_maps = array_column($crafts, "craft_id", "craft");
+            $order = $order->toArray();
+            $data = [];
+            foreach($order['goods'] as &$goods) {
+                $goods["width"] = (int)$goods["width"];
+                $goods["height"] = (int)$goods["height"];
+                $goods["order_money"] = (int)$goods["order_money"];
+                $data[$goods['id']] = [
+                    "id"            => $goods['id'],
+                    "width"         => $goods["width"],
+                    "height"        => $goods["height"],
+                    "num"           => $goods["num"],
+                    "manual"        => $goods["manual"],
+                    "unitprice"     => $goods["unitprice"],
+                    "category_id"   => $goods["category_id"],
+                    "craft_id"      => isset($crafts_maps[$goods["craft"]]) ? $crafts_maps[$goods["craft"]] : 0,
+                    "status"        => $goods["status"],
+                    "remark"        => $goods["remark"],
+                    "price"         => $goods["order_money"]
+                ];
+            }
+
+            $this->assign("data",       json_encode($data, JSON_UNESCAPED_UNICODE));
+            $this->assign("order",      $order);
+            $this->assign("customers",  $customers);
+            $this->assign("categorys",  $categorys);
+            $this->assign("crafts",     $crafts);
+            $this->assign("customer",   $customer);
+            $this->assign("customer_id",$customer_id);
+            $this->assign("category_id",$category_id);
+            $this->assign("customer_minarea", $customer_minarea);
+            $this->assign("customer_category",$customer_category);
+            $this->assign("craft_id",   $craft_id);
+            return $this->fetch('Order/form');
+        }
     }
 
     /**
@@ -326,9 +440,7 @@ class Order extends Controller
                 ["search_value", ""],
                 ["search_time", ""]
             ]);
-            if ($is_trash != 0) {
-                $filter["is_trash"] = $is_trash;
-            }
+            $filter["is_trash"] = $is_trash;
             [$page, $limit] = $this->getPaginator();
             $data = $order_delivery_model->getList($page, $limit, $filter);
             return $this->success($data);

@@ -47,7 +47,7 @@
                 </ul>
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show" style="margin-top: 10px;">
-                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
                             <label class="layui-form-label">搜索类型</label>
                             <div class="layui-input-inline">
                                 <select name="search_type" lay-verify="required" class="layui-select">
@@ -60,7 +60,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
-                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-affix="clear"/>
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -72,6 +72,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <input type="hidden" name="page" value="1" id="list-page" />
                             <input type="hidden" name="is_trash" value="{$is_trash}" />
+                            <input type="hidden" name="page" id="page" value="1" />
                             <span class="layui-btn-group">
                                 <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
                                     <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>

@@ -43,7 +43,7 @@
             <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show">
-                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
                             <label class="layui-form-label">搜索类型</label>
                             <div class="layui-input-inline">
                                 <select name="search_type" lay-verify="required" class="layui-select">
@@ -55,7 +55,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
-                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-affix="clear"/>
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">

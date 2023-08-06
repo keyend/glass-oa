@@ -98,8 +98,9 @@ Route::group(function() {
     Route::group('order', function() {
         Route::get('', '/index')->name('order');
         Route::rule('create', '/add', 'POST|GET')->name('orderAdd');
+        Route::rule('edit', '/edit', 'POST|GET')->name('orderEdit');
         Route::get('list/:id', '/getList')->name('orderList');
-        Route::rule('detail', '/detail', 'GET')->name('orderDetail');
+        Route::rule('detail', '/detail', 'GET|POST')->name('orderDetail');
         Route::post('trash', '/trash')->name('orderTrash');
         Route::rule("delivery/list", '/deliveryList', 'POST|GET')->name('delivery');
         Route::rule('delivery/print', '/deliveryPrint', 'POST|GET')->name('orderDeliveryPrintList');

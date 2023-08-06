@@ -84,15 +84,35 @@
                     <span>优惠金额：{$order.discount_money}</span>
                     <span>实际金额：{:number_format($order['order_money'] - $order['discount_money'], 2, '.', '')}</span>
                     <span>已付金额：{$order.pay_money}</span>
-                    {if $order.status < 2}
-                    <button class="layui-btn layui-btn-sm" lay-filter="edit" lay-submit style="display: none;">编辑订单</button>
-                    {/if}
                 </p>
             </blockquote>
-            <table id="parse-table-demo" lay-filter="parse-table-demo">
+            <table class="layui-table">
+                <colgroup>
+                    <col>
+                    <col width="160">
+                    <col width="120">
+                    <col width="120">
+                    <col width="120">
+                    <col width="120">
+                    <col width="120">
+                    <col width="120">
+                    <col width="140">
+                </colgroup>
                 <thead> 
                     <tr>
+                        <th>品类名称</th>
+                        <th>工艺</th>
+                        <th>宽</th>
+                        <th>高</th>
+                        <th>面积</th>
+                        <th>单价</th>
+                        <th>加工费</th>
+                        <th>数量</th>
+                        <th></th>
+                    </tr> 
+                    <!-- <tr>
                         <th lay-data="{field:'id', hide: true}">#</th>
+                        <th lay-data="{field:'type', hide: true}"></th>
                         <th lay-data="{field:'print_label', hide: true}"></th>
                         <th lay-data="{field:'is_delete', hide: true}"></th>
                         <th lay-data="{field:'category', sort:true, templet: '#col-category'}">品类名称</th>
@@ -104,25 +124,42 @@
                         <th lay-data="{field:'manual_money', width:120, sort:true, templet: '#col-manual'}">加工费(元)</th>
                         <th lay-data="{field:'num', width:100, sort:true}">数量</th>
                         <th lay-data="{field:'deductnum', width:100, sort:true}">已配送</th>
-                        <th lay-data="{field:'operator', width:180, templet: '#col-operator'}"></th>
-                    </tr> 
-                </thead> 
+                        <th lay-data="{field:'operator', width:140, templet: '#col-operator'}"></th>
+                    </tr> -->
+                </thead>
                 <tbody id="order-content">
                     {foreach $order.goods as $goods}
-                    <tr id="row_{$goods.id}">
-                        <td>{$goods.id}</td>
-                        <td>{$goods.print_label}</td>
-                        <td>{$goods.is_delete}</td>
-                        <td>{$goods.category}</td>
+                    <tr>
+                        <td>
+                            {$goods.category}
+                            
+                            {if $goods.print_label > 0}
+                            <span class="layui-badge" title="已打印{$goods.print_label}次">{$goods.print_label}</span>
+                            {/if}
+                            {if $goods.type == 1}
+                            <span class="layui-badge layui-bg-cyan" title="后续编辑订单添加">加</span>
+                            {/if}
+                            {if $goods.type == 2}
+                            <span class="layui-badge layui-bg-blue" title="补单">补</span>
+                            {/if}
+                            {if $goods.type == 3}
+                            <span class="layui-badge layui-bg-cyan" title="后续编辑订单添加">加</span>
+                            <span class="layui-badge layui-bg-blue" title="补单">补</span>
+                            {/if}
+                        </td>
                         <td>{$goods.craft}</td>
-                        <td>{$goods.width|floatval}</td>
-                        <td>{$goods.height|floatval}</td>
-                        <td>{$goods.area}</td>
-                        <td>{$goods.unitprice}</td>
-                        <td>{$goods.manual_money}</td>
+                        <td>{$goods.width}mm</td>
+                        <td>{$goods.height}mm</td>
+                        <td>{$goods.area}m²</td>
+                        <td>{$goods.unitprice}元</td>
+                        <td>{$goods.manual_money}元</td>
                         <td>{$goods.num}</td>
-                        <td>{$goods.deductnum}</td>
-                        <td></td>
+                        <td>
+                            <div class="layui-btn-group">
+                                <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="print" data-id="{$goods.id}" data-orderid="{$order.id}">打印标签</button>
+                                <button type="button" class="layui-btn layui-btn-xs layui-btn-black" lay-filter="smentary" data-id="{$goods.id}" data-orderid="{$order.id}">补单</button>
+                            </div>
+                        </td>
                     </tr>
                     {/foreach}
                 </tbody>
@@ -139,8 +176,10 @@
                     </tr>
                     <tr>
                         <td colspan="9" class="layui-btn-fill">
-                            <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
-                            <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
+                            <div class="layui-btn-group">
+                                <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
+                                <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
+                            </div>
                         </td>
                     </tr>
                 </tfoot>
@@ -153,6 +192,12 @@
     {{ d.category }}
     {{# if(d.print_label > 0) { }}
     <span class="layui-badge" title="已打印{{ d.print_label }}次">{{ d.print_label }}</span>
+    {{# } }}
+    {{# if(d.type == 1) { }}
+    <span class="layui-badge layui-bg-cyan" title="后续编辑订单添加">加</span>
+    {{# } }}
+    {{# if(d.type == 2) { }}
+    <span class="layui-badge layui-bg-blue" title="补单">补</span>
     {{# } }}
 </script>
 
@@ -172,9 +217,34 @@
     {{ d.manual_money }}
 </script>
 
+<script type="text/html" id="pop-smentary">
+    <div class="layui-form" style="width: 460px; padding-right: 40px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">补单数</label>
+            <div class="layui-input-block">
+                <input type="number" name="num" value="1" placeholder="0" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">补单数</label>
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" name="remark" placeholder="补单备注说明"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="margin-bottom: 0px;">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-sm" lay-submit lay-filter="component-form-element">确认</button>
+                <button type="reset" class="layui-btn layui-btn-sm layui-btn-primary" lay-submit lay-filter="component-form-cancel">取消</button>
+            </div>
+        </div>
+    </div>
+</script>
+
 <script type="text/html" id="col-operator">
     <div class="layui-btn-group">
         <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="print" data-id="{{ d.id }}" data-orderid="{{ d.order_id }}">打印标签</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-black" lay-filter="smentary" data-id="{{ d.id }}" data-orderid="{{ d.order_id }}">补单</button>
     </div>
 </script>
 {/block}
@@ -183,7 +253,7 @@
     var goodsList = {:json_encode($order["goods"], JSON_UNESCAPED_UNICODE)};
 
     layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table', 'util'], function(){
-        var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table;
+        var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table, laytpl = layui.laytpl, poper, poperField;
 
         function getPrintArr(data, id) {
             var result = {};
@@ -240,9 +310,51 @@
             requestPrint(getPrintArr(field, that.data("id")));
         }),
 
+        $('button[lay-filter="smentary"]').on("click", function(e) {
+            var that = $(this), field = {}, content;
+            goodsList.forEach(v => {
+                if (v.id == that.data("id")) {
+                    field.goods = v
+                }
+            });
+            if (field == null) {
+                return parent.layer.alert("错误：无匹配补单数据!");
+            }
+            content = laytpl(document.getElementById("pop-smentary").innerHTML).render({}),
+            poperField = field,
+            poper = parent.layer.open({
+                title: '补单',
+                move: false,
+                content: content,
+                btn: [],
+                success(layero, index) {
+                    parent.layui.form.on("submit(component-form-element)", function(obj) {
+                        poperField["num"] = obj.field.num,
+                        poperField["remark"] = obj.field.remark,
+                        poperField["filt"] = "smentary";
+                        ns.silent(location.href, poperField, res => {
+                            if (res.code == 0) {
+                                parent.layer.close(poper),
+                                setTimeout(() => location.reload(), 100)
+                            } else {
+                                layer.alert(res.message)
+                            }
+                        })
+                    }),
+
+                    parent.layui.form.on("submit(component-form-cancel)", function(obj) {
+                        parent.layer.close(poper);
+                    })
+                }
+            })
+        }),
+
         table.init('parse-table-demo', {
             done(res) {
                 console.log(res);
+                table.on("toolbar(parse-table-demo)", function(e) {
+                    console.log(e);
+                })
             }
         }),
         table.on('edit(parse-table-demo)', function(obj) {

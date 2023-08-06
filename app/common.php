@@ -41,6 +41,22 @@ if (!function_exists('addCron')) {
     }
 }
 
+if (!function_exists('logger')) {
+    /**
+     * 记录日志
+     *
+     * @param [type] ...$args
+     * @return void
+     */
+    function logger(...$args) {
+        static $logger = null;
+        if ($logger === null) {
+            $logger = new \app\common\model\system\LogsModel();
+        }
+        call_user_func_array([$logger, "info"], [$args]);
+    }
+}
+
 if (!function_exists('triggerAsync')) {
     /**
      * 异步事件

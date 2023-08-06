@@ -68,11 +68,6 @@ class OrderDeliveryGoods extends Model
         }
 
         $query = $this->withJoin(["delivery", "goods", "order"], "left");
-        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            if (in_array($filter["search_type"], ["nickname"])) {
-                $query->where("order.customer", 'LIKE', "%{$filter['search_value']}%");
-            }
-        }
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
             if (count($times) === 2) {
@@ -82,8 +77,9 @@ class OrderDeliveryGoods extends Model
             }
         }
 
+        $query->where("goods.is_delete", "=", 0);
         if (!empty($filter["keyword"])) {
-            $query->where("order.customer|goods.craft|goods.category|goods.width|goods.height", 'LIKE', "%{$filter['keyword']}%");
+            $query->where("order.customer|goods.craft|goods.category|goods.width|goods.height|order.address|order.mobile|delivery.trade_no|order.trade_no", 'LIKE', "%{$filter['keyword']}%");
         }
 
         $uspage = true;

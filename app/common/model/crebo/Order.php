@@ -1,6 +1,6 @@
 <?php
 namespace app\common\model\crebo;
-use think\Model;
+use app\Model;
 use think\facade\Db;
 use app\common\model\system\UserModel;
 
@@ -36,7 +36,7 @@ class Order extends Model
      */
     public function goods()
     {
-        return $this->hasMany(OrderGoods::class, 'order_id', 'id');
+        return $this->hasMany(OrderGoods::class, 'order_id', 'id')->where("is_delete", 0)->order("id ASC");
     }
 
     /**
@@ -228,10 +228,109 @@ class Order extends Model
         $order_goods_model = app()->make(OrderGoods::class);
         $order_goods_model->insertAll($goods);
         $order_goods_model->where("trade_no", $trade_no)->update(["order_id" => $order['order_id']]);
-
+        $order["goods"] = $goods;
+        $this->logger('logs.order.add', 'CREATEED', $order);
         return [
             "order_id" => $order['order_id'],
         ];
+    }
+
+    /**
+     * 编辑订单
+     *
+     * @param array $data
+     * @return void
+     */
+    public function editOrder($data = [])
+    {
+        $customer_id = (int)$this->getAttr("customer_id");
+        $customer = Users::where('id', $customer_id)->field("id,nickname,desc,mobile,category,minarea")->find();
+        if (empty($customer)) {
+            throw new \Exception("客户名称为空或不存在!");
+        }
+        $customer["minarea"] = (float)$customer["minarea"];
+        $order_id = $this->getAttr("id");
+        $category = $customer->category;
+        $addGoods = [];
+        foreach($data["goods"] as $goods) {
+            if (isset($goods['id'])) {
+                $updateGoods[$goods['id']] = $goods;
+            } else {
+                $itm = [];
+                $itm["type"]            = 1;//附加订单
+                $itm["order_id"]        = $order_id;
+                $itm["trade_no"]        = $this->getAttr("trade_no");
+                $itm["width"]           = (float)$goods["width"];
+                $itm["height"]          = (float)$goods["height"];
+                $itm["num"]             = (int)$goods["num"];
+                $itm["manual"]          = (float)$goods["manual"];
+                $itm["category_id"]     = (float)$goods["category_id"];
+                $itm["area"]            = round($itm["width"] * $itm["height"] / 10E5, 2);
+                $itm["create_time"]     = TIMESTAMP;
+                $category_data = Category::where("id", $itm["category_id"])->field("category")->find();
+                if (empty($category_data)) {
+                    throw new \Exception("无对应类目 category_id {$itm['category_id']}");
+                }
+
+                $craft_id               = (float)$goods["craft_id"];
+                $craft_data             = Craft::where("id", $craft_id)->field("craft,thumb")->find();
+                if (empty($craft_data)) {
+                    throw new \Exception("无对应工艺 craft_id {$craft_id}");
+                }
+
+                if ($itm["area"] < $customer["minarea"]) {
+                    $itm["area"] = $customer["minarea"];
+                }
+
+                $itm["remark"]          = $goods["remark"];
+                $itm["craft"]           = $craft_data["craft"];
+                $itm["craft_thumb"]     = $craft_data["thumb"];
+                $itm["category"]        = $category_data['category'];
+                $itm["unitprice"]       = (float)$category[$itm["category_id"]];
+                $itm["manual_money"]    = $itm["manual"] * $itm["num"];
+                $itm["order_money"]     = $itm["area"] * $itm["num"] * $itm["unitprice"] + $itm["manual_money"];
+                $addGoods[] = $itm;
+            }
+        }
+        $this->startTrans();
+        foreach($this->getAttr('goods') as $goods) {
+            if (!isset($updateGoods[$goods["id"]])) {
+                $this->logger('logs.order.edit.delgoods', 'DELETE', $goods);
+                $goods->is_delete = 1;
+                $goods->save();
+            } else {
+                $goods["unitprice"] = (float)$goods["unitprice"];
+                $itm            = array_keys_filter($goods, [
+                    'width',
+                    'height',
+                    'manual',
+                    'num',
+                    'remark'
+                ]);
+                $itm["num"]     = (int)$itm["num"];
+                $itm["width"]   = (float)$itm["width"];
+                $itm["height"]  = (float)$itm["height"];
+                $itm["manual"]  = (float)$itm["manual"];
+                $itm["area"]    = round($itm["width"] * $itm["height"] / 10E5, 2);
+                $itm["manual_money"] = $itm["manual"] * $itm["num"];
+                $itm["order_money"] = $itm["area"] * $itm["num"] * $goods["unitprice"] + $itm["manual_money"];
+                $originGoods = $goods->toArray();
+                $goods->update($itm, ["id" => $goods["id"]]);
+                $this->logger('logs.order.edit.delgoods', 'DELETE', [$originGoods, $goods->toArray()]);
+            }
+        }
+        $order_goods_model = app()->make(OrderGoods::class);
+        $order_goods_model->insertAll($addGoods);
+        $this->logger('logs.order.append', 'CREATEED', $goods);
+        $goods = $order_goods_model->where("order_id", $this->getAttr("id"))->where("is_delete", 0)->field("order_money,manual_money,num")->select()->toArray();
+        if (empty($goods))
+            $goods = [];
+        $this->order_money = array_sum(array_values(array_column($goods, "order_money")));
+        $this->manual_money = array_sum(array_values(array_column($goods, "manual_money")));
+        $this->order_num = array_sum(array_values(array_column($goods, "num")));
+        $this->update_time = TIMESTAMP;
+        $this->save();
+        $this->commit();
     }
 
     /**
@@ -316,5 +415,32 @@ class Order extends Model
             $result["dates"][] = date("Y/m/d", $previousTime);
             $previousTime += 86400;
         }
+    }
+
+    /**
+     * 补单
+     *
+     * @param integer $goodsid
+     * @param integer $num
+     * @param string $remark
+     * @return void
+     */
+    public function smentary($goodsid, $num, $remark = '')
+    {
+        $model = app()->make(OrderGoods::class);
+        $goods = $model->where("id", $goodsid)->find();
+        if ($goods["type"] == 0) {
+            $type = 2;
+        } elseif($goods["type"] == 1) {
+            $type = 3;
+        } else {
+            $type = $goods["type"];
+        }
+        $cloneGoods = $goods->toArray();
+        $cloneGoods["type"] = $type;
+        $cloneGoods["num"] = $num;
+        $cloneGoods["remark"] = $remark;
+        unset($cloneGoods["id"]);
+        $model->insert($cloneGoods);
     }
 }

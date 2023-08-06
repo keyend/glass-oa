@@ -105,7 +105,7 @@ class Users extends Model
 
         $query = $this->where($condition);
         $count = $query->count();
-        $list = $query->page($page,$limit)->order('id desc')
+        $list = $query->page($page,$limit)->order('sort DESC,id desc')
             ->field('id,nickname,username,group,is_auth,amount,email,mobile,avatar,status,category,minarea,create_time')
             ->select()
             ->each(function ($item) {
