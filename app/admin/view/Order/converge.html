@@ -86,10 +86,22 @@
 {/block}
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
-    <span id="toolbar-totalmoney" class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue" style="display: none;">
-        总金额：
-        <font id="vl_totalmoney">{{= total_money}}</font>
-    </span>
+    <div id="toolbar-totalmoney" style="display: none;">
+        <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
+            总金额：
+            <font id="vl_totalmoney">{{= total_money}}</font>
+        </span>
+
+        <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
+            总面积：
+            <font id="vl_totalarea">{{= total_area}}</font>
+        </span>
+
+        <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
+            总数量：
+            <font id="vl_totalnum">{{= total_num}}</font>
+        </span>
+    </div>
 </script>
 
 <script type="text/html" id="user-bar">
@@ -124,7 +136,9 @@
 
 <!---->
 <script>
-    var total_money = 0;
+    var total_money = 0
+    ,total_num = 0
+    ,total_area = 0;
 
     layui.config({
         base: '/static/admin/'
@@ -159,10 +173,12 @@
             detail: function(e) {
                 location.href = "{:url('orderDetail')}?order_id=" + e.data.id
             },
-            setTotalMoney(value) {
+            setTotal(data) {
                 var e = $('#toolbar-totalmoney');
-                if (value > 0) {
-                    e.find("#vl_totalmoney").text(value),
+                if (data.total_money > 0) {
+                    e.find("#vl_totalmoney").text(data.total_money),
+                    e.find("#vl_totalarea").text(data.total_area),
+                    e.find("#vl_totalnum").text(data.total_num),
                     e.show()
                 } else {
                     e.hide()
@@ -194,7 +210,7 @@
                     {title: '备注', field: 'remark', width: 300}
                 ]],
                 parseData: function(res) {
-                    active.setTotalMoney(res.data.total_money);
+                    active.setTotal(res.data);
                     return {
                         code: res.code,
                         msg: res.message,

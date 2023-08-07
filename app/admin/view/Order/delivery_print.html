@@ -34,6 +34,10 @@
         .layui-table {
             width: 100%!important;
         }
+        .cricel {
+            border-radius: 18px;
+            background-color: #16b777;
+        }
     </style>
 {/block}
 {block name="body"}
@@ -162,6 +166,14 @@
         </button>
     </span>
 </script>
+
+<script type="text/html" id="col-trade_no">
+    <font>{{ d.trade_no }}</font>
+    {{# if (d.print_times > 0) { }}
+    <span class="layui-badge cricel" title="已打印{{ d.print_times }}次">{{ d.print_times }}</span>
+    {{# } }}
+</script>
+
 <script>
     var loader = null
     ,process
@@ -176,6 +188,8 @@
         ,form = layui.form
         ,table = layui.table
         ,laydate = layui.laydate
+        ,pids = []
+        ,pcid = 0
         ,pageTable;
 
         var active = {
@@ -245,6 +259,7 @@
                         })
                     })
                 });
+                pids = Object.keys(ds);
                 return Object.values(ds)
             }
         };
@@ -288,8 +303,11 @@
                             stage += 1,
                             failed = 0,
                             setTimeout(() => {
+                                pcid = pids[0],
                                 data.splice(0, 1),
+                                pids.splice(0, 1),
                                 active.setValue(data),
+                                $.post("{:url('orderDeliveryPrint')}", {ids: pcid}),
                                 requestPrint(data, stage)
                             }, 1000);
                         } else {
@@ -328,7 +346,7 @@
                     {type: 'checkbox'},
                     {title: '配送时间', field: 'create_time', width: 160},
                     {title: '客户名称', field: 'nickname', width: 160},
-                    {title: '配送单号', field: 'trade_no', width: 140},
+                    {title: '配送单号', field: 'trade_no', width: 160, templet: "#col-trade_no"},
                     {title: '配送数量', field: 'delivery_num', width: 100},
                     {title: '配送总金额', field: 'total_money', width: 100},
                     {title: '配送地址', field: 'address'}

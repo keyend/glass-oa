@@ -39,6 +39,7 @@ class OrderGoods extends Model
             }
         }
         $query->where("order_goods.is_delete", "=", 0);
+        $query->where("order.is_trash", "=", 0);
         $list = [];
         $fields = "order_goods.*,order.trade_no,order.customer,order.order_num";
         $count = $query->count();

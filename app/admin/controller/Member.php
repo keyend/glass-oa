@@ -210,12 +210,43 @@ class Member extends Controller
             $status = (int)input("post.status");
             $info = $user_model->find($id);
             if (empty($info)) {
-                $this->error('数据不存在');
+                return $this->fail('数据不存在');
             }
             $info->status = $status;
             $info->save();
             $this->logger('logs.member.edit', 'UPDATED', $info);
         }
+
+        return $this->success();
+    }
+
+    /**
+     * 更新价格
+     *
+     * @param Users $user_model
+     * @return void
+     */
+    public function updateCategory(Users $user_model)
+    {
+        $customer_id = (int)input("customer_id", 0);
+        $category_id = (int)input("category_id", 0);
+        $value = (float)input("value", 0);
+        if ($customer_id === 0) {
+            return $this->fail("请选择客户!");
+        } elseif($category_id === 0) {
+            return $this->fail("请选择品类!");
+        } elseif($value === 0) {
+            return $this->fail("请输入金额!");
+        }
+
+        $info = $user_model->find($customer_id);
+        if (empty($info)) {
+            return $this->fail("用户不存在");
+        }
+        $category = $info->category;
+        $category[$category_id] = $value;
+        $info->category = $category;
+        $info->save();
 
         return $this->success();
     }

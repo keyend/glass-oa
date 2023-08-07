@@ -140,8 +140,8 @@
                 var checkStatus = table.checkStatus(id);
                 requestPrint(active.getData(checkStatus.data));
             },
-            getData(data, id) {
-                var result = { data: [] };
+            getData(data) {
+                var result = { ids: [], data: [] };
                 data.forEach(v => {
                     result.data.push({
                         KH: v.customer,
@@ -150,20 +150,21 @@
                         GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + v.order_num,
                         GY: v.craft,
                         XH: v.remark
-                    })
+                    }),
+                    result.ids.push(v.id);
                 });
                 return result;
             }
         };
 
-        function requestPrint(data) {
-            var loader = parent.layer.load(2, { shade: ['#fff', .3] });
-            console.log(JSON.stringify(data));
+        function requestPrint(rds) {
+            var loader = parent.layer.load(2, { shade: ['#fff', .3] }), ds = { data: rds.data };
+            console.log(JSON.stringify(rds));
             $.ajax({
                 url: 'http://127.0.0.1:31580/Printer',
                 type: 'POST',
                 dataType: 'json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(ds),
                 processData: false,
                 contentType: "application/json; charset=utf-8",
                 complete: function(xhr) {
@@ -171,6 +172,7 @@
                     var r = JSON.parse(xhr.responseText);
                     if (r.ret == 0) {
                         parent.layer.msg("SUCCESS");
+                        $.post("{:url('orderGoodsPrint')}", {ids: rds.ids});
                     } else {
                         parent.layer.alert(r.msg)
                     }

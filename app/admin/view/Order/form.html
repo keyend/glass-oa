@@ -19,6 +19,24 @@
     .layui-table {
         width: 100%!important;
     }
+    .layui-table td.edit {
+        padding: 0px!important;
+    }
+    .layui-table td.edit .label-unitprice {
+        padding: 9px 15px;
+        display: block;
+        border: 1px solid transparent!important;
+    }
+    .layui-table td.edit:hover .label-unitprice {
+        cursor: text;
+        border-color: #16b777!important;
+    }
+    .layui-table td.edit.focus .layui-number {
+        width: 100%;
+        height: 40px;
+        text-align: left;
+        border: 1px solid #16b777!important;
+    }
     .layui-table .layui-input {
         margin-top: -10px;
         margin-bottom: -10px;
@@ -125,7 +143,7 @@
                     <col width="80" />
                     <col />
                     <col width="160" />
-                    <col width="150" />
+                    <col width="100" />
                     <col width="100" />
                 </colgroup>
                 <thead> 
@@ -140,7 +158,7 @@
                         <th>加工费</th>
                         <th>玻璃面积（单位m² = 宽 X 高）X 数量</th>
                         <th>备注</th>
-                        <th>单价</th>
+                        <th>单价(元)</th>
                         <th>合计金额</th>
                     </tr> 
                 </thead> 
@@ -187,7 +205,7 @@
                         <td>
                             <input type="text" name="remark[{$goods.id}]" data-name="remark" value="{$goods.remark}" placeholder="" class="layui-input layui-text layui-input-fill" />
                         </td>
-                        <td>&yen;
+                        <td>
                             <span class="label-unitprice">{$goods.unitprice}</span>
                         </td>
                         <td>&yen;
@@ -250,9 +268,9 @@
         <td>
             <input type="text" name="remark[{{ d.id }}]" data-name="remark" placeholder="" class="layui-input layui-text layui-input-fill" />
         </td>
-        <td>&yen;
+        <td>
             <span class="label-unitprice">--.--</span>
-            <span class="layui-badge undefined-price" style="display: none;">未设置</span>
+            <input type="number" class="layui-input layui-number undefined-price" data-id="{{ d.id }}" placeholder="0.00" style="display: none;" />
         </td>
         <td>&yen;
             <span class="label-price">--.--</span>
@@ -282,6 +300,7 @@
         ,form = layui.form
         ,table = layui.table
         ,tableButton
+        ,flag = 0
         ,context = $('#order-content');
 
         function float(val) {
@@ -301,11 +320,56 @@
 
         function priceUpdate() {
             var total = 0;
-            console.log(total);
             Object.values(data).forEach(v => {
                 total += v.price
             }),
             $('#row_count').text(total)
+        }
+
+        function handleListenerEdit(_l) {
+            var that = $(this);
+            that.addClass('focus'),
+            _l.show(),
+            _l.prev().hide(),
+            _l.focus(),
+            _l.one("blur", function () {
+                if (flag != 0)return false;
+                that.removeClass('focus'),
+                _l.unbind('blur'),
+                _l.hide(),
+                _l.prev().show(),
+                flag = 1;
+
+                var _v = float(_l.val()), field = {};
+                if (_v < 0) {
+                    _l.val(0);
+                    return;
+                }
+                var loader = parent.layer.load(2, { shade: ['#fff', .3] });
+                field['id'] = _l.data("id"),
+                field['customer_id'] = customer_id,
+                field['category_id'] = data[field.id]['category_id'],
+                field['value'] = _v;
+                $.ajax({
+                    url: "{:url('memberCategoryUpdate')}",
+                    type: 'POST',
+                    data: field,
+                    dataType: 'json',
+                    complete: () => {
+                        parent.layer.close(loader),
+                        flag = 0
+                    },
+                    success(r) {
+                        if (r.code != 0) {
+                            parent.layer.msg(r.message);
+                        } else {
+                            data[field.id]['unitprice'] = _v,
+                            category[field.category_id] = _v,
+                            _l.prev().text(_v)
+                        }
+                    }
+                })
+            })
         }
 
         function handleListener(id) {
@@ -338,6 +402,14 @@
                     }
                 }
 
+                if (data[id]["unitprice"] == 0 && data[id]['category_id'] != 0) {
+                    _l.parent().addClass("edit"),_l.parent().attr("data-edit", "text"),_l.parent().on("click", function() {
+                        handleListenerEdit.call(this, _l)
+                    })
+                } else {
+                    _l.parent().removeClass("edit"),_l.parent().unbind()
+                }
+
                 data[id]['width'] = float(_w.val())
                 ,data[id]['height'] = float(_h.val())
                 ,data[id]['num'] = float(_n.val())
@@ -347,7 +419,6 @@
                 ,data[id]['price'] = Math.round((float(data[id]['area'] * data[id]['num'] * data[id]['unitprice']) + (data[id]['manual'] * data[id]['num'])) * 100) / 100
                 ,data[id]['remark'] = _r.val()
                 ,data[id]['status'] = 1
-                ,data[id]["unitprice"] == 0 ? _l.show() : _l.hide()
                 ,_w.val(data[id]['width'])
                 ,_h.val(data[id]['height'])
                 ,_n.val(data[id]['num'])
@@ -374,6 +445,7 @@
         tableButton = $('.layui-table').find('button[lay-filter="add"]').on("click", () => addGoods()),
 
         form.on("select(customer)", function(obj) {
+            customer_id = obj.value,
             obj.elem.childNodes.forEach((v,i) => {
                 if (v.value == obj.value) {
                     category = JSON.parse(v.getAttribute("data-category"));
@@ -426,7 +498,7 @@
         form.on('submit(form1)', function(obj) {
             obj.field["goods"] = [];
             Object.values(data).forEach(function(v) {
-                if (v.status || v.id) {
+                if ((v.status && v.category_id != 0 && v.craft_id != 0 && v.width != 0 && v.height != 0) || v.id) {
                     obj.field["goods"].push(v)
                 }
             });

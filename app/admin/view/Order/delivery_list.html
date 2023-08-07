@@ -34,6 +34,16 @@
         .layui-table {
             width: 100%!important;
         }
+        .cricel {
+            line-height: 20px;
+            height: 18px;
+            overflow: hidden;
+            border-radius: 18px;
+            zoom: .8;
+            text-align: center;
+            font-weight: normal;
+            background-color: #16b777;
+        }
     </style>
 {/block}
 {block name="body"}
@@ -98,7 +108,12 @@
         <form class="layui-card-body layui-form">
             <blockquote class="layui-elem-quote title">
                 <p>
-                    <span>配送号：{{= v.trade_no }}</span>
+                    <span>
+                        配送号：{{= v.trade_no }}
+                        {{# if (v.print_times > 0) { }}
+                        <span class="layui-badge cricel" title="已打印{{= v.print_times }}次">{{= v.print_times }}</span>
+                        {{# } }}
+                    </span>
                     <span>客户名称：{{= v.nickname }}</span>
                     <span>配送时间：{{= v.create_time }}</span>
                     <span>配送数量：{{= v.delivery_num }}</span>

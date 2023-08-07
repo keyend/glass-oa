@@ -565,4 +565,26 @@ class Order extends Controller
         }
         return $this->success();
     }
+    
+    /**
+     * 配送单次数记录
+     *
+     * @param OrderDelivery $order_delivery_model
+     * @return void
+     */
+    public function printDeliveryRecord(OrderDelivery $order_delivery_model)
+    {
+        $ids = input("post.ids", "");
+        if (is_string($ids)) {
+            $ids = explode(",", $ids);
+        }
+        $deliveryList = $order_delivery_model->where("id", "IN", $ids)->select();
+        foreach($deliveryList as $delivery) {
+            $origin = $delivery->toArray();
+            $delivery->inc("print_times")->update();
+            $after = $goods->toArray();
+            $this->logger('logs.order.delivery.print', 'UPDATED', [$origin, $after]);
+        }
+        return $this->success();
+    }
 }

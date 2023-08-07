@@ -236,6 +236,7 @@
                     parent.layer.close(loader);
                     var r = JSON.parse(xhr.responseText);
                     if (r.ret == 0) {
+                        $.post("{:url('orderDeliveryPrint')}", {ids: delivery.id}),
                         parent.layer.msg("SUCCESS");
                     } else {
                         parent.layer.alert(r.msg)

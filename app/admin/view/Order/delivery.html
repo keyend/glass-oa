@@ -202,6 +202,7 @@
             , max = parseInt(this.getAttribute("data-max"));
             num = isNaN(num) ? 0 : num;
             num > max && (num = max, this.value = num),
+            num < 0 && (num = 0, this.value = num),
             goodsNums[id] = num;
             Object.values(goodsNums).forEach(v => total += v);
             document.getElementById("totalNum").innerText = total;

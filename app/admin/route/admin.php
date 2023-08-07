@@ -90,6 +90,7 @@ Route::group(function() {
             Route::rule('edit', '/edit', 'POST|GET')->name('memberEdit');
             Route::rule('delete', '/delete', 'POST|GET')->name('memberDel');
             Route::rule('pay', '/pay', 'POST|GET')->name('memberPay');
+            Route::post('category/update', '/updateCategory')->name('memberCategoryUpdate');
             Route::post('update', '/update')->name('memberUpdate');
             Route::rule("palst", '/palst')->name("memberPalst");
         });
@@ -107,6 +108,7 @@ Route::group(function() {
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
         Route::rule('converge', '/converge')->name("orderConverge");
         Route::rule('label', '/label')->name("orderLabel");
+        Route::post('print/delivery/record', '/printDeliveryRecord')->name('orderDeliveryPrint');
         Route::post('print/record', '/printRecord')->name('orderGoodsPrint');
         Route::get('print', '/print')->name('orderPrint');
     })->prefix('order');

@@ -88,7 +88,9 @@ class OrderDeliveryGoods extends Model
         }
 
         $list = [];
+        $total_area = 0;
         $total_money = 0;
+        $total_num = 0;
         $count = $query->count();
         $fields = "order_delivery_goods.id,order.create_time,delivery.create_time as delivery_time,order.customer,order.trade_no";
         $fields.= ",goods.category,goods.craft,goods.width,goods.height,goods.area,order_delivery_goods.num,goods.unitprice";
@@ -120,9 +122,14 @@ class OrderDeliveryGoods extends Model
                 }
             }, "order_delivery_goods.id", "desc");
         } else {
-            $manual_money = (float)$query->sum("order_delivery_goods.manual_money");
-            $delivery_money = (float)$query->sum("order_delivery_goods.delivery_money");
-            $total_money = round($manual_money + $delivery_money, 2);
+            if ($page == 1) {
+                $manual_money = (float)$query->sum("order_delivery_goods.manual_money");
+                $delivery_money = (float)$query->sum("order_delivery_goods.delivery_money");
+                $total_money = round($manual_money + $delivery_money, 2);
+                $total_area = (float)$query->sum("order_delivery_goods.area");
+                $total_num = (float)$query->sum("order_delivery_goods.num");
+            }
+
             $list = $query->page($page,$limit)->order("order_delivery_goods.id DESC")->select()->each(function($row) {
                 $row["height"] = (int)$row["height"];
                 $row["width"] = (int)$row["width"];
@@ -139,6 +146,6 @@ class OrderDeliveryGoods extends Model
             $excel->excel(null, []);
         }
 
-        return compact('count', 'list', 'manual_money', 'delivery_money', 'total_money', 'sql');
+        return compact('count', 'list', 'manual_money', 'delivery_money', 'total_money', 'total_area', 'total_num', 'sql');
     }
 }
