@@ -165,17 +165,18 @@ class Order extends Controller
             $customers = [];
             $customer_id = 0;
             $customer_minarea = 0;
+            $customer_category = "[]";
             $category = [];
             foreach($customers_result["list"] as $row) {
                 $item = $row->toArray();
                 $item["category"] = json_encode($row->category, JSON_UNESCAPED_SLASHES);
                 $customers[] = $item;
-                if ($customer_id === 0) {
-                    $customer_id = $row["id"];
-                    $customer = $row["nickname"];
-                    $customer_minarea = $row["minarea"];
-                    $customer_category = $item["category"];
-                }
+                // if ($customer_id === 0) {
+                //     $customer_id = $row["id"];
+                //     $customer = $row["nickname"];
+                //     $customer_minarea = $row["minarea"];
+                //     $customer_category = $item["category"];
+                // }
             }
 
             $categorys_result = $category_model->getList(1, 9999);
@@ -273,6 +274,7 @@ class Order extends Controller
                 $goods["width"] = (int)$goods["width"];
                 $goods["height"] = (int)$goods["height"];
                 $goods["order_money"] = (int)$goods["order_money"];
+                $goods["deductnum"] = (int)$goods["deductnum"];
                 $data[$goods['id']] = [
                     "id"            => $goods['id'],
                     "width"         => $goods["width"],
@@ -438,9 +440,9 @@ class Order extends Controller
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
                 ["search_value", ""],
-                ["search_time", ""]
+                ["search_time", ""],
             ]);
-            $filter["is_trash"] = $is_trash;
+            $filter["is_trash"] = (int)$is_trash;
             [$page, $limit] = $this->getPaginator();
             $data = $order_delivery_model->getList($page, $limit, $filter);
             return $this->success($data);

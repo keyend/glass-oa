@@ -264,9 +264,13 @@ class Order extends Model
                 $itm["height"]          = (float)$goods["height"];
                 $itm["num"]             = (int)$goods["num"];
                 $itm["manual"]          = (float)$goods["manual"];
-                $itm["category_id"]     = (float)$goods["category_id"];
+                $itm["category_id"]     = (int)$goods["category_id"];
                 $itm["area"]            = round($itm["width"] * $itm["height"] / 10E5, 2);
                 $itm["create_time"]     = TIMESTAMP;
+                if ($itm["category_id"] === 0) {
+                    continue;
+                }
+
                 $category_data = Category::where("id", $itm["category_id"])->field("category")->find();
                 if (empty($category_data)) {
                     throw new \Exception("无对应类目 category_id {$itm['category_id']}");
@@ -300,7 +304,7 @@ class Order extends Model
                 $goods->save();
             } else {
                 $goods["unitprice"] = (float)$goods["unitprice"];
-                $itm            = array_keys_filter($goods, [
+                $itm            = array_keys_filter($updateGoods[$goods['id']], [
                     'width',
                     'height',
                     'manual',

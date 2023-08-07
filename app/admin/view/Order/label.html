@@ -20,6 +20,22 @@
         .layui-table {
             width: 100%!important;
         }
+        .cricel {
+            position: absolute;
+            left: 2px;
+            top: 13px;
+            line-height: 20px;
+            height: 18px;
+            overflow: hidden;
+            border-radius: 18px;
+            zoom: .8;
+            text-align: center;
+            font-weight: normal;
+            background-color: #16b777;
+        }
+        .cricel + font {
+            margin-left: 3px;
+        }
     </style>
 {/block}
 {block name="body"}
@@ -81,6 +97,13 @@
     <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-danger" lay-event="print" data-type="print">
         <i class="layui-icon layui-icon-print"></i>打印标签
     </button>
+</script>
+
+<script type="text/html" id="col-category">
+    {{# if (d.print_label > 0) { }}
+    <span class="layui-badge cricel" title="已打印{{ d.print_label }}次">{{ d.print_label }}</span>
+    {{# } }}
+    <font>{{ d.category }}</font>
 </script>
 
 <script type="text/html" id="user-bar">
@@ -163,9 +186,10 @@
                 toolbar: '#user-toolbar',
                 cols: [[
                     {type: 'checkbox'},
+                    {field: 'print_label', hide: true},
                     {title: '开单时间', field: 'create_time', width: 160},
                     {title: '客户名称', field: 'customer', width: 160},
-                    {title: '品类名称', field: 'category', width: 160},
+                    {title: '品类名称', field: 'category', width: 160, templet: "#col-category"},
                     {title: '工艺', field: 'craft', width: 160},
                     {title: '宽mm', field: 'width', width: 100},
                     {title: '高mm', field: 'height', width: 100},

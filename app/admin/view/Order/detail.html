@@ -56,6 +56,14 @@
         top: -5px;
         right: 30px;
     }
+    .cricel {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        border-radius: 12px;
+        zoom: .8;
+        background-color: #16b777;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -131,11 +139,10 @@
                     {foreach $order.goods as $goods}
                     <tr>
                         <td>
-                            {$goods.category}
-                            
                             {if $goods.print_label > 0}
-                            <span class="layui-badge" title="已打印{$goods.print_label}次">{$goods.print_label}</span>
+                            <span class="layui-badge cricel" title="已打印{$goods.print_label}次">{$goods.print_label}</span>
                             {/if}
+                            {$goods.category}
                             {if $goods.type == 1}
                             <span class="layui-badge layui-bg-cyan" title="后续编辑订单添加">加</span>
                             {/if}
@@ -176,7 +183,7 @@
                     </tr>
                     <tr>
                         <td colspan="9" class="layui-btn-fill">
-                            <div class="layui-btn-group">
+                            <div class="layui-btn-group" style="width: 100%;">
                                 <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
                                 <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
                             </div>

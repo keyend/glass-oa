@@ -92,6 +92,7 @@
                             <div class="layui-input-inline">
                                 <input type="hidden" name="id" value="{$order.id ?? 0}" />
                                 <select class="layui-select" name="customer_id" id="customer_id" lay-verify="required" lay-filter="customer" lay-search>
+                                    <option value=""></option>
                                     {foreach $customers as $customer}
                                     <option
                                         value="{$customer.id}"
@@ -175,7 +176,7 @@
                         <td> 
                             <input type="number" name="width[{$goods.id}]" data-name="width" value="{$goods.width}" placeholder="宽" class="layui-input layui-number" /> X
                             <input type="number" name="height[{$goods.id}]" data-name="height" value="{$goods.height}" placeholder="高" class="layui-input layui-number" /> X
-                            <input type="number" name="num[{$goods.id}]" data-name="num" value="{$goods.num}" placeholder="数量" class="layui-input layui-number" /> =
+                            <input type="number" name="num[{$goods.id}]" data-name="num" data-min="{$goods.deductnum}" value="{$goods.num}" placeholder="数量" class="layui-input layui-number" /> =
                             <input type="hidden" name="area[{$goods.id}]" data-name="area" value="{$goods.area}" />
                             <span class="area">
                                 <font class="label-area">{$goods.area}</font>m² X 
@@ -238,7 +239,7 @@
         <td> 
             <input type="number" name="width[{{ d.id }}]" data-name="width" placeholder="宽" class="layui-input layui-number" /> X
             <input type="number" name="height[{{ d.id }}]" data-name="height" placeholder="高" class="layui-input layui-number" /> X
-            <input type="number" name="num[{{ d.id }}]" data-name="num" value="1" placeholder="数量" class="layui-input layui-number" /> =
+            <input type="number" name="num[{{ d.id }}]" data-name="num" value="1" data-min="1" placeholder="数量" class="layui-input layui-number" /> =
             <input type="hidden" name="area[{{ d.id }}]" data-name="area" value="0" />
             <span class="area">
                 <font class="label-area">--.--</font>m² X 
@@ -282,11 +283,6 @@
         ,table = layui.table
         ,tableButton
         ,context = $('#order-content');
-
-        if (customer_id == "0") {
-            parent.layer.msg("客户列表为空!");
-            return false;
-        }
 
         function float(val) {
             val = parseFloat(val);
@@ -334,6 +330,13 @@
                 ,_a = that.find('input[data-name="area"]')
                 ,_r = that.find('input[data-name="remark"]')
                 ,_l = that.find(".undefined-price");
+
+                if (this.getAttribute("data-name") == "num") {
+                    var $this = $(this), _v = float($this.val()), _i = float($this.data("min"));
+                    if (_v < _i) {
+                        $this.val(_i)
+                    }
+                }
 
                 data[id]['width'] = float(_w.val())
                 ,data[id]['height'] = float(_h.val())
