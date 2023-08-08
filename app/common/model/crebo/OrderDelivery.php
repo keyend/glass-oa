@@ -2,6 +2,7 @@
 namespace app\common\model\crebo;
 use think\Model;
 use think\facade\Db;
+use think\facade\Cache;
 
 class OrderDelivery extends Model
 {
@@ -100,5 +101,79 @@ class OrderDelivery extends Model
         $money = round($delivery_money + $manual_money, 4);
         $money = number_format($money, 2, '.', '');
         return compact('count', 'money');
+    }
+
+    /**
+     * 返回近月数据
+     *
+     * @return void
+     */
+    public function getChartData()
+    {
+        $timestamp = time();
+        $previousTime = strtotime(date("Y-m-d 00:00:00", $timestamp - 30 * 86400));
+        $version = date("ymdH");
+        $maps = [$previousTime,$timestamp,$version];
+        $version = md5(json_encode($maps));
+        $cache = Cache::get("shape_delivery_{$version}");
+        if (!empty($cache)) {
+            return $cache;
+        }
+
+        $maps = ["deliveryNum" => "配送数量", "deliveryMoney" => "配送金额"];
+        $result = [];
+        $result["names"] = array_values($maps);
+        $result["dates"] = [];
+        $result["list"] = [];
+        $colors = ["#ffc000", "#44abf7"];
+        $values = [];
+        while($previousTime < $timestamp) {
+            $time = date("Y/m/d", $previousTime);
+            foreach($maps as $key => $name) {
+                if (!isset($values[$key])) {
+                    $values[$key] = [
+                        "name" => $name,
+                        "type" => "line",
+                        "data" => [],
+                        "markPoint" => [
+                            "data" => [
+                                ["type" => "max", "name" => "最大值"],
+                                ["type" => "min", "name" => "最小值"],
+                            ]
+                        ],
+                        "itemStyle" => [ "normal" => ["color" => $colors[$i]] ]
+                    ];
+                }
+                $method = "getChartData" . ucfirst($key);
+                $values[$key]["data"][] = $this->$method($previousTime);
+            }
+            $result["dates"][] = $time;
+            $previousTime += 86400;
+        }
+        $result["list"] = array_values($values);
+        Cache::set("shape_delivery_{$version}", $result);
+        return $result;
+    }
+
+    /**
+     * 获取订单数
+     *
+     * @param integer $timestamp
+     * @return void
+     */
+    private function getChartDataDeliveryNum($timestamp) 
+    {
+        return self::where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("delivery_num");
+    }
+
+    /**
+     * 获取订单金额
+     *
+     * @param integer $timestamp
+     * @return void
+     */
+    private function getChartDataDeliveryMoney($timestamp) 
+    {
+        return self::where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("delivery_money");
     }
 }

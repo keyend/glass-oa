@@ -37,9 +37,11 @@ class Index extends Controller
             } elseif($patch == "pie") {
                 $model = new Users();
                 $res = $model->getPieData();
-            } elseif($path == "order") {
+            } elseif($patch == "order") {
                 $model = new Order();
                 $res = $model->getChartData();
+            } elseif($patch == "delivery") {
+                $res = $order_delivery->getChartData();
             }
             return $this->success($res);
         } else {

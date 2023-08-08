@@ -188,6 +188,100 @@
                     }]
                 },
                 myChart.setOption(option);
+            },
+            order(data) {
+                var height = 360 ,myChart ,option;
+                this.height(height),
+                myChart = echarts.init(this[0]),
+                option = {
+                    title: null,
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: data.names
+                    },
+                    grid: {
+                        x: 50,
+                        x2: 50,
+                        y2: 30
+                    },
+                    calculable: true,
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: data.dates,
+                            axisLine: {
+                                lineStyle: {
+                                    width: '0'
+                                }
+                            },
+                        },
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value',
+                            axisLine: {
+                                lineStyle: {
+                                    width: '0'
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value}'
+                            }
+                        }
+                    ],
+                    series: data.list
+                },
+                myChart.setOption(option);
+            },
+            delivery(data) {
+                var height = 360 ,myChart ,option;
+                this.height(height),
+                myChart = echarts.init(this[0]),
+                option = {
+                    title: null,
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: data.names
+                    },
+                    grid: {
+                        x: 50,
+                        x2: 50,
+                        y2: 30
+                    },
+                    calculable: true,
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: data.dates,
+                            axisLine: {
+                                lineStyle: {
+                                    width: '0'
+                                }
+                            },
+                        },
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value',
+                            axisLine: {
+                                lineStyle: {
+                                    width: '0'
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value}'
+                            }
+                        }
+                    ],
+                    series: data.list
+                },
+                myChart.setOption(option);
             }
         };
 
