@@ -7,6 +7,28 @@
     .page-member-form .layui-card {
         padding-bottom: 5px;
     }
+    .layui-form-item .layui-input-inline {
+        width: 100px;
+    }
+    .layui-input-inline-group-wrap {
+        border: 1px solid #f0f0f0;
+    }
+    .layui-input-inline-group {
+        width: 25%;
+        border-bottom: 1px solid #f0f0f0;
+        border-right: 1px solid #f0f0f0;
+        margin-bottom: 0px!important;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        margin-right: -5px!important;
+    }
+    .layui-input-inline-group .layui-form-label {
+        width: 160px;
+    }
+    .layui-input-wrap .layui-input {
+        padding: 0px!important;
+        text-indent: 6px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -31,14 +53,14 @@
                             <!---->
                             <div class="layui-tab-content">
                                 <div class="layui-tab-item layui-show">
-                                    {include file="member/tabs/base" /}
+                                    {include file="Member/tabs/base" /}
                                 </div>
                                 <div class="layui-tab-item">
-                                    {include file="member/tabs/price" /}
+                                    {include file="Member/tabs/price" /}
                                 </div>
                                 {if $info.id}
                                 <div class="layui-tab-item">
-                                    {include file="member/tabs/attr" /}
+                                    {include file="Member/tabs/attr" /}
                                 </div>
                                 {/if}
                             </div>

@@ -1,7 +1,7 @@
 {foreach $categorys as $category}
 <div class="layui-form-item">
     <label class="layui-form-label">{$category.group}</label>
-    <div class="layui-input-block">
+    <div class="layui-input-block layui-input-inline-group-wrap">
         {foreach $category.list as $vo}
         <div class="layui-inline layui-input-inline-group">
             <label class="layui-form-label">{$vo.category}</label>
