@@ -587,4 +587,27 @@ class Order extends Controller
         }
         return $this->success();
     }
+
+    /**
+     * 补单记录
+     *
+     * @param OrderGoods $order_goods
+     * @return void
+     */
+    public function supplement(OrderGoods $order_goods)
+    {
+        if($this->request->isAjax() || $this->request->isPost()) {
+            $filter = array_keys_filter($this->request->param(), [
+                ["search_value", ""],
+                ['search_time', ''],
+                ['print', 0],
+                ['export', 0]
+            ]);
+            [$page, $limit] = $this->getPaginator();
+            $data = $order_goods->getSupplementList($page, $limit, $filter);
+            return $this->success($data);
+        } else {
+            return $this->fetch('Order/supplement');
+        }
+    }
 }

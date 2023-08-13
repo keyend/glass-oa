@@ -70,7 +70,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
-                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-affix="clear"/>
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-filter="keyword" lay-affix="clear" />
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -80,9 +80,7 @@
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
-                            <input type="hidden" name="page" value="1" id="list-page" />
                             <input type="hidden" name="is_trash" value="{$is_trash}" />
-                            <input type="hidden" name="page" id="page" value="1" />
                             <span class="layui-btn-group">
                                 <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
                                     <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
@@ -216,6 +214,7 @@
 
         // 渲染表格
         function renderTable(filter) {
+            filter['page'] = ns.page;
             $.ajax({
                 url: location.href,
                 type: 'POST',
@@ -227,12 +226,11 @@
                     if (r.code != 0) {
                         layer.msg(r.message);
                     } else {
-                        init === 0 && (init = 1,laypage.render({
+                        init === 0 && (init = 1, console.log(r.data.count), laypage.render({
                             elem: 'LAY-list-page',
                             count: r.data.count,
                             jump(obj, first) {
-                                !first && ($('#list-page').val(obj.curr),
-                                $('button[lay-filter="LAY-list-back-search"]').trigger('click'))
+                                !first && (ns.page = obj.curr, $('button[lay-filter="LAY-list-back-search"]').trigger('click'))
                             }
                         })),
                         laytpl(document.getElementById("tpl_table_list").innerHTML).render(r.data, function(context) {
@@ -245,11 +243,15 @@
         }
 
         // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'date', range: true }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
+            ns.page = 1,
+            init = 0
+        }}),
 
         // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
+            field['page'] = $('#list-page').val();
             renderTable(field);
         }),
 
@@ -283,9 +285,17 @@
         form.on('submit(print)', function(obj) {
             var data = JSON.parse(obj.field.delivery_data);
             window.open(printUrl + '?id=' + data.id + '&manual=' + (obj.field.manual || 0))
-        })
+        }),
+        form.on('input-affix(keyword)', function() {
+            $('#list-page').val('1'),
+            init = 0
+        }),
 
-        $('button[lay-filter="LAY-list-back-search"]').trigger("click")
+        $('button[lay-filter="LAY-list-back-search"]').trigger("click"),
+        $('.layui-input').on("input propertychange", function() {
+            $('#list-page').val('1'),
+            init = 0
+        })
     })
 </script>
 {/block}

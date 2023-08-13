@@ -42,18 +42,7 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <form class="layui-tab-item layui-form layui-show" id="form1" enctype="application/x-www-form-urlencoded" method="POST">
-                <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
-                    <label class="layui-form-label">搜索类型</label>
-                    <div class="layui-input-inline">
-                        <select name="search_type" lay-verify="required" class="layui-select">
-                            <option value="customer">客户名称</option>
-                            <option value="trade_no">订单编号</option>
-                            <option value="category">品类名称</option>
-                            <option value="craft">工艺名称</option>
-                        </select>
-                    </div>
-                </div>
+            <form class="layui-tab-item layui-form layui-show" style="margin-top: 10px;" id="form1" enctype="application/x-www-form-urlencoded" method="POST">
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <label class="layui-form-label">搜索内容</label>
                     <div class="layui-input-inline">
@@ -61,7 +50,7 @@
                     </div>
                 </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
-                    <label class="layui-form-label">下单时间</label>
+                    <label class="layui-form-label">补单时间</label>
                     <div class="layui-input-inline">
                       <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
                     </div>
@@ -73,6 +62,10 @@
                         <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
                             <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
                             搜索结果
+                        </button>
+                        <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-export" lay-submit>
+                            <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
+                            导出记录
                         </button>
                         <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-danger" lay-filter="LAY-list-back-print" lay-submit>
                             <i class="layui-icon layui-icon-print layuiadmin-button-btn"></i>
@@ -105,24 +98,6 @@
     <font>{{ d.category }}</font>
 </script>
 
-<script type="text/html" id="user-bar">
-    <a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>
-    {{# if (d.is_trash == 0 && d.status != 2) { }}
-    <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
-    {{# } }}
-    {{# if (d.is_trash == 0) { }}
-    {{# if (d.status == 0) { }}
-    <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送{{ d.process }}%</a>
-    {{# } }}
-    {{# if (d.status == 1) { }}
-    <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
-    {{# } }}
-    {{# if (d.status == 2) { }}
-    <a class="layui-badge layui-bg-green" lay-event="delivery" href="javascript:void(0);">已完成</a>
-    {{# } }}
-    {{# } }}
-</script>
-<!---->
 <script>
     layui.config({
         base: '/static/admin/'
@@ -146,7 +121,7 @@
                         KH: v.customer,
                         DD: v.trade_no,
                         MC: v.category,
-                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + v.order_num,
+                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/补",
                         GY: v.craft,
                         XH: v.remark
                     }),
@@ -188,15 +163,15 @@
                 cols: [[
                     {type: 'checkbox'},
                     {field: 'print_label', hide: true},
-                    {title: '开单时间', field: 'create_time', width: 160},
+                    {title: '最后补单', field: 'create_time', width: 160},
                     {title: '客户名称', field: 'customer', width: 160},
                     {title: '品类名称', field: 'category', width: 160, templet: "#col-category"},
                     {title: '工艺', field: 'craft', width: 160},
                     {title: '宽mm', field: 'width', width: 100},
                     {title: '高mm', field: 'height', width: 100},
                     {title: '面积m²', field: 'area', width: 100},
-                    {title: '数量', field: 'num', width: 100},
-                    {title: '单价', field: 'unitprice', width: 100},
+                    {title: '数量(原)', field: 'num', width: 100},
+                    {title: '数量(补)', field: 'num1', width: 100},
                     {title: '备注', field: 'remark', width: 300}
                 ]],
                 parseData: function(res) {
@@ -236,6 +211,12 @@
                 }
             });
             return false;
+        }),
+
+        form.on('submit(LAY-list-back-export)', function(obj) {
+            $("#form1").attr("action", location.href + "?_=" + (new Date()).getTime()),
+            $("#export").val("1"),
+            setTimeout(() => $("#export").val(""), 1000);
         }),
 
         form.on('submit(LAY-list-back-print)', function(obj) {

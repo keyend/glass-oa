@@ -111,6 +111,7 @@ Route::group(function() {
         Route::post('print/delivery/record', '/printDeliveryRecord')->name('orderDeliveryPrint');
         Route::post('print/record', '/printRecord')->name('orderGoodsPrint');
         Route::get('print', '/print')->name('orderPrint');
+        Route::rule('supplement', '/supplement', 'GET|POST')->name('orderSupplement');
     })->prefix('order');
 })->middleware('ConsoleAuthorize', true);
 // 必需登录

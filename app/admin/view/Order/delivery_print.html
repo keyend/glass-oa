@@ -59,7 +59,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
-                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-affix="clear"/>
+                                <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input" lay-affix="clear" lay-filter="keyword" />
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -69,7 +69,6 @@
                             </div>
                           </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
-                            <input type="hidden" name="page" value="1" id="list-page" />
                             <input type="hidden" name="is_trash" value="{$is_trash}" />
                             <span class="layui-btn-group">
                                 <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
@@ -359,8 +358,8 @@
                         data: res.data.list
                     }
                 },
-                done: function() {
-                    ns.page = this.page.curr;
+                done: function(res, curr, count) {
+                    ns.page = curr;
                     active.init()
                 },
                 page: !0,
@@ -384,7 +383,10 @@
             var field = data.field;
             // 执行重载
             table.reload('LAY-list-table', {
-                where: field
+                where: field,
+                page: {
+                    curr: ns.page
+                }
             });
             return false;
         }),
@@ -411,9 +413,15 @@
             });
             return false;
         }),
-
-        // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'date', range: true }),
+        form.on('input-affix(keyword)', function() {
+            ns.page = 1;
+        }),
+        $('.layui-input').on("input propertychange", function() {
+            ns.page = 1;
+        }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
+            ns.page = 1;
+        }}),
         form.render();
         renderTable();
     });

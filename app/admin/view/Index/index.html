@@ -111,6 +111,9 @@
                             {if checkAccess('orderDeliveryPrintList')}
                             <dd><a lay-href="{:url('orderDeliveryPrintList')}">配送打印</a></dd>
                             {/if}
+                            {if checkAccess('orderSupplement')}
+                            <dd><a lay-href="{:url('orderSupplement')}">补单记录</a></dd>
+                            {/if}
                             {if checkAccess('orderLabel')}
                             <dd><a lay-href="{:url('orderLabel')}">标签打印</a></dd>
                             {/if}

@@ -46,7 +46,7 @@
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <label class="layui-form-label">搜索内容</label>
                     <div class="layui-input-inline">
-                      <input type="text" class="layui-input" name="keyword" id="keyword" placeholder="名称、工艺、规格等" lay-affix="clear" />
+                      <input type="text" class="layui-input" name="keyword" id="keyword" placeholder="名称、工艺、规格等" lay-affix="clear" lay-filter="keyword" />
                     </div>
                 </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -180,8 +180,6 @@
                     e.find("#vl_totalarea").text(data.total_area),
                     e.find("#vl_totalnum").text(data.total_num),
                     e.show()
-                } else {
-                    e.hide()
                 }
             }
         };
@@ -218,11 +216,12 @@
                         data: res.data.list
                     }
                 },
-                done: function() {
-                    ns.page = this.page.curr;
+                done: function(res, curr, count) {
+                    ns.page = curr;
                 },
                 page: !0,
                 limit: 20,
+                limits: [20, 50, 200, 500, 1000],
                 height: "full-220",
                 text: "对不起，加载出现异常！"
             });
@@ -241,16 +240,17 @@
             var field = data.field;
             // 执行重载
             table.reload('LAY-list-table', {
-                where: field
+                where: field,
+                page: {
+                    curr: ns.page
+                }
             });
             return false;
         }),
-
         form.on('submit(LAY-list-back-export)', function(obj) {
             $("#export").val("1"),
             setTimeout(() => $("#export").val(""), 1000);
         }),
-
         form.on('submit(LAY-list-back-print)', function(obj) {
             $("#print").val("1"),
             $("#form1").attr("target", "_blank");
@@ -260,9 +260,15 @@
             }, 1000);
             $("#form1").submit()
         }),
-
-        // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'date', range: true }),
+        form.on('input-affix(keyword)', function() {
+            ns.page = 1;
+        }),
+        $('.layui-input').on("input propertychange", function() {
+            ns.page = 1;
+        }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
+            ns.page = 1;
+        }}),
         form.render();
         renderTable();
     });
