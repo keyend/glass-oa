@@ -29,7 +29,7 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" id="form1" name="form1" method="POST">
                 <ul class="layui-tab-title">
                     <li{if $status_id=='all'} class="layui-this"{/if}><a href="{:url('order')}">全部订单</a></li>
                     <li{if $status_id==0 && $status_id!='all'} class="layui-this"{/if}><a href="{:url('orderList', ['id' => 0])}">待配送</a></li>
@@ -62,7 +62,6 @@
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
-                            <input type="hidden" name="page" id="page" value="1" />
                             <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
                                 <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
                                 搜索结果
@@ -70,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
     <div class="layui-card">
@@ -103,7 +102,10 @@
         {{# } }}
         {{# if (d.status == 2) { }}
         <a class="layui-badge layui-bg-green" lay-event="delivery" href="javascript:void(0);">已完成</a>
+        <a class="layui-badge layui-bg-yellow" lay-event="copy" href="javascript:void(0);">复制</a>
         {{# } }}
+        {{# } else { }}
+        <a class="layui-badge layui-bg-yellow" lay-event="copy" href="javascript:void(0);">复制</a>
         {{# } }}
     </div>
 </script> 
@@ -130,7 +132,8 @@
             ,form = layui.form
             ,table = layui.table
             ,laydate = layui.laydate
-            ,pageTable;
+            ,pageTable
+            ,isLoaded = false;
 
         var active = {
             add: function() {
@@ -158,26 +161,37 @@
             },
             edit: function(e) {
                 location.href = "{:url('orderEdit')}?order_id=" + e.data.id
+            },
+            copy: function(e) {
+                location.href = "{:url('orderAdd')}?order_id=" + e.data.id
             }
         };
 
-        // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
-
-            // 执行重载
-            table.reload('LAY-list-table', {
-                where: field
+            console.log("button", data.elem);
+            table.reload('LAY-list-table', { 
+                where: field,
+                page: {
+                    curr: 1
+                }
             });
+            return false;
         }),
-
-        // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'date', range: true }),
-
-        renderTable();
+        $('.layui-input').on("input propertychange", function() {
+            if (sessionStorage) {
+                sessionStorage.setItem("order." + this.name, this.value);
+            }
+        }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
+            if (sessionStorage) {
+                sessionStorage.setItem("order.search_time", value);
+            }
+        }});
 
         // 渲染表格
         function renderTable() {
+            console.log("render");
             pageTable = table.render({
                 elem: "#LAY-list-table",
                 url: "{:url('orderList', ['id' => $status_id])}",
@@ -202,8 +216,22 @@
                         data: res.data.list
                     }
                 },
-                done: function() {
-                    ns.page = this.page.curr;
+                done: function(res, curr, count) {
+                    if (!isLoaded) {
+                        isLoaded = true;
+                        table.reload('LAY-list-table', { 
+                            where: {
+                                search_value: $('input[name="search_value"]').val(),
+                                search_time: $('input[name="search_time"]').val()
+                            },
+                            page: {
+                                curr: sessionStorage.getItem("order.page")
+                            }
+                        });
+                    } else {
+                        ns.page = curr;
+                        sessionStorage.setItem("order.page", curr);
+                    }
                 },
                 page: !0,
                 limit: 20,
@@ -219,6 +247,25 @@
                 active[e.event] ? active[e.event].call(this, e) : '';
             });
         }
+
+        window.addEventListener("load", function() {
+            if (window.performance.navigation.type != 2) {
+                isLoaded = true;
+                sessionStorage.removeItem("order.search_value");
+                sessionStorage.removeItem("order.search_time");
+                sessionStorage.removeItem("order.page");
+            }
+            renderTable()
+        }),
+        window.addEventListener("pageshow", function() {
+            if (sessionStorage && !isLoaded) {
+                $('input[name="search_value"]').val(sessionStorage.getItem("order.search_value")),
+                $('input[name="search_time"]').val(sessionStorage.getItem("order.search_time"))
+            }
+        }),
+
+        // 搜索时间
+        laydate.render({ elem: '#search_time', type: 'date', range: true });
     });
 
 </script>

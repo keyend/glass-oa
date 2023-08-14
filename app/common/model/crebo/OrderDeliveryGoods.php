@@ -79,7 +79,7 @@ class OrderDeliveryGoods extends Model
 
         $query->where("goods.is_delete", "=", 0);
         if (!empty($filter["keyword"])) {
-            $query->where("order.customer|goods.craft|goods.category|goods.width|goods.height|order.address|order.mobile|delivery.trade_no|order.trade_no", 'LIKE', "%{$filter['keyword']}%");
+            $query->where("order.customer|goods.craft|goods.category|goods.width|goods.height|order.address|goods.remark|order.mobile|delivery.trade_no|order.trade_no", 'LIKE', "%{$filter['keyword']}%");
         }
 
         $uspage = true;

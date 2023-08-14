@@ -49,6 +49,17 @@
     .layui-order-form {
         min-width: 1024px;
     }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .layui-input[type=number] {
+        padding-left: 0px;
+    }
+    .undefined-price {
+        text-indent: 10px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -58,7 +69,7 @@
             <div class="layui-tab layui-tab-brief">
                 <ul class="layui-tab-title">
                     <li><a href="{:url('order')}">全部订单</a></li>
-                    {if isset($order['customer_id'])}
+                    {if isset($order['id'])}
                     <li><a href="{:url('orderAdd')}">新增订单</a></li>
                     <li class="layui-this"><a style="color: #1e9fff;">编辑订单</a></li>
                     {else}
@@ -73,7 +84,7 @@
                         method="POST"
                         enctype="application/x-www-form-urlencoded"
                     >
-                        {if isset($order['customer_id'])}
+                        {if isset($order['id'])}
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">客户名称</label>
                             <div class="layui-input-inline">
@@ -112,11 +123,20 @@
                                 <select class="layui-select" name="customer_id" id="customer_id" lay-verify="required" lay-filter="customer" lay-search>
                                     <option value=""></option>
                                     {foreach $customers as $customer}
+                                    {if isset($order['customer_id']) && $order['customer_id'] == $customer['id']}
+                                    <option
+                                        value="{$customer.id}"
+                                        data-category='{$customer.category|raw}'
+                                        data-minarea="{$customer.minarea|floatval}"
+                                        selected="selected"
+                                    >{$customer.nickname}</option>
+                                    {else}
                                     <option
                                         value="{$customer.id}"
                                         data-category='{$customer.category|raw}'
                                         data-minarea="{$customer.minarea|floatval}"
                                     >{$customer.nickname}</option>
+                                    {/if}
                                     {/foreach}
                                 </select>
                             </div>
@@ -323,7 +343,7 @@
             Object.values(data).forEach(v => {
                 total += v.price
             }),
-            $('#row_count').text(total)
+            $('#row_count').text(total.toFixed(2))
         }
 
         function handleListenerEdit(_l) {
@@ -365,7 +385,8 @@
                         } else {
                             data[field.id]['unitprice'] = _v,
                             category[field.category_id] = _v,
-                            _l.prev().text(_v)
+                            _l.prev().text(_v),
+                            _l.parent().parent().find('input[data-name="num"]').trigger('input')
                         }
                     }
                 })
@@ -399,6 +420,12 @@
                     var $this = $(this), _v = float($this.val()), _i = float($this.data("min"));
                     if (_v < _i) {
                         $this.val(_i)
+                    }
+                } 
+                if (this.getAttribute("data-name") == "manual") {
+                    var _v1 = parseInt(this.value);
+                    if (_v1 < 0) {
+                        this.value = "";
                     }
                 }
 

@@ -44,18 +44,9 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show">
-                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
-                            <label class="layui-form-label">搜索类型</label>
-                            <div class="layui-input-inline">
-                                <select name="search_type" lay-verify="required" class="layui-select">
-                                    <option value="trade_no">订单编号</option>
-                                    <option value="nickname">客户名称</option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
@@ -80,7 +71,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
     <div id="LAY-list-table" lay-filter="LAY-list-table" style="margin-bottom: 20px;"></div>
@@ -240,7 +231,7 @@
                         KH: v.nickname,
                         DZ: v.address,
                         DD: v.trade_no,
-                        RQ: dates[1],
+                        RQ: dates[0],
                         MX: 0,
                         data: []
                     };
@@ -385,7 +376,7 @@
             table.reload('LAY-list-table', {
                 where: field,
                 page: {
-                    curr: ns.page
+                    curr: 1
                 }
             });
             return false;
@@ -413,15 +404,6 @@
             });
             return false;
         }),
-        form.on('input-affix(keyword)', function() {
-            ns.page = 1;
-        }),
-        $('.layui-input').on("input propertychange", function() {
-            ns.page = 1;
-        }),
-        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
-            ns.page = 1;
-        }}),
         form.render();
         renderTable();
     });

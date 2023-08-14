@@ -43,17 +43,6 @@
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
             <form class="layui-tab-item layui-form layui-show" id="form1" enctype="application/x-www-form-urlencoded" method="POST">
-                <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
-                    <label class="layui-form-label">搜索类型</label>
-                    <div class="layui-input-inline">
-                        <select name="search_type" lay-verify="required" class="layui-select">
-                            <option value="customer">客户名称</option>
-                            <option value="trade_no">订单编号</option>
-                            <option value="category">品类名称</option>
-                            <option value="craft">工艺名称</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <label class="layui-form-label">搜索内容</label>
                     <div class="layui-input-inline">
@@ -232,7 +221,7 @@
             table.reload('LAY-list-table', {
                 where: field,
                 page: {
-                    curr: ns.page
+                    curr: 1
                 }
             });
             return false;
@@ -259,15 +248,6 @@
             });
             return false;
         }),
-        form.on('input-affix(keyword)', function() {
-            ns.page = 1;
-        }),
-        $('.layui-input').on("input propertychange", function() {
-            ns.page = 1;
-        }),
-        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
-            ns.page = 1;
-        }}),
         form.render();
         renderTable();
     });

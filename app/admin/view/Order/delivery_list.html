@@ -50,23 +50,13 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
                 <ul class="layui-tab-title">
                     <li{if $is_trash==0} class="layui-this"{/if}><a href="{:url('delivery')}">全部配送单</a></li>
                     <li{if $is_trash==1} class="layui-this"{/if}><a href="{:url('delivery', ['is_trash' => 1])}">已作廢</a></li>
                 </ul>
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show" style="margin-top: 10px;">
-                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
-                            <label class="layui-form-label">搜索类型</label>
-                            <div class="layui-input-inline">
-                                <select name="search_type" lay-verify="required" class="layui-select">
-                                    <option value="trade_no">订单编号</option>
-                                    <option value="nickname">客户名称</option>
-                                    <option value="address">配送地址</option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">搜索内容</label>
                             <div class="layui-input-inline">
@@ -90,7 +80,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
     <div id="LAY-list-table" lay-filter="LAY-list-table" style="margin-bottom: 20px;"></div>
@@ -209,12 +199,12 @@
         ,laypage = layui.laypage
         ,pageTable
         ,laydate = layui.laydate
+        ,pageField
         ,init = 0
         ,poper;
 
         // 渲染表格
         function renderTable(filter) {
-            filter['page'] = ns.page;
             $.ajax({
                 url: location.href,
                 type: 'POST',
@@ -230,7 +220,7 @@
                             elem: 'LAY-list-page',
                             count: r.data.count,
                             jump(obj, first) {
-                                !first && (ns.page = obj.curr, $('button[lay-filter="LAY-list-back-search"]').trigger('click'))
+                                !first && (pageField['page'] = obj.curr,renderTable(pageField))
                             }
                         })),
                         laytpl(document.getElementById("tpl_table_list").innerHTML).render(r.data, function(context) {
@@ -244,15 +234,17 @@
 
         // 搜索时间
         laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
-            ns.page = 1,
             init = 0
         }}),
 
         // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
-            field['page'] = $('#list-page').val();
+            pageField = field;
+            field['page'] = 1;
+            init = 0;
             renderTable(field);
+            return false;
         }),
 
         // 监听打印
@@ -281,19 +273,15 @@
                 }
             })
         }),
-
         form.on('submit(print)', function(obj) {
             var data = JSON.parse(obj.field.delivery_data);
             window.open(printUrl + '?id=' + data.id + '&manual=' + (obj.field.manual || 0))
         }),
         form.on('input-affix(keyword)', function() {
-            $('#list-page').val('1'),
             init = 0
         }),
-
         $('button[lay-filter="LAY-list-back-search"]').trigger("click"),
         $('.layui-input').on("input propertychange", function() {
-            $('#list-page').val('1'),
             init = 0
         })
     })

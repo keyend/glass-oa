@@ -51,11 +51,6 @@
     .detail-title {
         position: relative;
     }
-    .detail-title .layui-btn {
-        position: absolute;
-        top: -5px;
-        right: 30px;
-    }
     .cricel {
         position: absolute;
         left: 0px;
@@ -82,6 +77,9 @@
         <form class="layui-card-body layui-form" method="POST" enctype="application/x-www-form-urlencoded">
             <blockquote class="layui-elem-quote title">
                 <p class="detail-title">
+                    <button type="button" class="layui-btn layui-btn-default layui-btn-sm" style="margin-right: 12px;" onclick="history.back();">
+                        <i class="layui-icon layui-icon-return"></i>返回
+                    </button>
                     <span>订单号：{$order.trade_no}</span>
                     <span>客户名称：{$order.customer}</span>
                     {if $order.is_trash}
@@ -155,8 +153,8 @@
                             {/if}
                         </td>
                         <td>{$goods.craft}</td>
-                        <td>{$goods.width}mm</td>
-                        <td>{$goods.height}mm</td>
+                        <td>{$goods.width|floatval}mm</td>
+                        <td>{$goods.height|floatval}mm</td>
                         <td>{$goods.area}m²</td>
                         <td>{$goods.unitprice}元</td>
                         <td>{$goods.manual_money}元</td>
@@ -269,15 +267,17 @@
             result.data = [],
             data.goods.forEach(v => {
                 if (id == v.id || id == 0) {
-                    result.data.push({
-                        KH: data.customer,
-                        DD: data.out_trade_no,
-                        MC: v.category,
-                        GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
-                        GY: v.craft,
-                        XH: v.remark
-                    }),
-                    result.ids.push(v.id);
+                    if (v.type == 0) {
+                        result.data.push({
+                            KH: data.customer,
+                            DD: data.out_trade_no,
+                            MC: v.category,
+                            GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
+                            GY: v.craft,
+                            XH: v.remark
+                        }),
+                        result.ids.push(v.id);
+                    }
                 }
             });
             return result;

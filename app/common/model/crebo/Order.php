@@ -481,18 +481,24 @@ class Order extends Model
     {
         $model = app()->make(OrderGoods::class);
         $goods = $model->where("id", $goodsid)->find();
+        $parent_id = $goodsid;
         if ($goods["type"] == 0) {
             $type = 2;
         } elseif($goods["type"] == 1) {
+            $parent_id = $goods["parent_id"];
             $type = 3;
         } else {
             $type = $goods["type"];
         }
         $cloneGoods = $goods->toArray();
+        $cloneGoods["parent_id"] = $goodsid;
         $cloneGoods["type"] = $type;
         $cloneGoods["num"] = $num;
         $cloneGoods["remark"] = $remark;
+        $cloneGoods["create_time"] = TIMESTAMP;
         unset($cloneGoods["id"]);
         $model->insert($cloneGoods);
+        $this->setAttr("supplement_num", \think\facade\Db::raw("supplement_num + {$num}"));
+        $this->save();
     }
 }

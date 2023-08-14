@@ -193,8 +193,52 @@ class Order extends Controller
                 $craft_id = $crafts[0]["id"];
             }
 
-            $this->assign("data",       "[]");
-            $this->assign("order",      []);
+            $order = [];
+            $data = [];
+            $order_id = (int)input("order_id", 0);
+            if ($order_id !== 0) {
+                $order = $order_model->with(['goods'])->find($order_id);
+                if (!empty($order)) {
+                    foreach($customers_result["list"] as $row) {
+                        if ($row["id"] == $order["customer_id"]) {
+                            $item["category"] = json_encode($row->category, JSON_UNESCAPED_SLASHES);
+                            $customer_id = $row["id"];
+                            $customer = $row["nickname"];
+                            $customer_minarea = $row["minarea"];
+                            $customer_category = $item["category"];
+                        }
+                    }
+
+                    $customer_id = $order["customer_id"];
+                    $crafts = $crafts->toArray();
+                    $crafts_maps = array_column($crafts, "id", "craft");
+                    $order = $order->toArray();
+                    $data = [];
+                    foreach($order['goods'] as &$goods) {
+                        $goods["width"] = (int)$goods["width"];
+                        $goods["height"] = (int)$goods["height"];
+                        $goods["order_money"] = (float)$goods["order_money"];
+                        $goods["deductnum"] = (int)$goods["deductnum"];
+                        $data[$goods['id']] = [
+                            "id"            => $goods['id'],
+                            "width"         => $goods["width"],
+                            "height"        => $goods["height"],
+                            "num"           => $goods["num"],
+                            "manual"        => $goods["manual"],
+                            "unitprice"     => $goods["unitprice"],
+                            "category_id"   => $goods["category_id"],
+                            "craft_id"      => isset($crafts_maps[$goods["craft"]]) ? $crafts_maps[$goods["craft"]] : 0,
+                            "status"        => $goods["status"],
+                            "remark"        => $goods["remark"],
+                            "price"         => $goods["order_money"]
+                        ];
+                    }
+                    unset($order["id"]);
+                }
+            }
+
+            $this->assign("data",       json_encode($data, JSON_UNESCAPED_UNICODE));
+            $this->assign("order",      $order);
             $this->assign("customers",  $customers);
             $this->assign("categorys",  $categorys);
             $this->assign("crafts",     $crafts);
@@ -273,7 +317,7 @@ class Order extends Controller
             foreach($order['goods'] as &$goods) {
                 $goods["width"] = (int)$goods["width"];
                 $goods["height"] = (int)$goods["height"];
-                $goods["order_money"] = (int)$goods["order_money"];
+                $goods["order_money"] = (float)$goods["order_money"];
                 $goods["deductnum"] = (int)$goods["deductnum"];
                 $data[$goods['id']] = [
                     "id"            => $goods['id'],

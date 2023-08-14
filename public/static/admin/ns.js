@@ -31,7 +31,7 @@ var ns = {
         if (res.code != 0) {
           top.layer.msg(res.message || res.msg, {time: 2000});
         } else {
-          parent.layer.msg("SUCCESS", () => typeof(fn)=='function'&&fn.call(this, res))
+          parent.layer.msg("SUCCESS", {icon: 1, time: 800} , () => typeof(fn)=='function'&&fn.call(this, res))
         }
       }
     })
@@ -149,9 +149,9 @@ var ns = {
       },
       this.ischild && this.postMessage(self.parent.ns.values);
       if(0 == res.code) {
-        res.message == 'success' ? parent.layer.msg("SUCCESS", {icon: 1, time: 1000}, () => typeof(fn)=='function'&&fn.call(this, res)) : parent.layer.alert(res.message || res.msg, (index) => {
+        res.message == 'success' ? parent.layer.msg("SUCCESS", {icon: 1, time: 800}, () => typeof(fn)=='function'&&fn.call(this, res)) : parent.layer.alert(res.message || res.msg, (index) => {
           parent.layer.close(index),
-          parent.layer.msg("SUCCESS", {icon: 1, time: 1000}, () => typeof(fn)=='function'&&fn.call(this, res))
+          parent.layer.msg("SUCCESS", {icon: 1, time: 800}, () => typeof(fn)=='function'&&fn.call(this, res))
         })
       } else {
         parent.layer.alert(res.message || res.msg, { 'icon': 2 });
