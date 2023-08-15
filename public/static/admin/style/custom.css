@@ -122,12 +122,27 @@
   height: 32px;
   line-height: 32px;
 }
+
 .layui-table td, .layui-table th, .layui-table-col-set, .layui-table-fixed-r, .layui-table-grid-down, .layui-table-header, .layui-table-page, .layui-table-tips-main, .layui-table-tool, .layui-table-total, .layui-table-view, .layui-table[lay-skin=line], .layui-table[lay-skin=row] {
-  border-color: #f3f3f3!important;
+  border-color: rgb(190, 196, 206)!important;
 }
 
 .layui-table {
-  width: 100%!important;
+  min-width: 100%!important;
+}
+.layui-table-body {
+  overflow-y: scroll!important;
+}
+.layui-table-header th:last-child {
+  padding-right: 7px!important;
+}
+
+.layui-table-click,.layui-table-hover,.layui-table[lay-even] tbody tr:nth-child(even) {
+	background-color: #d4dbec!important;
+}
+
+.layui-table-header, .layui-table-header th {
+  background-color: #d4d8e1!important;
 }
 
 @media screen and (min-width:768px) {

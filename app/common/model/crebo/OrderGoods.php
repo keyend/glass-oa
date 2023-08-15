@@ -110,15 +110,15 @@ class OrderGoods extends Model
         $query->where("order_goods.type", 'IN', [2,3]);
         $fields = [
             "order_goods.parent_id as id",
-            "SUM(order_goods.print_label) as print_label",
-            "MAX(order_goods.create_time) as create_time",
-            "SUM(order_goods.num) as num",
+            "order_goods.print_label",
+            "order_goods.create_time",
+            "order_goods.num",
             "order_goods.width",
             "order_goods.height",
             "order_goods.area",
             "order_goods.category",
             "order_goods.craft",
-            "GROUP_CONCAT(order_goods.remark) as remark",
+            "order_goods.remark",
             "order.trade_no,order.customer,order.order_num"
         ];
         $fields = implode(",",$fields);
