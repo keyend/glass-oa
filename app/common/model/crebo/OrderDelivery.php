@@ -1,6 +1,6 @@
 <?php
 namespace app\common\model\crebo;
-use think\Model;
+use app\Model;
 use think\facade\Db;
 use think\facade\Cache;
 
@@ -36,56 +36,70 @@ class OrderDelivery extends Model
      */
     public function getList($page, $limit, $filter = [])
     {
-        $condition = [];
-        $condition[] = "order.is_trash = {$filter['is_trash']}";
+        $query = $this->withJoin(["order"], "left")->with(['goods' => function($query) use($filter) {
+            if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
+                $filter['search_value'] = trim($filter['search_value']);
+                $query->where("category|craft|width|height", 'LIKE', "%{$filter['search_value']}%");
+                $query->where("is_delete", "=", 0);
+            }
+        }]);
         if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            $where = [];
-            $where[] = "`order`.customer LIKE '%{$filter['search_value']}%'";
-            $where[] = "`order`.address LIKE '%{$filter['search_value']}%'";
-            $where[] = "`order`.mobile LIKE '%{$filter['search_value']}%'";
-            $where[] = "`order`.trade_no LIKE '%{$filter['search_value']}%'";
-            $where[] = "`delivery`.trade_no LIKE '%{$filter['search_value']}%'";
-            $condition[] = "(" . implode(" OR ", $where) . ")";
+            $filter['search_value'] = trim($filter['search_value']);
+            $query->where("order_delivery.trade_no|order.customer|order.address|order.mobile", 'LIKE', "%{$filter['search_value']}%");
         }
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
             if (count($times) === 2) {
                 $times[0] = strtotime($times[0] . " 00:00:00");
                 $times[1] = strtotime($times[1] . " 23:59:59");
-                $condition[] = "delivery.create_time BETWEEN " . implode( " AND " , $times);
+                $query->where('delivery.create_time', 'BETWEEN', $times);
             }
         }
-        if (!isset($filter["print"]) || $filter["print"] != 1) {
-            $limit = " LIMIT " . (($page - 1) * $limit) . ",{$limit}";
-        } else {
-            $limit = "";
-        }
-        $prefix = env("database.prefix", "");
-        $tables = "{$prefix}{$this->name} `delivery` LEFT JOIN " .
-        "{$prefix}users_orders `order` ON (`delivery`.order_id = `order`.id) LEFT JOIN " . 
-        "{$prefix}users `member` ON (`order`.customer_id = `member`.id)";
-        $condition = implode(" ) AND (", $condition);
-        if (!empty($condition)) {
-            $condition  = " WHERE ({$condition})";
-        }
-        $count_query = Db::query("SELECT COUNT(*) AS think_count FROM {$tables} {$condition}");
-        $count = (int)$count_query[0]['think_count'];
-        $list = Db::query("SELECT delivery.*,member.nickname,member.desc as `address`,member.mobile FROM {$tables} {$condition} ORDER BY delivery.id DESC {$limit}");
-        $sql = $this->getLastSql();
-        foreach($list as &$row) {
-            $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
-            $row["goods"] = OrderDeliveryGoods::where("delivery_id", $row["id"])->select();
-            $row["order"] = Order::where("id", $row["order_id"])->field("customer,address,trade_no,order_money,order_num,is_trash")->find();
-            foreach($row["goods"] as &$goods) {
-                $goods["width"] = (float)$goods["width"];
-                $goods["height"] = (float)$goods["height"];
-                $goods["umb"] = floatval($goods['width']) . "mm X " . floatval($goods['height']) . "mm X {$goods['num']} = " . round($goods['area'] * $goods['num'], 2) . "m² X {$goods['unitprice']}元 = {$goods['delivery_money']}元";
-                $goods["remark"] = OrderGoods::where("id", $goods["goods_id"])->value("remark");
-            }
-            $row["total_money"] = $row["manual_money"] + $row["delivery_money"];
-        }
+        $query->where("order.is_trash", "=", $filter['is_trash']);
+        $columns = [
+            ["title" => "配送时间", "field" => "create_time", "width" => 18],
+            ["title" => "客户名称", "field" => "customer", "width" => 24],
+            ["title" => "配送单号", "field" => "trade_no", "width" => 18, "type" => "numeric"],
+            ["title" => "配送数量", "field" => "delivery_num", "width" => 12],
+            ["title" => "配送总金额", "field" => "total_money", "width" => 12],
+            ["title" => "打印次数", "field" => "print_times", "width" => 12],
+            ["title" => "配送地址", "field" => "address", "width" => 24],
+            ["title" => "备注", "field" => "remark", "width" => 96]
+        ];
 
-        return compact('count', 'list', 'sql');
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("order_delivery.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    $row["customer"] = $item->order["customer"];
+                    $row["address"] = $item->order["address"];
+                    $row["mobile"] = $item->order["mobile"];
+                    $row["order"] = $item->order->toArray();
+                    $row["goods"] = $item->goods->toArray();
+                    $row["total_money"] = $row["manual_money"] + $row["delivery_money"];
+                    foreach($row["goods"] as &$goods) {
+                        $goods["width"] = (float)$goods["width"];
+                        $goods["height"] = (float)$goods["height"];
+                        $goods["umb"] = floatval($goods['width']) . "mm X " . floatval($goods['height']) . "mm X {$goods['num']} = " . round($goods['area'] * $goods['num'], 2) . "m² X {$goods['unitprice']}元 = {$goods['delivery_money']}元";
+                        $goods["remark"] = OrderGoods::where("id", $goods["goods_id"])->value("remark");
+                    }
+                    return $row;
+                }, $row);
+            }
+            return compact('list', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "fields" => $fields,
+            "page"   => $page,
+            "limit"  => $limit,
+            "headers"=> $columns,
+            'title' => '配送记录_' . ($filter['search_value'] ?? "") . "_" . date("Y_m_d"),
+        ]);
+
+        return $result;
     }
 
     /**

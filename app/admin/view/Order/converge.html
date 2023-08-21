@@ -51,10 +51,10 @@
                             <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
                             导出记录
                         </button>
-                        <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-print" lay-submit>
+                        <!-- <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-print" lay-submit>
                             <i class="layui-icon layui-icon-print layuiadmin-button-btn"></i>
                             打印记录
-                        </button>
+                        </button> -->
                     </span>
                 </div>
             </form>
@@ -122,7 +122,8 @@
 <script>
     var total_money = 0
     ,total_num = 0
-    ,total_area = 0;
+    ,total_area = 0
+    ,total_count = 0;
 
     layui.config({
         base: '/static/admin/'
@@ -165,6 +166,7 @@
                     e.find("#vl_totalnum").text(data.total_num),
                     e.show()
                 }
+                total_count = data.count;
             }
         };
 
@@ -205,7 +207,7 @@
                 },
                 page: !0,
                 limit: 20,
-                limits: [20, 50, 200, 500, 1000],
+                limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
                 text: "对不起，加载出现异常！"
             });
@@ -236,13 +238,17 @@
             setTimeout(() => $("#export").val(""), 1000);
         }),
         form.on('submit(LAY-list-back-print)', function(obj) {
-            $("#print").val("1"),
-            $("#form1").attr("target", "_blank");
-            setTimeout(() => {
-                $("#print").val(""),
-                $("#form1").removeAttr("target")
-            }, 1000);
-            $("#form1").submit()
+            top.layer.confirm('将要打印[' + total_count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                top.layer.close(),
+                $("#print").val("1"),
+                $("#form1").attr("target", "_blank"),
+                setTimeout(() => {
+                    $("#print").val(""),
+                    $("#form1").removeAttr("target")
+                }, 1000),
+                $("#form1").submit()
+            });
+            return false;
         }),
         form.render();
         renderTable();

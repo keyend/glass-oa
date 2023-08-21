@@ -8,6 +8,7 @@ use app\common\model\crebo\OrderDelivery;
 use app\common\model\crebo\OrderDeliveryGoods;
 use app\common\model\crebo\Category;
 use app\common\model\crebo\Craft;
+use app\common\model\crebo\OrderPay;
 use app\common\model\crebo\Users;
 use think\facade\Db;
 
@@ -31,7 +32,8 @@ class Order extends Controller
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
                 ["search_value", ""],
-                ["search_time", ""]
+                ["search_time", ""],
+                ["export", 0]
             ]);
             if ($id != 'all') {
                 $filter["status"] = $id;
@@ -107,6 +109,36 @@ class Order extends Controller
                         $order->save();
                     }
                 }
+            }
+        }
+        return $this->success();
+    }
+
+    /**
+     * 订单修改
+     *
+     * @param OrderModel $order_model
+     * @return void
+     */
+    public function update(OrderModel $order_model)
+    {
+        $orderid = (int)input("id", 0);
+        $order = $order_model->with(['member'])->find($orderid);
+        if (empty($order)) {
+            return $this->fail("订单不存在");
+        }
+        $field = input("field", "");
+        $value = input("value", "");
+        if ($field == 'mobile') {
+            if (empty($order->member->mobile)) {
+                $order->member->mobile = $value;
+                $order->member->save();
+                $this->logger('logs.order.change_mobile', 'UPDATED', $order->member);
+            }
+            if (empty($order->mobile)) {
+                $order->mobile = $value;
+                $order->save();
+                $this->logger('logs.order.change_mobile', 'UPDATED', $order);
             }
         }
         return $this->success();
@@ -485,6 +517,7 @@ class Order extends Controller
                 ['search_type', ""],
                 ["search_value", ""],
                 ["search_time", ""],
+                ["export", 0]
             ]);
             $filter["is_trash"] = (int)$is_trash;
             [$page, $limit] = $this->getPaginator();
@@ -522,6 +555,29 @@ class Order extends Controller
             $this->assign("customers", $customers);
             return $this->fetch('Order/delivery_print');
         }
+    }
+
+    /**
+     * 配送状态变更
+     *
+     * @param OrderDelivery $model
+     * @return void
+     */
+    public function deliveryUpdate(OrderModel $model)
+    {
+        $ids = input("ids", "");
+        $status = (int)input("status", 0);
+        if (!is_array($ids)) {
+            $ids = explode(",", $ids);
+        }
+        $orders = $model->where("id", "IN", $ids)->select();
+        foreach($orders as $order) {
+            $order->delivery_status = $status;
+            $order->save();
+            $this->logger('logs.order.delivery_status', 'UPDATED', $order);
+            event("OrderChange", $order['id']);
+        }
+        return $this->success();
     }
 
     /**
@@ -578,6 +634,7 @@ class Order extends Controller
                 ['search_type', ""],
                 ["search_value", ""],
                 ['search_time', ''],
+                ['export', 0],
                 ['print', 0]
             ]);
             [$page, $limit] = $this->getPaginator();
@@ -653,5 +710,70 @@ class Order extends Controller
         } else {
             return $this->fetch('Order/supplement');
         }
+    }
+
+    /**
+     * 订单收款
+     *
+     * @param OrderModel $order_model
+     * @return void
+     */
+    public function pay(OrderModel $order_model)
+    {
+        $orderid = (int)input('id', 0);
+        $order = $order_model->find($orderid);
+        if (empty($order)) {
+            return $this->fail("订单记录不存在");
+        }
+        try {
+            $result = $order->pay(input('post.'));
+            $this->logger('logs.order.pay', 'UPDATED', $result);
+        } catch(\Exception $e) {
+            return $this->fail($e->getMessage());
+        }
+        return $this->success();
+    }
+
+    /**
+     * 支付状态变更
+     *
+     * @param OrderDelivery $model
+     * @return void
+     */
+    public function payUpdate(OrderModel $model)
+    {
+        $ids = input("ids", "");
+        $status = (int)input("status", 0);
+        if (!is_array($ids)) {
+            $ids = explode(",", $ids);
+        }
+        $orders = $model->where("id", "IN", $ids)->select();
+        foreach($orders as $order) {
+            $order->pay_status = $status;
+            $order->pay_time = TIMESTAMP;
+            $order->save();
+            $this->logger('logs.order.pay_status', 'UPDATED', $order);
+            event("OrderChange", $order['id']);
+        }
+        return $this->success();
+    }
+
+    /**
+     * 收款记录明细
+     *
+     * @param OrderPay $pay_model
+     * @return void
+     */
+    public function payLogs(OrderModel $model, OrderPay $pay_model)
+    {
+        $orderid = (int)input("id");
+        $order = $model->find($orderid);
+        if (empty($order)) {
+            return $this->fail("订单号不存在");
+        }
+        $logs = $pay_model->where("trade_no", $order['trade_no'])->order("id DESC")->select();
+        $this->assign("logs", $logs);
+        $this->assign("order", $order);
+        return $this->fetch("pay_logs");
     }
 }

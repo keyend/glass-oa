@@ -67,6 +67,10 @@
                             <i class="layui-icon layui-icon-print layuiadmin-button-btn"></i>
                             打印所有标签
                         </button>
+                        <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-export" lay-submit>
+                            <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
+                            导出记录
+                        </button>
                     </span>
                 </div>
             </form>
@@ -120,13 +124,19 @@
         ,form = layui.form
         ,table = layui.table
         ,laydate = layui.laydate
-        ,pageTable;
+        ,pageTable
+        ,totalCount = 0;
 
         var active = {
             print(o) {
                 var id = o.config.id;
                 var checkStatus = table.checkStatus(id);
-                requestPrint(active.getData(checkStatus.data));
+                if (checkStatus.data.length > 0) {
+                    top.layer.confirm('将要打印[' + checkStatus.data.length + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                        top.layer.close(index);
+                        requestPrint(active.getData(checkStatus.data));
+                    });
+                }
             },
             getData(data) {
                 var result = { ids: [], data: [] };
@@ -147,7 +157,6 @@
 
         function requestPrint(rds) {
             var loader = parent.layer.load(2, { shade: ['#fff', .3] }), ds = { data: rds.data };
-            console.log(JSON.stringify(rds));
             $.ajax({
                 url: 'http://127.0.0.1:31580/Printer',
                 type: 'POST',
@@ -198,9 +207,11 @@
                 },
                 done: function(res, curr, count) {
                     ns.page = curr;
+                    ns.count = count;
                 },
                 page: !0,
                 limit: 20,
+                limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
                 text: "对不起，加载出现异常！"
             });
@@ -227,24 +238,32 @@
             return false;
         }),
 
+        form.on('submit(LAY-list-back-export)', function(obj) {
+            $("#export").val("1"),
+            setTimeout(() => $("#export").val(""), 1000);
+        }),
+
         form.on('submit(LAY-list-back-print)', function(obj) {
-            var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });
-            field["print"] = 1;
-            $.ajax({
-                type: 'POST',
-                url: location.href,
-                data: field,
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function(r) {
-                    if (r.code == 0) {
-                        requestPrint(active.getData(r.data.list));
-                        top.layer.close(loader);
-                    } else {
-                        top.layer.close(loader);
-                        top.layer.msg(r.message);
+            top.layer.confirm('将要打印[' + ns.count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                top.layer.close(index);
+                var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });
+                field["print"] = 1;
+                $.ajax({
+                    type: 'POST',
+                    url: location.href,
+                    data: field,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function(r) {
+                        if (r.code == 0) {
+                            requestPrint(active.getData(r.data.list));
+                            top.layer.close(loader);
+                        } else {
+                            top.layer.close(loader);
+                            top.layer.msg(r.message);
+                        }
                     }
-                }
+                });
             });
             return false;
         }),

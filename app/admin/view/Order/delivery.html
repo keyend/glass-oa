@@ -33,6 +33,9 @@
     .layui-table {
         width: 100%!important;
     }
+    .text-center {
+        text-align: center!important;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -51,6 +54,9 @@
         <form class="layui-card-body layui-form" method="POST" enctype="application/x-www-form-urlencoded">
             <blockquote class="layui-elem-quote title">
                 <p>
+                    <button type="button" class="layui-btn layui-btn-default layui-btn-sm" style="margin-right: 12px;" onclick="history.back();">
+                        <i class="layui-icon layui-icon-return"></i>返回
+                    </button>
                     <span>订单号：{$order.trade_no}</span>
                     <span>客户名称：{$order.customer}</span>
                     <span>录单人员：{$order.user.username}</span>
@@ -62,6 +68,7 @@
             </blockquote>
             <table class="layui-table">
                 <colgroup>
+                    <col width="50">
                     <col width="160">
                     <col width="160">
                     <col>
@@ -71,8 +78,9 @@
                     <col width="120">
                     {/if}
                 </colgroup>
-                <thead> 
+                <thead>
                     <tr>
+                        <th class="text-center">#</th>
                         <th>品类名称</th>
                         <th>工艺</th>
                         <th>规格</th>
@@ -84,8 +92,9 @@
                     </tr> 
                 </thead> 
                 <tbody id="order-content">
-                    {foreach $order.goods as $goods}
+                    {foreach $order.goods as $key => $goods}
                     <tr>
+                        <td class="text-center">{$key+1}</td>
                         <td>{$goods.category}</td>
                         <td>{$goods.craft}</td>
                         <td>{$goods.width|floatval}mm X {$goods.height|floatval}mm X {$goods.num} = {:round($goods.area*$goods.num,2)}m² X {$goods.unitprice}元 = {$goods.order_money}元</td>
@@ -110,10 +119,11 @@
                         {if $order.status < 2}
                         <td><span id="totalNum">--.--</span></td>
                         {/if}
+                        <td></td>
                     </tr>
                     {if $order.status < 2}
                     <tr>
-                        <td colspan="6" class="layui-btn-fill">
+                        <td colspan="10" class="layui-btn-fill">
                             <button type="button" class="layui-btn" lay-filter="form1" lay-submit>生成配送单</button>
                         </td>
                     </tr>
@@ -167,7 +177,7 @@
                     <tr style="background-color:#f7f7f7;">
                         <td colspan="2">
                             <input type="checkbox" name="manual" value="1" data-id="{$delivery.id}" lay-filter="delivery" title="打印价格" lay-skin="tag" /> 
-                            <span style="margin-left: 36px;">总计应收：{:round($delivery.delivery_money + $delivery.manual_money, 2)}元</span>
+                            <span style="margin-left: 6px;">总计应收：{:round($delivery.delivery_money + $delivery.manual_money, 2)}元</span>
                         </td>
                         <td><span>{$delivery.delivery_money}元</span></td>
                         <td><span>{$delivery.manual_money}元</span></td>
@@ -176,7 +186,7 @@
                     <tr>
                         <td colspan="5" class="layui-btn-fill">
                             <input type="hidden" name="delivery_data" value='{:json_encode($delivery, JSON_UNESCAPED_UNICODE)}' />
-                            <button type="button" class="layui-btn layui-btn-normal" lay-filter="print" lay-submit>打印配送单</button>
+                            <button type="button" class="layui-btn" lay-filter="print" lay-submit>打印配送单</button>
                         </td>
                     </tr>
                 </tfoot>

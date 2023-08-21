@@ -8,7 +8,8 @@ return [
         'MemeberActiveChange'   => ['app\admin\event\MemeberActiveChange'],
         'TipoffChange'          => ['app\admin\event\TipoffChange'],
         'PolicyChange'          => ['app\admin\event\PolicyChange'],
-        'OpeartorSecurity'      => ['app\admin\event\OpeartorSecurity']
+        'OpeartorSecurity'      => ['app\admin\event\OpeartorSecurity'],
+        'OrderChange'           => ['app\admin\event\OrderChange'],
     ],
     'subscribe' => [],
 ];

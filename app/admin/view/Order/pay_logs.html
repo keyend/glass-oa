@@ -1,0 +1,49 @@
+{extend name="base" /}
+{block name="resources"}
+<style>
+    .order-timeline {
+        padding: 20px;
+        height: 340px;
+        overflow: auto;
+    }
+</style>
+{/block}
+{block name="body"}
+<div class="layui-fluid page-member-form">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 0px!important;">
+            <div class="layui-timeline order-timeline">
+                <div class="layui-timeline-item">
+                    <i class="layui-icon layui-timeline-axis"></i>
+                    <div class="layui-timeline-content layui-text">
+                        <h3 class="layui-timeline-title">{$order.pay_time|date="Y/m/d H:i"}</h3>
+                        <p>
+                            收款状态完成
+                        </p>
+                    </div>
+                </div>
+                {foreach $logs as $v}
+                <div class="layui-timeline-item">
+                    <i class="layui-icon layui-timeline-axis"></i>
+                    <div class="layui-timeline-content layui-text">
+                        <h3 class="layui-timeline-title">{$v.pay_time|date="Y/m/d H:i"} 收款 {$v.pay_money}</h3>
+                        <p>
+                            {$v.pay_info.remark}
+                        </p>
+                    </div>
+                </div>
+                {/foreach}
+                <div class="layui-timeline-item">
+                    <i class="layui-icon layui-timeline-axis"></i>
+                    <div class="layui-timeline-content layui-text">
+                        <h3 class="layui-timeline-title">{$order.create_time|date="Y/m/d H:i"}</h3>
+                        <p>
+                            创建订单{$order.trade_no}，订单金额&yen; {$order.order_money}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}

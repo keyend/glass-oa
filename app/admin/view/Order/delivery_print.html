@@ -60,11 +60,16 @@
                             </div>
                           </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <input type="hidden" name="export" id="export" value="" />
                             <input type="hidden" name="is_trash" value="{$is_trash}" />
                             <span class="layui-btn-group">
                                 <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
                                     <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
                                     搜索结果
+                                </button>
+                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-export" lay-submit>
+                                    <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
+                                    导出记录
                                 </button>
                                 <button lay-submit lay-filter="LAY-list-print" id="btn-print-all" style="display: none;"></button>
                             </span>
@@ -214,11 +219,14 @@
                 var checkStatus = table.checkStatus(id);
                 var data = active.getData(checkStatus.data);
                 if (data.length > 0) {
-                    requestPrint(data, 0);
+                    top.layer.confirm('将要打印[' + data.length + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                        top.layer.close(index);
+                        requestPrint(data, 0);
+                    });
                 }
             },
             printall(o) {
-                top.layer.confirm('确认要打印所有匹配的配送单吗？', {icon: 3}, function(index){
+                top.layer.confirm('确认要打印所有匹配的配送单[' + ns.count + ']吗？', {icon: 3}, function(index){
                     top.layer.close(index),
                     $('#btn-print-all').trigger("click")
                 })
@@ -228,7 +236,7 @@
                 data.length > 0 && data.forEach(v => {
                     dates = v.create_time.split(' ');
                     ds[v.id] = {
-                        KH: v.nickname,
+                        KH: v.customer,
                         DZ: v.address,
                         DD: v.trade_no,
                         RQ: dates[0],
@@ -335,7 +343,7 @@
                 cols: [[
                     {type: 'checkbox'},
                     {title: '配送时间', field: 'create_time', width: 160},
-                    {title: '客户名称', field: 'nickname', width: 160},
+                    {title: '客户名称', field: 'customer', width: 160},
                     {title: '配送单号', field: 'trade_no', width: 160, templet: "#col-trade_no"},
                     {title: '配送数量', field: 'delivery_num', width: 100},
                     {title: '配送总金额', field: 'total_money', width: 100},
@@ -351,11 +359,12 @@
                 },
                 done: function(res, curr, count) {
                     ns.page = curr;
+                    ns.count = count;
                     active.init()
                 },
                 page: !0,
                 limit: 20,
-                limits: [20, 50, 200, 500, 1000],
+                limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
                 text: "对不起，加载出现异常！"
             });
@@ -381,6 +390,12 @@
             });
             return false;
         }),
+
+        form.on('submit(LAY-list-back-export)', function(obj) {
+            $("#export").val("1"),
+            setTimeout(() => $("#export").val(""), 1000);
+        }),
+
 
         form.on('submit(LAY-list-print)', function(obj) {
             var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });

@@ -9,8 +9,26 @@ class Order extends Model
 {
     protected $name = "users_orders";
 
-    const ORDER_STATUS_PENDING = 0;
-    const ORDER_STATUS_COMPLETED = 1;
+    // 订单状态 已作废
+    const STATUS_TRASH = -1;
+    // 订单状态 进行中
+    const STATUS_PENDING = 0;
+    // 订单状态 已完成(已配送)
+    const STATUS_COMPLETE = 1;
+    // 订单状态 已完成(已收款)
+    const STATUS_FINISHED = 1;
+    // 配送状态 待配送
+    const DELIVERY_READY = 0;
+    // 配送状态 待配送
+    const DELIVERY_PEDING = 1;
+    // 配送状态 已完成
+    const DELIVERY_COMPLETE = 2;
+    // 收款状态 待收款
+    const REWARD_READY = 0;
+    // 收款状态 收款中
+    const REWARD_PENDING = 1;
+    // 收款状态 已收款
+    const REWARD_COMPLETE = 2;
 
     /**
      * 所属用户
@@ -79,27 +97,36 @@ class Order extends Model
                 $query->where('order.is_trash', '=', 1);
             }
         }
-        $list = [];
-        $pay_types = ['alipay' => '支付宝','wxpay' => '微信', 'app' => 'APP'];
-        $count = $query->count();
-        $query->page($page,$limit)->order('order.id desc')->select()
-        ->each(function ($item) use ($pay_types, &$list) {
-            $row = array_merge($item->member?$item->member->toArray():[], $item->getData());
-            $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
-            $row['type'] = $pay_types[$row['type']] ?? '';
-            $row["customer_id"] = $item->member["id"];
-            $row['pay_money'] = "&yen; " . number_format($row['pay_money'],2);
-            $row['discount_money'] = "&yen; " . number_format($row['discount_money'],2);
-            $row['order_money'] = "&yen; " . number_format($row['order_money'],2);
-            $row["order_num"] = (int)$row['order_num'];
-            $row["deduct_num"] = (int)$row['deduct_num'];
-            $row["process"] = round($row["deduct_num"] / $row["order_num"], 4) * 100;
-            $list[] = $row;
-            return $item;
-        });
-        $sql = $query->getLastSql();
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("order.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $pay_types = ['alipay' => '支付宝','wxpay' => '微信', 'app' => 'APP'];
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) use($pay_types) {
+                    $member = $item->member?$item->member->toArray():[];
+                    $row = array_merge($member, $row);
+                    $row['type'] = $pay_types[$row['type']] ?? '';
+                    $row["customer_id"] = $item->member["id"];
+                    $row['pay_money'] = number_format($row['pay_money'],2);
+                    $row['discount_money'] = number_format($row['discount_money'],2);
+                    $row['order_money'] = number_format($row['order_money'],2);
+                    $row["order_num"] = (int)$row['order_num'];
+                    $row["deduct_num"] = (int)$row['deduct_num'];
+                    $row["process"] = round($row["deduct_num"] / $row["order_num"], 4) * 100;
+                    return $row;
+                }, $row);
+            }
+            return compact('list', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "page"   => $page,
+            "limit"  => $limit,
+            'title' => '订单记录_' . ($filter['search_value'] ?? "") . "_" . date("Y_m_d")
+        ]);
 
-        return compact('count', 'list', 'sql');
+        return $result;
     }
 
     /**
@@ -108,33 +135,9 @@ class Order extends Model
      * @param string $trade_no
      * @return void
      */
-    public function getPending($trade_no = '') 
+    public function getOrder($trade_no = '') 
     {
-        return self::where("trade_no", $trade_no)->where("status", 0)->findOrEmpty();
-    }
-
-    /**
-     * 设置为支付成功
-     *
-     * @return void
-     */
-    public function setComplete()
-    {
-        if ($this->getAttr("status") == self::ORDER_STATUS_PENDING) {
-            $this->setAttr("status", self::ORDER_STATUS_COMPLETED);
-            $this->save();
-            
-            $user = $this->getAttr("member");
-            $day = (int)$this->getAttr("vip_day");
-            $timestamp = $day * 86400;
-            $today = mktime(23,59,59);
-            $vipGroup = conf('vip.vip_group');
-            $originTimestamp = max($user->group_expire, $today);
-
-            $user->group = $vipGroup;
-            $user->group_expire = $originTimestamp + $timestamp;
-            $user->save();
-        }
+        return self::where("trade_no", $trade_no)->findOrEmpty();
     }
 
     /**
@@ -380,6 +383,7 @@ class Order extends Model
         $this->setAttr("status", $status);
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
+        event("OrderChange", $this->getAttr("id"));
     }
 
     /**
@@ -455,7 +459,7 @@ class Order extends Model
      */
     private function getChartDataOrderNum($timestamp) 
     {
-        return self::where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("order_num");
+        return self::where("is_trash", "=", 0)->where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("order_num");
     }
 
     /**
@@ -466,7 +470,7 @@ class Order extends Model
      */
     private function getChartDataOrderMoney($timestamp) 
     {
-        return self::where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("order_money");
+        return self::where("is_trash", "=", 0)->where("create_time", "BETWEEN", [$timestamp, $timestamp + 86399])->sum("order_money");
     }
 
     /**
@@ -500,5 +504,53 @@ class Order extends Model
         $model->insert($cloneGoods);
         $this->setAttr("supplement_num", \think\facade\Db::raw("supplement_num + {$num}"));
         $this->save();
+    }
+
+    /**
+     * 订单支付
+     *
+     * @param array $data
+     * @return void
+     */
+    public function pay($data = [])
+    {
+        $deliveryStatus = (int)$this->getAttr("delivery_status");
+        $payMoney       = (float)$data["money"];
+        $currentMoney   = (float)$this->getAttr("pay_money");
+        $orderMoney     = (float)$this->getAttr("order_money");
+        $afterMoney     = $payMoney + $currentMoney;
+        $payStatus      = self::REWARD_PENDING;
+        $manualStatus   = $data["status"] ?? "";
+        if ($afterMoney > $orderMoney) {
+            throw new \Exception("金额过大!");
+        } elseif($payMoney <= 1) {
+            throw new \Exception("金额过小");
+        }
+        if ($manualStatus !== "") {
+            $payStatus = self::REWARD_COMPLETE;
+        } elseif($afterMoney == $orderMoney) {
+            $payStatus = self::REWARD_COMPLETE;
+        }
+        $this->setAttr("pay_money", \think\facade\Db::raw("pay_money+{$payMoney}"));
+        $this->setAttr("pay_time", TIMESTAMP);
+        $this->setAttr("pay_status", $payStatus);
+        $pay_model = new OrderPay();
+        $payinfo = [ "remark" => $data["remark"]??"" ];
+        $pay = [
+            "uid"           => S1,
+            "customer_id"   => $this->getAttr("customer_id"),
+            "customer"      => $this->getAttr("customer"),
+            "trade_no"      => $this->getAttr("trade_no"),
+            "out_trade_no"  => $this->getAttr("out_trade_no"),
+            "pay_type"      => "OFFLINE",
+            "pay_money"     => $payMoney,
+            "pay_info"      => serialize($payinfo),
+            "pay_status"    => 1,
+            "pay_time"      => TIMESTAMP
+        ];
+        $pay["id"] = $pay_model->insertGetId($pay);
+        $this->save();
+        event("OrderChange", $this->getAttr('id'));
+        return $pay;
     }
 }

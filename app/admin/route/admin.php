@@ -97,7 +97,7 @@ Route::group(function() {
     })->prefix('member');
     // 订单管理
     Route::group('order', function() {
-        Route::get('', '/index')->name('order');
+        Route::rule('', '/index', 'POST|GET')->name('order');
         Route::rule('create', '/add', 'POST|GET')->name('orderAdd');
         Route::rule('edit', '/edit', 'POST|GET')->name('orderEdit');
         Route::get('list/:id', '/getList')->name('orderList');
@@ -105,6 +105,7 @@ Route::group(function() {
         Route::post('trash', '/trash')->name('orderTrash');
         Route::rule("delivery/list", '/deliveryList', 'POST|GET')->name('delivery');
         Route::rule('delivery/print', '/deliveryPrint', 'POST|GET')->name('orderDeliveryPrintList');
+        Route::post('delivery/update', '/deliveryUpdate')->name("orderDeliveryUpdate");
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
         Route::rule('converge', '/converge')->name("orderConverge");
         Route::rule('label', '/label')->name("orderLabel");
@@ -112,6 +113,10 @@ Route::group(function() {
         Route::post('print/record', '/printRecord')->name('orderGoodsPrint');
         Route::get('print', '/print')->name('orderPrint');
         Route::rule('supplement', '/supplement', 'GET|POST')->name('orderSupplement');
+        Route::post('pay/update', '/payUpdate')->name("orderPayUpdate");
+        Route::get('pay/logs', '/payLogs')->name("orderPayLogs");
+        Route::post('pay', '/pay')->name("orderPay");
+        Route::post('update', '/update')->name("orderUpdate");
     })->prefix('order');
 })->middleware('ConsoleAuthorize', true);
 // 必需登录

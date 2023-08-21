@@ -112,7 +112,12 @@
             print(o) {
                 var id = o.config.id;
                 var checkStatus = table.checkStatus(id);
-                requestPrint(active.getData(checkStatus.data));
+                if (checkStatus.data.length > 0) {
+                    top.layer.confirm('将要打印[' + checkStatus.data.length + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                        top.layer.close(index);
+                        requestPrint(active.getData(checkStatus.data));
+                    });
+                }
             },
             getData(data) {
                 var result = { ids: [], data: [] };
@@ -185,9 +190,11 @@
                 },
                 done: function(res, curr, count) {
                     ns.page = curr;
+                    ns.count = count;
                 },
                 page: !0,
                 limit: 20,
+                limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
                 text: "对不起，加载出现异常！"
             });
@@ -221,23 +228,26 @@
         }),
 
         form.on('submit(LAY-list-back-print)', function(obj) {
-            var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });
-            field["print"] = 1;
-            $.ajax({
-                type: 'POST',
-                url: location.href,
-                data: field,
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function(r) {
-                    if (r.code == 0) {
-                        requestPrint(active.getData(r.data.list));
-                        top.layer.close(loader);
-                    } else {
-                        top.layer.close(loader);
-                        top.layer.msg(r.message);
+            top.layer.confirm('将要打印[' + ns.count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                top.layer.close(index);
+                var field = obj.field, loader = top.layer.load(2, { shade: ["#fff", .3] });
+                field["print"] = 1;
+                $.ajax({
+                    type: 'POST',
+                    url: location.href,
+                    data: field,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function(r) {
+                        if (r.code == 0) {
+                            requestPrint(active.getData(r.data.list));
+                            top.layer.close(loader);
+                        } else {
+                            top.layer.close(loader);
+                            top.layer.msg(r.message);
+                        }
                     }
-                }
+                });
             });
             return false;
         }),

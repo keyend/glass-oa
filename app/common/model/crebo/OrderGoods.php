@@ -1,6 +1,6 @@
 <?php
 namespace app\common\model\crebo;
-use think\Model;
+use app\Model;
 
 class OrderGoods extends Model
 {
@@ -40,28 +40,41 @@ class OrderGoods extends Model
         }
         $query->where("order_goods.is_delete", "=", 0);
         $query->where("order.is_trash", "=", 0);
-        $list = [];
         $fields = "order_goods.*,order.trade_no,order.customer,order.order_num";
-        $count = $query->count();
-        $query->field($fields);
-        if (isset($filter['print']) && $filter['print'] == 1) {
-            $query->chunk(100, function ($lists) use (&$list) {
-                foreach($lists as $item) {
-                    $row = $item->toArray();
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("order_goods.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    $row["customer"] = $item->order["customer"];
                     $row["height"] = (float)$row["height"];
-                    $row["width"]  = (float)$row["width"];
-                    $list[] = $row;
-                }
-            }, "order_goods.id", "desc");
-        } else {
-            $list = $query->page($page,$limit)->order("order_goods.id DESC")->select()->each(function($row) {
-                $row["height"] = (float)$row["height"];
-                $row["width"]  = (float)$row["width"];
-                return $row;
-            });
-        }
-        $sql = $query->getLastSql();
-        return compact('count', 'list', 'sql');
+                    $row["width"] = (float)$row["width"];
+                    return $row;
+                }, $row);
+            }
+            return compact('list', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "fields" => $fields,
+            "page"   => $page,
+            "limit"  => $limit,
+            'title'  => '标签记录_' . date("Y_m_d"),
+            'headers'=> [
+                ["title" => "开单时间", "field" => "create_time", "width" => 18],
+                ["title" => "客户名称", "field" => "customer", "width" => 24],
+                ["title" => "产品名称", "field" => "category", "width" => 24],
+                ["title" => "工艺", "field" => "craft", "width" => 12],
+                ["title" => "宽mm", "field" => "width", "width" => 12],
+                ["title" => "高mm", "field" => "height", "width" => 12],
+                ["title" => "数量", "field" => "num", "width" => 12],
+                ["title" => "面积m²", "field" => "area", "width" => 12],
+                ["title" => "单价", "field" => "unitprice", "width" => 12],
+                ["title" => "备注", "field" => "remark", "width" => 96]
+            ]
+        ]);
+
+        return $result;
     }
 
     /**
@@ -75,7 +88,6 @@ class OrderGoods extends Model
     public function getSupplementList($page, $limit, $filter = [])
     {
         $query = $this->withJoin(["order"], "left");
-        $list = [];
         if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
             $filter['search_value'] = trim($filter['search_value']);
             $query->where("order_goods.category|order_goods.craft|order_goods.width|order_goods.height|order.customer|order.address|order.mobile", 'LIKE', "%{$filter['search_value']}%");
@@ -87,23 +99,6 @@ class OrderGoods extends Model
                 $times[1] = strtotime($times[1] . " 23:59:59");
                 $query->where('order.create_time', 'BETWEEN', $times);
             }
-        }
-        if ($filter['export'] == 1) {
-            $excel = new \mashroom\Excel();
-            $columns = [
-                ["title" => "ID", "field" => "id", "width" => 6],
-                ["title" => "补单时间", "field" => "create_time", "width" => 18],
-                ["title" => "客户名称", "field" => "customer", "width" => 24],
-                ["title" => "订单编号", "field" => "trade_no", "width" => 18, "type" => "numeric"],
-                ["title" => "产品名称", "field" => "category", "width" => 24],
-                ["title" => "工艺", "field" => "craft", "width" => 12],
-                ["title" => "宽mm", "field" => "width", "width" => 12],
-                ["title" => "高mm", "field" => "height", "width" => 12],
-                ["title" => "面积m²", "field" => "area", "width" => 12],
-                ["title" => "补单数量", "field" => "num", "width" => 12],
-                ["title" => "下单数量", "field" => "num1", "width" => 12],
-                ["title" => "备注", "field" => "remark", "width" => 96]
-            ];
         }
         $query->where("order_goods.is_delete", "=", 0);
         $query->where("order.is_trash", "=", 0);
@@ -122,41 +117,44 @@ class OrderGoods extends Model
             "order.trade_no,order.customer,order.order_num"
         ];
         $fields = implode(",",$fields);
-        $count = $query->count();
-        $query->field($fields);
-        if ((isset($filter['export']) && $filter['export'] == 1) || (isset($filter['print']) && $filter['print'] == 1)) {
-            $query->chunk(100, function ($lists) use (&$list, $filter, $columns, $excel) {
-                if ($filter['export'] == 1) {
-                    $list = [];
-                }
-
-                foreach($lists as $item) {
-                    $row = $item->toArray();
+        $columns = [
+            ["title" => "补单时间", "field" => "create_time", "width" => 18],
+            ["title" => "客户名称", "field" => "customer", "width" => 24],
+            ["title" => "订单编号", "field" => "trade_no", "width" => 18, "type" => "numeric"],
+            ["title" => "产品名称", "field" => "category", "width" => 24],
+            ["title" => "工艺", "field" => "craft", "width" => 12],
+            ["title" => "宽mm", "field" => "width", "width" => 12],
+            ["title" => "高mm", "field" => "height", "width" => 12],
+            ["title" => "面积m²", "field" => "area", "width" => 12],
+            ["title" => "补单数量", "field" => "num", "width" => 12],
+            ["title" => "下单数量", "field" => "num1", "width" => 12],
+            ["title" => "备注", "field" => "remark", "width" => 96]
+        ];
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("order_goods.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    $row["customer"] = $item->order["customer"];
+                    $row["trade_no"] = $item->order["trade_no"];
+                    $row["order_num"] = $item->order["order_num"];
                     $row["height"] = (float)$row["height"];
                     $row["width"]  = (float)$row["width"];
-                    $row["num1"] = (int)self::where("id", $row["parent_id"])->value("num");
-                    $list[] = $row;
-                }
-    
-                if ($filter['export'] == 1) {
-                    $excel->excel($list, [
-                        'title' => '补单记录_' . date("Y_m_d"),
-                        'headers' => $columns
-                    ]);
-                }
-            }, "order_goods.id", "desc");
-        } else {
-            $list = $query->page($page,$limit)->order("order_goods.id DESC")->select()->each(function($row) {
-                $row["height"] = (float)$row["height"];
-                $row["width"]  = (float)$row["width"];
-                $row["num1"] = (int)self::where("id", $row["parent_id"])->value("num");
-                return $row;
-            });
-        }
-        if ($filter['export'] == 1) {
-            $excel->excel(null, []);
-        }
-        $sql = $query->getLastSql();
-        return compact('count', 'list', 'sql');
+                    return $row;
+                }, $row);
+            }
+            return compact('list', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "fields" => $fields,
+            "page"   => $page,
+            "limit"  => $limit,
+            "headers"=> $columns,
+            'title' => '补单记录_' . ($filter['search_value'] ?? "") . "_" . date("Y_m_d"),
+        ]);
+
+        return $result;
     }
 }

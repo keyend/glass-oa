@@ -59,6 +59,9 @@
         zoom: .8;
         background-color: #16b777;
     }
+    .text-center {
+        text-align: center!important;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -94,6 +97,7 @@
             </blockquote>
             <table class="layui-table">
                 <colgroup>
+                    <col width="50">
                     <col>
                     <col width="160">
                     <col width="120">
@@ -106,6 +110,15 @@
                 </colgroup>
                 <thead> 
                     <tr>
+                        <td colspan="10" class="layui-btn-fill">
+                            <div class="layui-btn-group" style="width: 100%;">
+                                <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
+                                <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-center">#</th>
                         <th>品类名称</th>
                         <th>工艺</th>
                         <th>宽</th>
@@ -134,8 +147,9 @@
                     </tr> -->
                 </thead>
                 <tbody id="order-content">
-                    {foreach $order.goods as $goods}
+                    {foreach $order.goods as $key => $goods}
                     <tr>
+                        <td class="text-center">{$key+1}</td>
                         <td>
                             {if $goods.print_label > 0}
                             <span class="layui-badge cricel" title="已打印{$goods.print_label}次">{$goods.print_label}</span>
@@ -170,21 +184,13 @@
                 </tbody>
                 <tfoot>
                     <tr style="background-color:#f7f7f7;">
-                        <td colspan="9">
+                        <td colspan="10">
                             <span>总计应收：</span>
                             <span>{$order.order_money}元</span>
                             <span> + </span>
                             <span>{$order.manual_money}元</span>
                             <span> = </span>
                             <span>{:round($order.order_money + $order.manual_money, 2)}元</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="9" class="layui-btn-fill">
-                            <div class="layui-btn-group" style="width: 100%;">
-                                <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
-                                <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
-                            </div>
                         </td>
                     </tr>
                 </tfoot>
@@ -335,6 +341,7 @@
                 content: content,
                 btn: [],
                 success(layero, index) {
+                    parent.layui.form.render();
                     parent.layui.form.on("submit(component-form-element)", function(obj) {
                         poperField["num"] = obj.field.num,
                         poperField["remark"] = obj.field.remark,

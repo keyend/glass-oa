@@ -145,6 +145,16 @@
   background-color: #d4d8e1!important;
 }
 
+.layui-form-mx .layui-input-wrap .layui-input {
+  padding-right: 0px;
+}
+.layui-form-mx .layui-form-item .layui-inline {
+  margin-right: 0px;
+}
+.layui-form-mx .layui-form-item {
+  margin-bottom: 5px!important;
+}
+
 @media screen and (min-width:768px) {
   .layui-header .layui-layout-right {
     padding-right: .6rem;

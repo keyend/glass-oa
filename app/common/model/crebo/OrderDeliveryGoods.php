@@ -1,6 +1,6 @@
 <?php
 namespace app\common\model\crebo;
-use think\Model;
+use app\Model;
 
 class OrderDeliveryGoods extends Model
 {
@@ -43,30 +43,6 @@ class OrderDeliveryGoods extends Model
      */
     public function getConverge($page, $limit, $filter = [])
     {
-        static $excel = null;
-        static $columns = null;
-
-        if ($filter['export'] == 1) {
-            $excel = new \mashroom\Excel();
-            $columns = [
-                ["title" => "ID", "field" => "id", "width" => 6],
-                ["title" => "开单时间", "field" => "create_time", "width" => 18],
-                ["title" => "送货时间", "field" => "delivery_time", "width" => 18],
-                ["title" => "客户名称", "field" => "customer", "width" => 24],
-                ["title" => "订单编号", "field" => "trade_no", "width" => 18, "type" => "numeric"],
-                ["title" => "产品名称", "field" => "category", "width" => 24],
-                ["title" => "工艺", "field" => "craft", "width" => 12],
-                ["title" => "宽mm", "field" => "width", "width" => 12],
-                ["title" => "高mm", "field" => "height", "width" => 12],
-                ["title" => "面积m²", "field" => "area", "width" => 12],
-                ["title" => "数量", "field" => "num", "width" => 12],
-                ["title" => "单价", "field" => "unitprice", "width" => 12],
-                ["title" => "加工费", "field" => "manual_money", "width" => 12],
-                ["title" => "金额", "field" => "total_money", "width" => 12],
-                ["title" => "备注", "field" => "remark", "width" => 96]
-            ];
-        }
-
         $query = $this->withJoin(["delivery", "goods", "order"], "left");
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);
@@ -77,51 +53,33 @@ class OrderDeliveryGoods extends Model
             }
         }
 
+        $query->where("order.is_trash", "=", 0);
         $query->where("goods.is_delete", "=", 0);
         if (!empty($filter["keyword"])) {
             $query->where("order.customer|goods.craft|goods.category|goods.width|goods.height|order.address|goods.remark|order.mobile|delivery.trade_no|order.trade_no", 'LIKE', "%{$filter['keyword']}%");
         }
 
-        $uspage = true;
-        if ((isset($filter['export']) && $filter['export'] == 1) || (isset($filter['print']) && $filter['print'] == 1)) {
-            $uspage = false;
-        }
-
-        $list = [];
-        $total_area = 0;
-        $total_money = 0;
-        $total_num = 0;
-        $count = $query->count();
         $fields = "order_delivery_goods.id,order.create_time,delivery.create_time as delivery_time,order.customer,order.trade_no";
         $fields.= ",goods.category,goods.craft,goods.width,goods.height,goods.area,order_delivery_goods.num,goods.unitprice";
         $fields.= ",order_delivery_goods.manual_money,order_delivery_goods.delivery_money,goods.remark";
-        $query->field($fields);
-        if ((isset($filter['export']) && $filter['export'] == 1) || (isset($filter['print']) && $filter['print'] == 1)) {
-            $query->chunk(100, function ($lists) use (&$list, $filter, $columns, $excel) {
-                if ($filter['export'] == 1) {
-                    $list = [];
-                }
-    
-                foreach($lists as $item) {
-                    $row = $item->toArray();
-                    $row["height"] = (int)$row["height"];
-                    $row["width"] = (int)$row["width"];
-                    $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
-                    $row["delivery_time"] = date("Y-m-d H:i:s", $row["delivery_time"]);
-                    $row["manual_money"] = (float)$row["manual_money"];
-                    $row["delivery_money"] = (float)$row["delivery_money"];
-                    $row["total_money"] = $row["delivery_money"] + $row["manual_money"];
-                    $list[] = $row;
-                }
-    
-                if ($filter['export'] == 1) {
-                    $excel->excel($list, [
-                        'title' => '订单汇总_' . date("Y_m_d"),
-                        'headers' => $columns
-                    ]);
-                }
-            }, "order_delivery_goods.id", "desc");
-        } else {
+        $columns = [
+            ["title" => "开单时间", "field" => "create_time", "width" => 18],
+            ["title" => "送货时间", "field" => "delivery_time", "width" => 18],
+            ["title" => "客户名称", "field" => "customer", "width" => 24],
+            ["title" => "订单编号", "field" => "trade_no", "width" => 18, "type" => "numeric"],
+            ["title" => "产品名称", "field" => "category", "width" => 24],
+            ["title" => "工艺", "field" => "craft", "width" => 12],
+            ["title" => "宽mm", "field" => "width", "width" => 12],
+            ["title" => "高mm", "field" => "height", "width" => 12],
+            ["title" => "数量", "field" => "num", "width" => 12],
+            ["title" => "面积m²", "field" => "area", "width" => 12],
+            ["title" => "单价", "field" => "unitprice", "width" => 12],
+            ["title" => "加工费", "field" => "manual_money", "width" => 12],
+            ["title" => "金额", "field" => "total_money", "width" => 12],
+            ["title" => "备注", "field" => "remark", "width" => 96]
+        ];
+
+        $result = $this->maps(function($query, $page, $limit) {
             if ($page == 1) {
                 $manual_money = (float)$query->sum("order_delivery_goods.manual_money");
                 $delivery_money = (float)$query->sum("order_delivery_goods.delivery_money");
@@ -129,23 +87,36 @@ class OrderDeliveryGoods extends Model
                 $total_area = (float)$query->sum("order_delivery_goods.area");
                 $total_num = (float)$query->sum("order_delivery_goods.num");
             }
+            $cursor = $query->order("order_delivery_goods.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    $row["height"] = (int)$row["height"];
+                    $row["width"] = (int)$row["width"];
+                    $row["customer"] = $item->order["customer"];
+                    $row["trade_no"] = $item->order["trade_no"];
+                    $row["remark"] = $item->goods["remark"];
+                    $row["create_time"] = $item->order["create_time"];
+                    $row["delivery_time"] = $item->delivery["create_time"];
+                    $row["manual_money"] = (float)$row["manual_money"];
+                    $row["delivery_money"] = (float)$row["delivery_money"];
+                    $row["total_money"] = $row["delivery_money"] + $row["manual_money"];
+                    return $row;
+                }, $row);
+            }
 
-            $list = $query->page($page,$limit)->order("order_delivery_goods.id DESC")->select()->each(function($row) {
-                $row["height"] = (int)$row["height"];
-                $row["width"] = (int)$row["width"];
-                $row["create_time"] = date("Y-m-d H:i:s", $row["create_time"]);
-                $row["delivery_time"] = date("Y-m-d H:i:s", $row["delivery_time"]);
-                $row["manual_money"] = (float)$row["manual_money"];
-                $row["delivery_money"] = (float)$row["delivery_money"];
-                $row["total_money"] = $row["delivery_money"] + $row["manual_money"];
-                return $row;
-            });
-        }
-        $sql = $query->getLastSql();
-        if ($filter['export'] == 1) {
-            $excel->excel(null, []);
-        }
+            return compact('list', 'manual_money', 'delivery_money', 'total_money', 'total_area', 'total_num', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "fields" => $fields,
+            "page"   => $page,
+            "limit"  => $limit,
+            "headers"=> $columns,
+            'title' => '订单汇总_' . date("Y_m_d"),
+        ]);
 
-        return compact('count', 'list', 'manual_money', 'delivery_money', 'total_money', 'total_area', 'total_num', 'sql');
+        return $result;
     }
 }
