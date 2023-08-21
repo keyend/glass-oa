@@ -4,6 +4,15 @@ namespace mashroom;
 class Excel
 {
     private $excel;
+    private $border = array(
+        'borders' => array(
+            'allborders' => array(
+                'style' => \PHPExcel_Style_Border::BORDER_THIN
+            )
+        )
+    );
+    private $sums = array();
+    private $options = null;
 
     public function output()
     {
@@ -29,6 +38,7 @@ class Excel
         static $rowIndex = 1;
         static $cellIndex = 1;
         static $drawing = null;
+        static $isSum = false;
 
         if($excel == null) {
             if(!isset($options['headers'])) {
@@ -36,6 +46,7 @@ class Excel
             }
 
             $this->excel = new \PHPExcel();
+            $this->options = $options;
             $excel = $this->excel;
 
             $options['title'] = !isset($options['title']) ? 'DEFAULT' : $options['title'];
@@ -43,6 +54,8 @@ class Excel
             $excel->setActiveSheetIndex(0);
             $excel->getActiveSheet()->setTitle($options['title']);
             $excel->getActiveSheet()->getRowDimension($rowIndex)->setRowHeight(32);
+            $excel->getActiveSheet()->getDefaultStyle()->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $excel->getActiveSheet()->getDefaultStyle()->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             foreach($options['headers'] as $header) {
                 if ($stage > 25 || $stage > 51) {
@@ -69,13 +82,7 @@ class Excel
                         'rgb' => 'F0E7DB'
                     )
                 ));
-                $excel->getActiveSheet()->getStyle($rowId)->applyFromArray(array(
-                    'borders' => array(
-                        'allborders' => array(
-                            'style' => \PHPExcel_Style_Border::BORDER_THIN
-                        )
-                    )
-                ));
+                $excel->getActiveSheet()->getStyle($rowId)->applyFromArray($this->border);
 
                 $stage += 1;
             }
@@ -113,6 +120,13 @@ class Excel
 
                 $id = $prefix . chr($stage + $beginAscll);  // A B C D E
                 $rowId = $id . $rowIndex;
+
+                if ($rowIndex == 2) {
+                    if (false === $isSum) {
+                        if (isset($mapper['sum']) && $mapper['sum'])
+                            $isSum = true;
+                    }
+                }
 
                 if ($mapper['type'] != 'id') {
                     $excel->getActiveSheet()->getStyle($rowId)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
@@ -178,6 +192,7 @@ class Excel
                 }
 
                 $excel->getActiveSheet()->setCellValue($rowId, $value);
+                $excel->getActiveSheet()->getStyle($rowId)->applyFromArray($this->border);
                 $value = "";
 
                 $stage += 1;
@@ -187,6 +202,41 @@ class Excel
         }
 
         if (empty($list)) {
+            if ($isSum) {
+                $rowIndex += 1;
+                $prefix = '';
+                $prefixIndex = 0;
+                $stage = 0;
+                foreach($this->options['headers'] as $mapper) {
+                    if ($stage === 26 || $stage === 52) {
+                        $prefix = chr($beginAscll + $prefixIndex); //AA AB AC AE
+                        $prefixIndex += 1;
+                        $stage = 0;
+                    }
+                    $id = $prefix . chr($stage + $beginAscll);  // A B C D E
+                    $rowId = $id . $rowIndex;
+                    $value = "";
+                    if (isset($mapper['sum']) && $mapper['sum']) {
+                        $value = "=SUM({$id}2:{$id}" . ($rowIndex-1) . ")";
+                    }
+                    if ($mapper['type'] != 'id') {
+                        $excel->getActiveSheet()->getStyle($rowId)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+                    } else {
+                        $excel->getActiveSheet()->getStyle($rowId)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                    }
+                    $excel->getActiveSheet()->setCellValue($rowId, $value);
+                    $excel->getActiveSheet()->getStyle($rowId)->applyFromArray($this->border);
+                    $excel->getActiveSheet()->getStyle($rowId)->getFill()->applyFromArray(array(
+                        'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                        'startcolor' => array(
+                            'rgb' => 'F0F0F0'
+                        )
+                    ));
+                    $stage += 1;
+                }
+                $excel->getActiveSheet()->getRowDimension($rowIndex)->setRowHeight(26);
+            }
+
             return $this->output();
         }
 

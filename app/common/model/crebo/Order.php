@@ -383,7 +383,7 @@ class Order extends Model
         $this->setAttr("status", $status);
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
-        event("OrderChange", $this->getAttr("id"));
+        $res = event("OrderChange", $this->getAttr("id"));
     }
 
     /**

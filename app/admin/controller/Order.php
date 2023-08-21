@@ -106,7 +106,9 @@ class Order extends Controller
                     if (in_array($order->status, [0, 1])) {
                         $this->logger('logs.order.trash', 'DELETE', $order);
                         $order->is_trash = 1;
+                        $order->status = -1;
                         $order->save();
+                        $this->logger('logs.order.trash', 'UPDATED', $order);
                     }
                 }
             }
@@ -774,6 +776,6 @@ class Order extends Controller
         $logs = $pay_model->where("trade_no", $order['trade_no'])->order("id DESC")->select();
         $this->assign("logs", $logs);
         $this->assign("order", $order);
-        return $this->fetch("pay_logs");
+        return $this->fetch("Order/pay_logs");
     }
 }

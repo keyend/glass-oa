@@ -102,17 +102,20 @@
     <div class="layui-btn-group">
         <a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>
         {{# if (d.status != 0) { }}
-        <a class="layui-badge layui-bg-yellow" lay-event="copy" href="javascript:void(0);">复制</a>
+            <a class="layui-badge layui-bg-yellow" lay-event="copy" href="javascript:void(0);">复制</a>
             {{# if (d.delivery_status == 2) { }}
             <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">已配送</a>
             {{# } }}
         {{# } else { }}
-        <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
-        {{# if (d.delivery_status == 0) { }}
-        <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送0%</a>
-        {{# } else if (d.delivery_status == 1) { }}
-        <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
-        {{# } }}
+            <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
+            {{# if (d.delivery_status != 2 && d.pay_status != 2) { }}
+            <a class="layui-badge layui-bg-primary" lay-event="edit" href="javascript:void(0);">编辑</a>
+            {{# } }}
+            {{# if (d.delivery_status == 0) { }}
+            <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送0%</a>
+            {{# } else if (d.delivery_status == 1) { }}
+            <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
+            {{# } }}
         {{# } }}
     </div>
 </script>
@@ -141,11 +144,11 @@
 
 <script type="text/html" id="pay-status">
     {{#if (d.pay_status == 0) { }}
-    <span class="layui-badge layui-bg-dark">待收款</span>
+    <span class="layui-badge layui-bg-dark" lay-event="reward">待收款</span>
     {{# }else if(d.pay_status == 1){ }}
-    <span class="layui-badge layui-bg-blue">收款中</span>
+    <span class="layui-badge layui-bg-blue" lay-event="reward">收款中</span>
     {{# }else if(d.pay_status == 2){ }}
-    <span class="layui-badge layui-bg-green">已收款</span>
+    <span class="layui-badge layui-bg-green" lay-event="reward">已收款</span>
     {{# } }}
 </script>
 
@@ -168,11 +171,12 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <div class="layui-inline">
-                <label class="layui-form-label">收款数额</label>
-                <div class="layui-input-inline layui-input-wrap">
-                    <input type="number" name="money" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" data-pay="{{d.pay_money}}" data-value="{{d.order_money}}" />
-                </div>
+            <label class="layui-form-label">收款数额</label>
+            <div class="layui-input-inline">
+                <input type="number" name="money" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" data-pay="{{d.pay_money}}" data-value="{{d.order_money}}" />
+            </div>
+            <div class="layui-form-mid layui-text-em">
+                <span class="layui-badge layui-bg-gray">提示：收款+已收 不能大于应收金额</span>
             </div>
         </div>
         <div class="layui-form-item">
@@ -244,16 +248,18 @@
                 location.href = "{:url('orderAdd')}?order_id=" + e.data.id
             },
             reward: function(e) {
-                if (e.data.pay_status == 2) {
+                if (e.data.status == -1) {
+                    return false;
+                } else if (e.data.pay_status == 2) {
                     return active.reward_logs(e);
                 }
                 var that = $(this), field = {}, content;
                 content = laytpl(document.getElementById("pop-reward").innerHTML).render(e.data),
                 poper = parent.layer.open({
-                    title: '订单收款【订单' + e.data.trade_no + '】 客户名' + e.data.customer,
+                    title: '订单收款【订单：' + e.data.trade_no + '】 【客户：' + e.data.customer + '】',
                     move: false,
                     content: content,
-                    area: ['670px', '400px'],
+                    area: ['680px', '500px'],
                     btn: [],
                     success(layero, index) {
                         var autoFlag = false;
@@ -299,7 +305,9 @@
                                 layero.find('input[name="money"]').val(order_money - pay_money);
                                 layero.find('input[name="money"]').trigger("input")
                             }
-                        })
+                        }),
+
+                        layero.find('input[name="money"]').focus();
                     }
                 })
             },
@@ -411,7 +419,7 @@
                     {title: '收款状态', field: 'pay_status', align: 'center', templet: '#pay-status', width: 82},
                     {title: '订单金额', field: 'order_money', width: 100},
                     {title: '已收金额', field: 'pay_money', width: 100, edit: function(d) {
-                        if (d.pay_status != 2) {
+                        if (d.pay_status != 2 && d.status != -1) {
                             return 'text';
                         }
                     }, event: "reward"},
@@ -421,7 +429,7 @@
                 ]],
                 parseData: function(res) {
                     res.data.list.forEach((v, index) => {
-                        res.data.list[index].LAY_DISABLED = v.status == 1
+                        res.data.list[index].LAY_DISABLED = v.status == 2 || v.status == -1
                     });
 
                     return {

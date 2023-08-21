@@ -71,11 +71,11 @@ class OrderDeliveryGoods extends Model
             ["title" => "工艺", "field" => "craft", "width" => 12],
             ["title" => "宽mm", "field" => "width", "width" => 12],
             ["title" => "高mm", "field" => "height", "width" => 12],
-            ["title" => "数量", "field" => "num", "width" => 12],
-            ["title" => "面积m²", "field" => "area", "width" => 12],
+            ["title" => "数量", "field" => "num", "width" => 12, "sum" => 1],
+            ["title" => "面积m²", "field" => "area", "width" => 12, "sum" => 1],
             ["title" => "单价", "field" => "unitprice", "width" => 12],
             ["title" => "加工费", "field" => "manual_money", "width" => 12],
-            ["title" => "金额", "field" => "total_money", "width" => 12],
+            ["title" => "金额", "field" => "total_money", "width" => 12, "sum" => 1],
             ["title" => "备注", "field" => "remark", "width" => 96]
         ];
 

@@ -118,6 +118,10 @@ Route::group(function() {
         Route::post('pay', '/pay')->name("orderPay");
         Route::post('update', '/update')->name("orderUpdate");
     })->prefix('order');
+    // 财务明细
+    Route::group('finance', function() {
+        Route::rule('payment', '/payment', 'POST|GET')->name('financePayments');
+    })->prefix('finance');
 })->middleware('ConsoleAuthorize', true);
 // 必需登录
 Route::group(function() {
