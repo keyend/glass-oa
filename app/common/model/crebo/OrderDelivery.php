@@ -45,7 +45,7 @@ class OrderDelivery extends Model
         }]);
         if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
             $filter['search_value'] = trim($filter['search_value']);
-            $query->where("order_delivery.trade_no|order.customer|order.address|order.mobile", 'LIKE', "%{$filter['search_value']}%");
+            $query->where("order_delivery.trade_no|order.customer|order.address|order.mobile|order.trade_no", 'LIKE', "%{$filter['search_value']}%");
         }
         if (isset($filter['search_time']) && !empty($filter['search_time'])) {
             $times = explode(" - ", $filter['search_time']);

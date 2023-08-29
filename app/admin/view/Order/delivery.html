@@ -79,7 +79,7 @@
                     {/if}
                 </colgroup>
                 <thead>
-                    <tr>
+                    <tr class="layui-table-header">
                         <th class="text-center">#</th>
                         <th>品类名称</th>
                         <th>工艺</th>
@@ -154,7 +154,7 @@
                     <col width="120">
                 </colgroup>
                 <thead> 
-                    <tr>
+                    <tr class="layui-table-header">
                         <th>品类名称</th>
                         <th>工艺</th>
                         <th>规格</th>
@@ -201,6 +201,7 @@
 <script>
     var printUrl = "{:url('orderPrint')}";
     var defaultPrompt = "{$option.order_printrm}";
+    var isPrintWarn = "{:conf('auxiliary.delivery_warnpnt')}";
 
     layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table'], function(){
         var $ = layui.$, goodsNums = {}, form = layui.form;
@@ -228,7 +229,17 @@
                 obj.field["remark"] = text,
                 ns.silent(location.href, obj.field, res => {
                     if (res.code == 0) {
-                        setTimeout(() => location.reload(), 100)
+                        if (isPrintWarn == "1") {
+                            parent.layer.confirm('已成功生成配送单，是否立即打印配送单?', {icon: 3, title:'提示'}, function(i){
+                                parent.layer.close(i),
+                                requestPrint(getPrintArr(res.data))
+                            }, function(i) {
+                                parent.layer.close(i),
+                                setTimeout(() => location.reload(), 100)
+                            })
+                        } else {
+                            setTimeout(() => location.reload(), 100)
+                        }
                     } else {
                         layer.alert(res.message)
                     }
@@ -241,7 +252,69 @@
             window.open(printUrl + '?id=' + data.id + '&manual=' + (obj.field.manual || 0))
         }),
 
-        $('input[lay-filter="delivery-num"]').trigger("input")
+        $('input[lay-filter="delivery-num"]').trigger("input");
+
+        function getTimeDate(date) {
+            date = date.split(' ');
+            return date[0]
+        }
+
+        function getPrintArr(data, id) {
+            var result = {
+                KH: data.order.customer,
+                DZ: data.order.address,
+                DD: data.order.trade_no,
+                RQ: getTimeDate(data.create_time),
+                MX: 0,
+                data: []
+            };
+            id = id || 0,
+            result.data = [],
+            data.goods.forEach(v => {
+                result.data.push({
+                    name: v.category + v.craft,
+                    w: parseFloat(v.width),
+                    h: parseFloat(v.height),
+                    num: v.num,
+                    area: v.area,
+                    price: v.unitprice,
+                    fee: v.manual_money,
+                    total: parseFloat(v.manual_money) + parseFloat(v.delivery_money),
+                    desc: v.remark
+                })
+            });
+            return result;
+        }
+
+        function requestPrint(data) {
+            var loader = parent.layer.load(2, { shade: ['#fff', .3] });
+            $.ajax({
+                url: 'http://127.0.0.1:31580/Printer2',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                processData: false,
+                contentType: "application/json; charset=utf-8",
+                fail: function(e) {
+                    console.log(e);
+                },
+                complete: function(xhr) {
+                    parent.layer.close(loader);
+                    try {
+                        var r = JSON.parse(xhr.responseText);
+                        if (r.ret == 0) {
+                            $.post("{:url('orderDeliveryPrint')}", {ids: delivery.id}),
+                            parent.layer.msg("SUCCESS");
+                        } else {
+                            parent.layer.alert(r.msg)
+                        }
+                    } catch (e) {
+                        console.log(e),
+                        parent.layer.msg("打印失败：请检查打印服务", { icon: 2 })
+                    }
+                }
+            });
+        }
     })
 </script>
 {/block}

@@ -166,7 +166,7 @@
                     <col width="100" />
                     <col width="100" />
                 </colgroup>
-                <thead> 
+                <thead class="layui-table-header">
                     <tr> 
                         <th>
                             <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-filter="add">
@@ -227,6 +227,7 @@
                         </td>
                         <td>
                             <span class="label-unitprice">{$goods.unitprice}</span>
+                            <input type="number" class="layui-input layui-number undefined-price" data-id="{$goods.id}" placeholder="0.00" style="display: none;" />
                         </td>
                         <td>&yen;
                             <span class="label-price">{$goods.order_money}</span>
@@ -332,7 +333,7 @@
         }
 
         function getPrice(cid) {
-            if (typeof(category[cid]) == "undefined") {
+            if (typeof(category[cid]) == "undefined" || cid == 0) {
                 return 0;
             }
             return float(category[cid]);
@@ -395,7 +396,6 @@
 
         function handleListener(id) {
             var rid = "#item_" + id;
-
             context.find(rid).find('input[type="text"]').on("input propertychange", function() {
                 var that = $(this);
                 data[id][that.data("name")] = that.val();
@@ -455,6 +455,7 @@
                 ,that.find(".label-price").text(data[id]['price'])
                 ,priceUpdate()
             }),
+            setTimeout(() => context.find(rid).find('input[type="number"]').trigger("input"), 100),
             form.render()
         }
 
@@ -464,7 +465,6 @@
             ,templet = layui.laytpl(document.getElementById("row").innerHTML).render({ id: id });
 
             data[id] = {width: 0, height: 0, num: 0, manual: 0, unitprice: 0, price: 0, category_id: 0, craft_id: 0, status: 0, remark: ''},
-            data[id]["unitprice"] = getPrice(category_id),
             context.append(templet),
             handleListener(id)
         }

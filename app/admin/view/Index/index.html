@@ -132,6 +132,11 @@
                             <dd><a lay-href="{:url('financePayments')}">收款明细</a></dd>
                             {/if}
                         </dl>
+                        <dl class="layui-nav-child">
+                            {if checkAccess('financeReceivable')}
+                            <dd><a lay-href="{:url('financeReceivable')}">应收账款</a></dd>
+                            {/if}
+                        </dl>
                     </li>
                 </ul>
             </div>

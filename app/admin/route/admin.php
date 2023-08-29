@@ -53,7 +53,7 @@ Route::group(function() {
     Route::group('config', function() {
         Route::get('', '/index')->name('sysConfig');
         Route::rule('/basic', '/basic', 'GET|POST')->name('sysConfigBasic');
-        Route::rule('/register', '/register', 'GET|POST')->name('sysConfigConnect');
+        Route::rule('/auxiliary', '/auxiliary', 'GET|POST')->name('sysConfigAuxiliary');
         Route::rule('/pay', '/pay', 'GET|POST')->name('sysConfigPay');
         Route::rule('/mail', '/email', 'GET|POST')->name('sysConfigMail');
         Route::rule('/vip', '/vip', 'GET|POST')->name('sysConfigVip');
@@ -92,6 +92,7 @@ Route::group(function() {
             Route::rule('pay', '/pay', 'POST|GET')->name('memberPay');
             Route::post('category/update', '/updateCategory')->name('memberCategoryUpdate');
             Route::post('update', '/update')->name('memberUpdate');
+            Route::post('palst/update', '/palupdate')->name('memberPalstUpdate');
             Route::rule("palst", '/palst')->name("memberPalst");
         });
     })->prefix('member');
@@ -100,12 +101,13 @@ Route::group(function() {
         Route::rule('', '/index', 'POST|GET')->name('order');
         Route::rule('create', '/add', 'POST|GET')->name('orderAdd');
         Route::rule('edit', '/edit', 'POST|GET')->name('orderEdit');
-        Route::get('list/:id', '/getList')->name('orderList');
+        Route::rule('list/:id', '/getList', 'POST|GET')->name('orderList');
         Route::rule('detail', '/detail', 'GET|POST')->name('orderDetail');
         Route::post('trash', '/trash')->name('orderTrash');
         Route::rule("delivery/list", '/deliveryList', 'POST|GET')->name('delivery');
         Route::rule('delivery/print', '/deliveryPrint', 'POST|GET')->name('orderDeliveryPrintList');
         Route::post('delivery/update', '/deliveryUpdate')->name("orderDeliveryUpdate");
+        Route::post('delivery/receive', '/deliveryReceive')->name("orderDeliveryReceive");
         Route::rule('delivery', '/delivery', 'POST|GET')->name('orderDelivery');
         Route::rule('converge', '/converge')->name("orderConverge");
         Route::rule('label', '/label')->name("orderLabel");
@@ -121,6 +123,7 @@ Route::group(function() {
     // 财务明细
     Route::group('finance', function() {
         Route::rule('payment', '/payment', 'POST|GET')->name('financePayments');
+        Route::rule('receivable', '/receivable', 'POST|GET')->name('financeReceivable');
     })->prefix('finance');
 })->middleware('ConsoleAuthorize', true);
 // 必需登录

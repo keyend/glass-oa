@@ -14,13 +14,15 @@
 
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
-    <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
-        <i class="layui-icon layui-icon-add-1"></i>新增品类
-    </button>
-    <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
-        <i class="layui-icon layui-icon-delete"></i>
-        批量删除
-    </button>
+    <span style="margin-left: -15px;">
+        <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
+            <i class="layui-icon layui-icon-add-1"></i>新增品类
+        </button>
+        <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
+            <i class="layui-icon layui-icon-delete"></i>
+            批量删除
+        </button>
+    </span>
 </script>
 
 <script type="text/html" id="user-bar">
@@ -103,7 +105,7 @@
                 page: !0,
                 limit: 20,
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {

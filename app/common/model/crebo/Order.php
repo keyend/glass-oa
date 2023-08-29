@@ -91,19 +91,23 @@ class Order extends Model
             }
         }
         if (isset($filter['status']) && $filter['status'] != "all") {
-            if ($filter['status'] != 3) {
-                $query->where('order.status', '=', (int)$filter['status'])->where("order.is_trash", 0);
-            } else {
+            if ($filter['status'] === 3) {
                 $query->where('order.is_trash', '=', 1);
+            } elseif($filter['status'] === 4) {
+                $query->where('order.pay_status', '=', 0);
+            } else {
+                $query->where('order.status', '=', (int)$filter['status'])->where("order.is_trash", 0);
             }
         }
-        $result = $this->maps(function($query, $page, $limit) {
+        $result = $this->maps(function($query, $page, $limit) use($filter) {
             $cursor = $query->order("order.id DESC")->cursor();
             $sql = $query->getLastSql();
-            $pay_types = ['alipay' => '支付宝','wxpay' => '微信', 'app' => 'APP'];
             $list = [];
+            $pay_status = ["待收款", "收款中", "已收款"];
+            $delivery_status = ["待配送", "配送中", "已完成"];
+            $order_status = ["进行中", "已配送", "已完成"];
             foreach($cursor as $row) {
-                $list[] = $this->mapsItem(function($row, $item) use($pay_types) {
+                $list[] = $this->mapsItem(function($row, $item) use($filter, $pay_status, $delivery_status, $order_status) {
                     $member = $item->member?$item->member->toArray():[];
                     $row = array_merge($member, $row);
                     $row['type'] = $pay_types[$row['type']] ?? '';
@@ -114,6 +118,11 @@ class Order extends Model
                     $row["order_num"] = (int)$row['order_num'];
                     $row["deduct_num"] = (int)$row['deduct_num'];
                     $row["process"] = round($row["deduct_num"] / $row["order_num"], 4) * 100;
+                    if ($filter["export"]) {
+                        $row["pay_status"] = $pay_status[$row["pay_status"]];
+                        $row["delivery_status"] = $delivery_status[$row["delivery_status"]];
+                        $row["status"] = $row["status"] == -1 ? "已作废" : $order_status[$row["status"]];
+                    }
                     return $row;
                 }, $row);
             }
@@ -123,7 +132,19 @@ class Order extends Model
             "filter" => $filter,
             "page"   => $page,
             "limit"  => $limit,
-            'title' => '订单记录_' . ($filter['search_value'] ?? "") . "_" . date("Y_m_d")
+            'headers' => [
+                ["title" => "订单号", "field" => "trade_no", "width" => 18],
+                ["title" => "客户名", "field" => "customer", "width" => 24],
+                ["title" => "手机号", "field" => "mobile", "width" => 18],
+                ["title" => "订单状态", "field" => "status", "width" => 12],
+                ["title" => "配送状态", "field" => "delivery_status", "width" => 12],
+                ["title" => "收款状态", "field" => "pay_status", "width" => 12],
+                ["title" => "订单金额", "field" => "order_money", "width" => 12, "sum" => 1],
+                ["title" => "已收金额", "field" => "pay_money", "width" => 12, "sum" => 1],
+                ["title" => "优惠金额", "field" => "discount_money", "width" => 12, "sum" => 1],
+                ["title" => "下单时间", "field" => "create_time", "width" => 18]
+            ],
+            'title'  => '订单记录_' . ($filter['search_value'] ?? "") . "_" . date("Y_m_d")
         ]);
 
         return $result;
@@ -313,7 +334,8 @@ class Order extends Model
                     'height',
                     'manual',
                     'num',
-                    'remark'
+                    'remark',
+                    'unitprice'
                 ]);
                 $itm["num"]     = (int)$itm["num"];
                 $itm["width"]   = (float)$itm["width"];
@@ -321,15 +343,17 @@ class Order extends Model
                 $itm["manual"]  = (float)$itm["manual"];
                 $itm["area"]    = round($itm["width"] * $itm["height"] / 10E5, 2);
                 $itm["manual_money"] = $itm["manual"] * $itm["num"];
-                $itm["order_money"] = $itm["area"] * $itm["num"] * $goods["unitprice"] + $itm["manual_money"];
+                $itm["order_money"] = $itm["area"] * $itm["num"] * $itm["unitprice"] + $itm["manual_money"];
                 $originGoods = $goods->toArray();
                 $goods->update($itm, ["id" => $goods["id"]]);
-                $this->logger('logs.order.edit.delgoods', 'DELETE', [$originGoods, $goods->toArray()]);
+                $this->logger('logs.order.edit.updategoods', 'DELETE', [$originGoods, $goods->toArray()]);
             }
         }
         $order_goods_model = app()->make(OrderGoods::class);
-        $order_goods_model->insertAll($addGoods);
-        $this->logger('logs.order.append', 'CREATEED', $goods);
+        if(!empty($addGoods)) {
+            $order_goods_model->insertAll($addGoods);
+            $this->logger('logs.order.append', 'CREATEED', $goods);
+        }
         $goods = $order_goods_model->where("order_id", $this->getAttr("id"))->where("is_delete", 0)->field("order_money,manual_money,num")->select()->toArray();
         if (empty($goods))
             $goods = [];
@@ -383,7 +407,8 @@ class Order extends Model
         $this->setAttr("status", $status);
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
-        $res = event("OrderChange", $this->getAttr("id"));
+        event("OrderChange", $this->getAttr("id"));
+        return $delivery_id;
     }
 
     /**

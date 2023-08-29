@@ -1,11 +1,10 @@
 <?php
 namespace app\common\model\crebo;
-
+use app\Model;
 use app\common\exception\LoginError;
 use think\Exception;
 use think\facade\Session;
 use think\facade\Cache;
-use think\Model;
 
 class Users extends Model
 {
@@ -90,31 +89,33 @@ class Users extends Model
      */
     public function getList($page, $limit, $filter = [])
     {
-        $condition = [];
-        if (isset($filter['search_type']) && !empty($filter['search_type']) && isset($filter['search_value']) && !empty($filter['search_value']) ) {
-            $condition[] = [$filter["search_type"], 'LIKE', "%{$filter['search_value']}%"];
+        $query = self::where($condition);
+        if (isset($filter['search_value']) && !empty($filter['search_value']) ) {
+            $query->where("username|nickname|id|desc|mobile", 'LIKE', "%{$filter['search_value']}%");
         }
-
         if (isset($filter['group']) && !empty($filter['group'])) {
-            $condition[] = ['group', '=', (int)$filter['group']];
+            $query->where('group', '=', (int)$filter['group']);
         }
-
         if (isset($filter['status']) && !empty($filter['status'])) {
-            $condition[] = ['status', '=', (int)$filter['status']];
+            $query->where('status', '=', (int)$filter['status']);
         }
-
-        $query = $this->where($condition);
-        $count = $query->count();
-        $list = $query->page($page,$limit)->order('sort DESC,id desc')
-            ->field('id,nickname,username,group,is_auth,amount,email,mobile,avatar,status,category,minarea,create_time')
-            ->select()
-            ->each(function ($item) {
-                $item['avatar'] = getUserHead($item['avatar']);
-                $item['minarea'] = (float)$item['minarea'];
-                return $item;
-            });
-
-        return compact('count', 'list', 'default_group');
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    return $item;
+                }, $row);
+            }
+            return compact('list', 'sql');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "page"   => $page,
+            "limit"  => $limit
+        ]);
+        return $result;
     }
     /**
      * 用户注册

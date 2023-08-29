@@ -5,6 +5,7 @@ use app\common\model\crebo\Category;
 use app\common\model\crebo\Craft;
 use app\common\model\crebo\Users;
 use app\common\model\crebo\OrderPay;
+use app\common\model\crebo\Order;
 /**
  * 后台用户管理
  * @package admin.controller.merchant
@@ -17,7 +18,7 @@ class Member extends Controller
      *
      * @return void
      */
-    public function index(Users $user_model)
+    public function index(Users $user_model, Order $order_model)
     {
         if($this->request->isAjax()) {
             $filter = array_keys_filter($this->request->param(), [
@@ -27,6 +28,15 @@ class Member extends Controller
             ]);
             [$page, $limit] = $this->getPaginator();
             $data = $user_model->getList($page, $limit, $filter);
+            foreach($data["list"] as &$row) {
+                $query = $order_model->where([["delivery_status", ">", 0], ["pay_status", "<>", 2], ["customer_id", "=", $row["id"]]]);
+                $row["payable_money"] = (float)$query->sum("order_money");
+                $row["paid_money"] = (float)$query->sum("pay_money");
+                $row["surplus_money"] = $row["payable_money"] - $row["paid_money"];
+                $row["payable_money"] = number_format($row["payable_money"], 2, ".", "");
+                $row["paid_money"] = number_format($row["paid_money"], 2, ".", "");
+                $row["surplus_money"] = number_format($row["surplus_money"], 2, ".", "");
+            }
             return $this->success($data);
 		} else {
 			return $this->fetch();
@@ -198,6 +208,31 @@ class Member extends Controller
     }
 
     /**
+     * 记录更新
+     *
+     * @param OrderPay $order_pay
+     * @return void
+     */
+    public function palupdate(OrderPay $order_pay)
+    {
+        $id = input("get.id");
+        $info = $order_pay->find($id);
+        if (empty($info)) {
+            return $this->fail('数据不存在');
+        }
+        $data = input("post.");
+        if ($data["field"] == "remark") {
+            $pay_info = $info->pay_info??[];
+            $pay_info["remark"] = $data["value"];
+            $data["field"] = "pay_info";
+            $data["value"] = $pay_info;
+        }
+        $info->setAttr($data["field"], $data["value"]);
+        $info->save();
+        return $this->success();
+    }
+
+    /**
      * 更新用户
      *
      * @param Users $user_model
@@ -207,12 +242,17 @@ class Member extends Controller
     {
         if (IS_AJAX) {
             $id = (int)input('get.id');
-            $status = (int)input("post.status");
             $info = $user_model->find($id);
             if (empty($info)) {
                 return $this->fail('数据不存在');
             }
-            $info->status = $status;
+            $data = input("post.");
+            if (isset($data["status"])) {
+                $status = (int)input("post.status");
+                $info->status = $status;
+            } elseif(isset($data["field"])) {
+                $info->setAttr($data["field"], $data["value"]);
+            }
             $info->save();
             $this->logger('logs.member.edit', 'UPDATED', $info);
         }

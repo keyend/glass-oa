@@ -234,12 +234,17 @@
                 contentType: "application/json; charset=utf-8",
                 complete: function(xhr) {
                     parent.layer.close(loader);
-                    var r = JSON.parse(xhr.responseText);
-                    if (r.ret == 0) {
-                        $.post("{:url('orderDeliveryPrint')}", {ids: delivery.id}),
-                        parent.layer.msg("SUCCESS");
-                    } else {
-                        parent.layer.alert(r.msg)
+                    try {
+                        var r = JSON.parse(xhr.responseText);
+                        if (r.ret == 0) {
+                            $.post("{:url('orderDeliveryPrint')}", {ids: delivery.id}),
+                            parent.layer.msg("SUCCESS");
+                        } else {
+                            parent.layer.alert(r.msg)
+                        }
+                    } catch (e) {
+                        console.log(e),
+                        parent.layer.msg("打印失败：请检查打印服务", { icon: 2 })
                     }
                 }
             });

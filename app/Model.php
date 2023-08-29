@@ -54,6 +54,29 @@ class Model extends \think\Model
     }
 
     /**
+     * 返回统计行数
+     *
+     * @param [type] $query
+     * @return void
+     */
+    private function getCount($query)
+    {
+        return (clone $query)->count();
+    }
+
+    /**
+     * 聚合
+     *
+     * @param [type] $query
+     * @param [type] $field
+     * @return void
+     */
+    protected function getSum($query, $field)
+    {
+        return (clone $query)->sum($field);
+    }
+
+    /**
      * 记录输出
      *
      * @param callable $callable
@@ -62,8 +85,9 @@ class Model extends \think\Model
      */
     protected function maps($callable, $argv = [])
     {
-        $isExport = false;
+        $export = false;
         extract($argv);
+        if (!isset($query)) throw new \Exception(get_called_class() . "::" . __FUNCTION__ . "() 参数错误");
         if (!isset($headers)) $headers = null;
         if (!isset($title)) $title = date("Y_m_d");
         if (!isset($fields)) $fields = "";
@@ -76,14 +100,14 @@ class Model extends \think\Model
                 "title" => $title,
                 "headers" => $headers
             ];
-            $isExport = true;
+            $export = true;
         } elseif (isset($filter['print']) && $filter['print'] == 1) {
-            $count = $query->count();
+            $count = $this->getCount($query);
             if (!empty($fields)) {
                 $query->field($fields);
             }
         } else {
-            $count = $query->count();
+            $count = $this->getCount($query);
             $query->page($page, $limit);
             if (!empty($fields)) {
                 $query->field($fields);
@@ -91,7 +115,7 @@ class Model extends \think\Model
         }
 
         $result = call_user_func_array($callable, [$query, $page, $limit]);
-        if ($isExport) {
+        if ($export) {
             if (!empty($this->_buffer))
                 $this->output->excel($this->_buffer, $this->export);
             $this->output->excel(null, $this->export);
@@ -102,7 +126,7 @@ class Model extends \think\Model
     }
 
     /**
-     * 定时器输出
+     * 计数器输出
      *
      * @param callable $callable
      * @param array $row

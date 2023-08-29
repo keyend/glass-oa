@@ -62,6 +62,9 @@
     .text-center {
         text-align: center!important;
     }
+    .layui-table-btn {
+        margin: -9px -15px -9px -9px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -80,9 +83,16 @@
         <form class="layui-card-body layui-form" method="POST" enctype="application/x-www-form-urlencoded">
             <blockquote class="layui-elem-quote title">
                 <p class="detail-title">
-                    <button type="button" class="layui-btn layui-btn-default layui-btn-sm" style="margin-right: 12px;" onclick="history.back();">
-                        <i class="layui-icon layui-icon-return"></i>返回
-                    </button>
+                    <span class="layui-btn-group" style="margin-right: 12px;">
+                        <button type="button" class="layui-btn layui-btn-default layui-btn-sm" onclick="history.back();">
+                            <i class="layui-icon layui-icon-return"></i>返回
+                        </button>
+                        {if $order.delivery_status != 2 && $order.pay_status != 2}
+                        <a class="layui-btn layui-btn-normal layui-btn-sm" href="{:url('orderEdit')}?order_id={$order.id}">
+                            <i class="layui-icon layui-icon-edit"></i>编辑
+                        </a>
+                        {/if}
+                    </span>
                     <span>订单号：{$order.trade_no}</span>
                     <span>客户名称：{$order.customer}</span>
                     {if $order.is_trash}
@@ -98,53 +108,39 @@
             <table class="layui-table">
                 <colgroup>
                     <col width="50">
-                    <col>
                     <col width="160">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="120">
-                    <col width="140">
+                    <col width="100">
+                    <col width="90">
+                    <col width="90">
+                    <col width="90">
+                    <col width="90">
+                    <col width="100">
+                    <col width="100">
+                    <col>
+                    <col width="130">
                 </colgroup>
-                <thead> 
+                <thead>
                     <tr>
-                        <td colspan="10" class="layui-btn-fill">
+                        <td colspan="11" class="layui-btn-fill">
                             <div class="layui-btn-group" style="width: 100%;">
                                 <input type="hidden" name="delivery_data" id="delivery_data_{$order.id}" value='{:json_encode($order, JSON_UNESCAPED_UNICODE)}' />
                                 <button type="button" class="layui-btn layui-btn-normal" lay-filter="form1" lay-submit>打印所有标签</button>
                             </div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="layui-table-header">
                         <th class="text-center">#</th>
                         <th>品类名称</th>
                         <th>工艺</th>
-                        <th>宽</th>
-                        <th>高</th>
-                        <th>面积</th>
-                        <th>单价</th>
-                        <th>加工费</th>
+                        <th>宽(mm)</th>
+                        <th>高(mm)</th>
+                        <th>面积(m²)</th>
+                        <th>单价(元)</th>
+                        <th>加工费(元)</th>
                         <th>数量</th>
-                        <th></th>
-                    </tr> 
-                    <!-- <tr>
-                        <th lay-data="{field:'id', hide: true}">#</th>
-                        <th lay-data="{field:'type', hide: true}"></th>
-                        <th lay-data="{field:'print_label', hide: true}"></th>
-                        <th lay-data="{field:'is_delete', hide: true}"></th>
-                        <th lay-data="{field:'category', sort:true, templet: '#col-category'}">品类名称</th>
-                        <th lay-data="{field:'craft', width:160, sort:true, templet: '#col-craft'}">工艺</th>
-                        <th lay-data="{field:'width', width:120, sort:true, templet: '#col-width'}">宽(mm)</th>
-                        <th lay-data="{field:'height', width:120, sort:true, templet: '#col-height'}">高(mm)</th>
-                        <th lay-data="{field:'area', width:120, sort:true}">面积(m²)</th>
-                        <th lay-data="{field:'unitprice', width:120, sort:true}">单价(元)</th>
-                        <th lay-data="{field:'manual_money', width:120, sort:true, templet: '#col-manual'}">加工费(元)</th>
-                        <th lay-data="{field:'num', width:100, sort:true}">数量</th>
-                        <th lay-data="{field:'deductnum', width:100, sort:true}">已配送</th>
-                        <th lay-data="{field:'operator', width:140, templet: '#col-operator'}"></th>
-                    </tr> -->
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
                 </thead>
                 <tbody id="order-content">
                     {foreach $order.goods as $key => $goods}
@@ -167,16 +163,17 @@
                             {/if}
                         </td>
                         <td>{$goods.craft}</td>
-                        <td>{$goods.width|floatval}mm</td>
-                        <td>{$goods.height|floatval}mm</td>
-                        <td>{$goods.area}m²</td>
-                        <td>{$goods.unitprice}元</td>
-                        <td>{$goods.manual_money}元</td>
+                        <td>{$goods.width|floatval}</td>
+                        <td>{$goods.height|floatval}</td>
+                        <td>{$goods.area}</td>
+                        <td>{$goods.unitprice}</td>
+                        <td>{$goods.manual_money}</td>
                         <td>{$goods.num}</td>
+                        <td>{$goods.remark}</td>
                         <td>
-                            <div class="layui-btn-group">
-                                <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="print" data-id="{$goods.id}" data-orderid="{$order.id}">打印标签</button>
-                                <button type="button" class="layui-btn layui-btn-xs layui-btn-black" lay-filter="smentary" data-id="{$goods.id}" data-orderid="{$order.id}">补单</button>
+                            <div class="layui-btn-group layui-table-btn">
+                                <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" lay-filter="print" data-id="{$goods.id}" data-orderid="{$order.id}">打印标签</button>
+                                <button type="button" class="layui-btn layui-btn-sm layui-btn-black" lay-filter="smentary" data-id="{$goods.id}" data-orderid="{$order.id}">补单</button>
                             </div>
                         </td>
                     </tr>
@@ -184,7 +181,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="background-color:#f7f7f7;">
-                        <td colspan="10">
+                        <td colspan="11">
                             <span>总计应收：</span>
                             <span>{$order.order_money}元</span>
                             <span> + </span>

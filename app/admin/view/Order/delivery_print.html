@@ -44,7 +44,7 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+            <form class="layui-tab-item layui-form layui-show" style="margin-top: 10px;" id="form1" enctype="application/x-www-form-urlencoded" method="POST">
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show">
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -56,7 +56,7 @@
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                             <label class="layui-form-label">配送时间</label>
                             <div class="layui-input-inline">
-                              <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
+                              <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - " readonly />
                             </div>
                           </div>
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -153,13 +153,24 @@
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
     <span class="layui-btn-group">
-        <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-primary layui-border-blue" lay-event="print" data-type="print">
+        <button class="layui-btn layui-btn-sm layui-btn-primary {{= selectData.length>0?'':'layui-disabled'}}" lay-event="receive" data-type="batch">
+            <i class="layui-icon layui-icon-snowflake"></i>客户已签收
+        </button>
+        <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-primary {{= selectData.length>0?'layui-border-blue':'layui-disabled'}}" lay-event="print" data-type="batch">
             <i class="layui-icon layui-icon-print"></i>打印勾选配送单
         </button>
         <button class="layui-btn layuiadmin-btn-admin layui-btn-sm" lay-event="printall" data-type="printall">
             <i class="layui-icon layui-icon-print"></i>打印全部配送单
         </button>
     </span>
+</script>
+
+<script type="text/html" id="col-delivery-status">
+    {{# if(d.status == 0){ }}
+    <span class="layui-badge layui-bg-blue">配送中</span>
+    {{# }else if(d.status == 1){ }}
+    <span class="layui-badge layui-bg-green">已签收</span>
+    {{# } }}
 </script>
 
 <script type="text/html" id="col-trade_no">
@@ -174,7 +185,8 @@
     ,process
     ,failure = 0
     ,total = 0
-    ,readyState = 0;
+    ,readyState = 0
+    ,selectData = [];
 
     layui.config({
         base: '/static/admin/'
@@ -259,6 +271,30 @@
                 });
                 pids = Object.keys(ds);
                 return Object.values(ds)
+            },
+            receive(o) {
+                var id = o.config.id;
+                var checkStatus = table.checkStatus(id);
+                var data = [];
+                checkStatus.data.forEach(v => {
+                    if (v.status != 1) {
+                        data.push(v.id);
+                    }
+                }),
+                data.length > 0 && parent.layer.confirm('是否确认【' + data.length + '】条配送单完成配送?', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('orderDeliveryReceive')}", {ids: data, status: 1}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                })
             }
         };
 
@@ -343,6 +379,7 @@
                 cols: [[
                     {type: 'checkbox'},
                     {title: '配送时间', field: 'create_time', width: 160},
+                    {title: '签收状态', field: 'status', width: 84, align: 'center', templet: "#col-delivery-status"},
                     {title: '客户名称', field: 'customer', width: 160},
                     {title: '配送单号', field: 'trade_no', width: 160, templet: "#col-trade_no"},
                     {title: '配送数量', field: 'delivery_num', width: 100},
@@ -366,7 +403,7 @@
                 limit: 20,
                 limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
@@ -375,8 +412,24 @@
 
             table.on("tool(LAY-list-table)", function(e) {
                 active[e.event] ? active[e.event].call(this, e) : '';
-            });
+            }),
+
+            table.on('checkbox(LAY-list-table)', function(e) {
+                var id = e.config.id;
+                var checkStatus = table.checkStatus(id);
+                var btns = $('button[data-type="batch"]');
+                selectData = checkStatus.data;
+                if (selectData.length > 0) {
+                    btns.removeClass("layui-disabled");
+                    btns.addClass("layui-border-blue");
+                } else {
+                    btns.addClass("layui-disabled");
+                    btns.removeClass("layui-border-blue");
+                }
+            })
         }
+
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
 
         // 监听搜索
         form.on('submit(LAY-list-back-search)', function(data){
@@ -392,8 +445,14 @@
         }),
 
         form.on('submit(LAY-list-back-export)', function(obj) {
-            $("#export").val("1"),
-            setTimeout(() => $("#export").val(""), 1000);
+            top.layer.confirm('将导出[' + ns.count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                top.layer.close(index),
+                $("#export").val("1"),
+                $("#form1").attr("action", "{:url('delivery')}?_=" + (new Date()).getTime()),
+                setTimeout(() => $("#export").val(""), 1000);
+                $("#form1").submit()
+            });
+            return false;
         }),
 
 

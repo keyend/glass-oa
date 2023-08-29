@@ -36,7 +36,7 @@
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <label class="layui-form-label">送货时间</label>
                     <div class="layui-input-inline">
-                      <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
+                      <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - " readonly />
                     </div>
                 </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -186,8 +186,8 @@
                     {title: '工艺', field: 'craft', width: 160},
                     {title: '宽mm', field: 'width', width: 100},
                     {title: '高mm', field: 'height', width: 100},
-                    {title: '面积m²', field: 'area', width: 100},
                     {title: '数量', field: 'num', width: 100},
+                    {title: '面积m²', field: 'area', width: 100},
                     {title: '单价', field: 'unitprice', width: 100},
                     {title: '加工费', field: 'manual', width: 100},
                     {title: '金额', field: 'total_money', width: 100},
@@ -204,12 +204,13 @@
                 },
                 done: function(res, curr, count) {
                     ns.page = curr;
+                    ns.count = count;
                 },
                 page: !0,
                 limit: 20,
                 limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
@@ -233,10 +234,23 @@
             });
             return false;
         }),
+
+        laydate.render({ elem: '#search_time', type: 'date', range: true, done: function(value, date, endDate) {
+            if (sessionStorage) {
+                sessionStorage.setItem("order.search_time", value);
+            }
+        }});
+
         form.on('submit(LAY-list-back-export)', function(obj) {
-            $("#export").val("1"),
-            setTimeout(() => $("#export").val(""), 1000);
+            top.layer.confirm('将导出[' + ns.count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
+                top.layer.close(index),
+                $("#export").val("1"),
+                setTimeout(() => $("#export").val(""), 1000);
+                $("#form1").submit()
+            });
+            return false;
         }),
+
         form.on('submit(LAY-list-back-print)', function(obj) {
             top.layer.confirm('将要打印[' + total_count + ']条记录，确认继续吗?', {icon: 3, title:'提示'}, index => {
                 top.layer.close(),

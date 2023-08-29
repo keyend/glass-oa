@@ -24,7 +24,7 @@
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
                     <label class="layui-form-label">收款时间</label>
                     <div class="layui-input-inline">
-                      <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - ">
+                      <input type="text" class="layui-input" name="search_time" id="search_time" placeholder=" - " readonly />
                     </div>
                 </div>
                 <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
@@ -137,7 +137,7 @@
                 limit: 20,
                 limits: [20, 50, 200, 500, 1000, 5000],
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
@@ -168,7 +168,7 @@
         }),
 
         // 搜索时间
-        laydate.render({ elem: '#search_time', type: 'datetime', range: true }),
+        laydate.render({ elem: '#search_time', type: 'date', range: true }),
         renderTable();
     })
 </script>

@@ -14,36 +14,28 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
-            <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
-                <ul class="layui-tab-title">
-                    <li class="layui-this"><a href="{:url('member')}">会员列表</a></li>
-                    <li><a href="{:url('memberPalst')}">收款账单</a></li>
-                </ul>
-                <div class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
-                    <div class="layui-tab-item layui-show" style="margin: 25px 0 10px 15px;">
-                        <div class="layui-form-item" style="margin-bottom: 0px;">
-                            <div class="layui-form-item layui-inline">
-                                <label class="layui-form-label">搜索类型</label>
-                                <div class="layui-input-inline">
-                                    <select name="search_type" lay-verify="required" class="layui-select">
-                                        <option value="mobile">联系电话</option>
-                                        <option value="nickname">客户名称</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="layui-form-item layui-inline">
-                                <label class="layui-form-label">搜索内容</label>
-                                <div class="layui-input-inline">
-                                    <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
-                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
-                                    搜索结果
-                                </button>
-                            </div>
+            <div class="layui-form" lay-filter="component-tabs-brief">
+                <div class="layui-form-item" style="margin-bottom: 0px;">
+                    <div class="layui-form-item layui-inline" style="display: none;">
+                        <label class="layui-form-label">搜索类型</label>
+                        <div class="layui-input-inline">
+                            <select name="search_type" lay-verify="required" class="layui-select">
+                                <option value="mobile">联系电话</option>
+                                <option value="nickname">客户名称</option>
+                            </select>
                         </div>
+                    </div>
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">搜索内容</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="search_value" placeholder="请输入搜索内容" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                            <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            搜索结果
+                        </button>
                     </div>
                 </div>
             </div>
@@ -58,20 +50,19 @@
 {/block}
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
-    <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
-        <i class="layui-icon layui-icon-add-1"></i>新增客户
-    </button>
-    <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
-        <i class="layui-icon layui-icon-delete"></i>
-        批量删除
-    </button>
+    <span style="margin-left: -15px;">
+        <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
+            <i class="layui-icon layui-icon-add-1"></i>新增客户
+        </button>
+        <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
+            <i class="layui-icon layui-icon-delete"></i>
+            批量删除
+        </button>
+    </span>
 </script>
 
 <script type="text/html" id="user-bar">
     <div class="layui-btn-group">
-        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="payable">
-            <i class="layui-icon layui-icon-note"></i>收款
-        </button>
         <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="palst">
             <i class="layui-icon layui-icon-chart-screen"></i>账单
         </button>
@@ -141,7 +132,10 @@
 
             // 执行重载
             table.reload('LAY-list-table', {
-                where: field
+                where: field,
+                page: {
+                    curr: 1
+                }
             });
         }),
 
@@ -160,17 +154,16 @@
                 cols: [[     
                     {type: 'checkbox'},
                     {title: '客户名称', field: 'nickname', align: 'left'},
-                    {title: '联系电话', field: 'mobile', width: 160},
-                    {title: '应付', field: 'payable_money', width: 100},
-                    {title: '已付', field: 'paid_money', width: 100},
-                    {title: '结余', field: 'surplus_money', width: 100},
+                    {title: '联系电话', field: 'mobile', width: 160, edit: 'text'},
+                    {title: '应付', field: 'payable_money', width: 100, sort: true},
+                    {title: '已付', field: 'paid_money', width: 100, sort: true},
+                    {title: '结余', field: 'surplus_money', width: 100, sort: true},
                     {title: '状态', field: 'status', align: 'center', templet: '#user-enable', width: 100},
-                    {title: '创建时间', field: 'create_time', width: 160},/*  templet: '#user-createTime' */
-                    {title: '操作', toolbar: '#user-bar', align: 'center', width: 235}
+                    {title: '创建时间', field: 'create_time', width: 160, sort: true},/*  templet: '#user-createTime' */
+                    {title: '操作', toolbar: '#user-bar', align: 'center', width: 205}
                 ]],
                 parseData: function(res) {
                     defaultGroup = res.data.default_group || 0;
-                    console.log(defaultGroup, "@222");
                     return {
                         code: res.code,
                         msg: res.message,
@@ -184,11 +177,19 @@
                 page: !0,
                 limit: 20,
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
                 active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("edit(LAY-list-table)", function(e) {
+                ns.silent("{:url('memberUpdate')}?id=" + e.data.id, {field: e.field, value: e.value}, res => {
+                    if (res.code != 0) {
+                        top.layer.msg(res.message)
+                    }
+                })
             }),
 
             table.on("tool(LAY-list-table)", function(e) {

@@ -62,6 +62,10 @@ class Config extends Controller
     private function saveOptions($config_model, $type = '') {
         if ($this->request->isPost()){
             $post = input('post.');
+            if ($type == "auxiliary") {
+                $post["delivery_warnpnt"] = $post["delivery_warnpnt"] ?? 0;
+            }
+
             try {
                 foreach ($post as $key => $item){
                     if ($config_model->where('name', $key)->where('parent', $type)->count() > 0){
@@ -93,17 +97,15 @@ class Config extends Controller
     }
 
     /**
-     * 注册访问
+     * 辅助配置
      *
      * @param ConfigModel $config_model
      * @return void
      */
-    public function register(ConfigModel $config_model)
+    public function auxiliary(ConfigModel $config_model)
     {
         $this->saveOptions($config_model, __FUNCTION__);
         $this->assign('option', $this->getOptions($config_model, __FUNCTION__));
-        $group = Groups::field('id,group_name')->select()->toArray();
-        $this->assign('group',$group);
         return $this->fetch(__FUNCTION__);
     }
 

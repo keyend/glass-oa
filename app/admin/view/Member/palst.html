@@ -113,19 +113,16 @@
                 toolbar: '#user-toolbar',
                 where: { customer_id: {$customer_id} },
                 cols: [[     
-                    {type: 'checkbox'},
-                    {title: '客户名称', field: 'customer', width: 160, align: 'left'},
+                    {type: 'numbers', title: '#'},
+                    {title: '客户名', field: 'customer', width: 160, align: 'left'},
                     {title: '联系电话', field: 'mobile', width: 160},
                     {title: '收款金额', field: 'pay_money', width: 100},
+                    {title: '收款时间', field: 'pay_time', width: 160},
                     {title: '备注说明', field: 'remark', templet: function(data) {
                         return data.pay_info.remark;
-                    }},
-                    {title: '收款金额', field: 'pay_time', width: 160},
-                    {title: '操作', toolbar: '#user-bar', align: 'center', width: 106}
+                    }, edit: 'text'}
                 ]],
                 parseData: function(res) {
-                    defaultGroup = res.data.default_group || 0;
-                    console.log(defaultGroup, "@222");
                     return {
                         code: res.code,
                         msg: res.message,
@@ -139,13 +136,21 @@
                 page: !0,
                 limit: 20,
                 height: "full-220",
-                text: "对不起，加载出现异常！"
+                text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
                 active[o.event] ? active[o.event].call(this, o) : '';
             }),
 
+            table.on("edit(LAY-list-table)", function(e) {
+                ns.silent("{:url('memberPalstUpdate')}?id=" + e.data.id, {field: e.field, value: e.value}, res => {
+                    if (res.code != 0) {
+                        top.layer.msg(res.message)
+                    }
+                })
+            }),
+ 
             table.on("tool(LAY-list-table)", function(e) {
                 if ("voucher" === e.event) {
                     window.open(e.data.pay_info.voucher);
@@ -158,7 +163,10 @@
             var field = data.field;
             // 执行重载
             table.reload('LAY-list-table', {
-                where: field
+                where: field,
+                page: {
+                    curr: 1
+                }
             });
             return false;
         }),

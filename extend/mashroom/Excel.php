@@ -21,6 +21,40 @@ class Excel
         die;
     }
 
+    private function getDefaultHeader($list = [])
+    {
+        $headers = [];
+        foreach($list as $row) {
+            foreach($row as $key => $value) {
+                $header = [
+                    "title" => $key,
+                    "field" => $key,
+                    "width" => 18
+                ];
+                if (strpos($key, "_money") !== false) {
+                    $header["width"] = 12;
+                    $header["sum"] = 1;
+                } elseif (strpos($key, "num") !== false) {
+                    $header["width"] = 12;
+                    $header["sum"] = 1;
+                } elseif (strpos($key, "_no") !== false) {
+                    $header["type"] = "numeric";
+                } elseif (strpos($key, "remark") !== false) {
+                    $header["width"] = 48;
+                } elseif (strpos($key, "desc") !== false) {
+                    $header["width"] = 48;
+                } elseif (strpos($key, "content") !== false) {
+                    $header["width"] = 48;
+                } elseif (strpos($key, "image") !== false) {
+                    $header["type"] = "image";
+                }
+
+                $headers[] = $header;
+            }
+        }
+        return $headers;
+    }
+
     /**
      * 导出为EXCEL
      *
@@ -41,16 +75,16 @@ class Excel
         static $isSum = false;
 
         if($excel == null) {
-            if(!isset($options['headers'])) {
+            $options['title'] = $options['title']??"记录导出";
+            $options['headers'] = $options['headers']??$this->getDefaultHeader($list);
+            if(empty($options['headers'])) {
                 throw new \Exception('Export failed of options invalid.');
             }
 
             $this->excel = new \PHPExcel();
             $this->options = $options;
-            $excel = $this->excel;
 
-            $options['title'] = !isset($options['title']) ? 'DEFAULT' : $options['title'];
-    
+            $excel = $this->excel;
             $excel->setActiveSheetIndex(0);
             $excel->getActiveSheet()->setTitle($options['title']);
             $excel->getActiveSheet()->getRowDimension($rowIndex)->setRowHeight(32);
@@ -140,10 +174,16 @@ class Excel
                     $value = "¥".number_format(floatval($row[$key]) / 100, 2, '.', '');
                 } elseif($mapper['type'] == 'numeric') {
                     $value = "\t".$row[$key];
+                } elseif($mapper['type'] == 'datetime') {
+                    $value = $row[$key];
+                    if (is_numeric($value)) {
+                        $value = date('Y-m-d H:i:s', $value);
+                    }
+                    $value = "\t".$value;
                 } elseif($mapper['type'] == 'date') {
                     $value = $row[$key];
                     if (is_numeric($value)) {
-                        $value = date('Y-m-d H:i', $value);
+                        $value = date('Y-m-d', $value);
                     }
                     $value = "\t".$value;
                 } elseif($mapper['type'] == 'qrcode') {

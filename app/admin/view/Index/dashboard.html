@@ -2,6 +2,7 @@
 {block name="resources"}
 <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
 <link rel="stylesheet" href="/static/admin/css/other/console1.css" />
+<link rel="stylesheet" href="/static/admin/css/dashboard.css" />
 <style>
     .top-panel-number {
         font-size: 21px!important;
@@ -9,6 +10,40 @@
     .layui-tab-chart .layui-tab-item {
         height: 400px;
         overflow: auto;
+    }
+
+    @media screen and (min-width: 641px) {
+        .top-panel-number span:first-child::after {
+            content: " / ";
+        }
+    }
+
+    @media screen and (max-width: 640px) {
+        .top-panel .layui-row.layui-col-space5 {
+            position: relative;
+        }
+        .top-panel .layui-row.layui-col-space5::after{
+            content: " ";
+            display: table;
+            clear: both;
+        }
+        .top-panel-number {
+            line-height: 26px;
+            font-size: 14px!important;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            text-align: left;
+            background: -webkit-linear-gradient(to right, rgba(255,255,255,0)0%,rgba(255,255,255,255.5)66%, rgba(255,255,255,1)99%);
+        }
+        .top-panel-number span {
+            display: block;
+        }
+        .top-panel-tips {
+            float: right;
+        }
     }
 </style>
 {/block}
@@ -21,7 +56,8 @@
                 <div class="layui-card-body">
                     <div class="layui-row layui-col-space5">
                         <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                            {$today.count} / &yen;{$today.money}
+                            <span>{$today.count}</span>
+                            <span>&yen;{$today.money}</span>
                         </div>
                         <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
                             <span class="icon pear-icon" style="font-size: 40px">&#xe6e0;</span>
@@ -36,7 +72,8 @@
                 <div class="layui-card-body">
                     <div class="layui-row layui-col-space5">
                         <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                            {$delivery.count} / &yen;{$delivery.money}
+                            <span>{$delivery.count}</span>
+                            <span>&yen;{$delivery.money}</span>
                         </div>
                         <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
                             <span class="icon pear-icon" style="font-size: 40px">&#xe697;</span>
@@ -51,7 +88,8 @@
                 <div class="layui-card-body">
                     <div class="layui-row layui-col-space5">
                         <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                            {$month.count} / &yen;{$month.money}
+                            <span>{$month.count}</span>
+                            <span>&yen;{$month.money}</span>
                         </div>
                         <div class="layui-col-xs4 layui-col-md4  top-panel-tips">
                             <span class="icon pear-icon" style="font-size: 40px">&#xe6a4;</span>
@@ -66,7 +104,8 @@
                 <div class="layui-card-body">
                     <div class="layui-row layui-col-space5">
                         <div class="layui-col-xs8 layui-col-md8 top-panel-number" style="color: #28333E;">
-                            {$total.count} / &yen;{$total.money}
+                            <span>{$total.count}</span>
+                            <span>&yen;{$total.money}</span>
                         </div>
                         <div class="layui-col-xs4 layui-col-md4 top-panel-tips">
                             <span class="icon pear-icon" style="font-size: 40px">&#xe6ad;</span>

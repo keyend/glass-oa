@@ -28,7 +28,7 @@ class Order extends Controller
      */
     public function getList($id, OrderModel $order_model)
     {
-        if ($this->request->isAjax()) {
+        if ($this->request->isAjax() || $this->request->isPost()) {
             $filter = array_keys_filter($this->request->param(), [
                 ['search_type', ""],
                 ["search_value", ""],
@@ -36,7 +36,7 @@ class Order extends Controller
                 ["export", 0]
             ]);
             if ($id != 'all') {
-                $filter["status"] = $id;
+                $filter["status"] = (int)$id;
             }
             [$page, $limit] = $this->getPaginator();
             $data = $order_model->getList($page, $limit, $filter);
@@ -131,6 +131,7 @@ class Order extends Controller
         }
         $field = input("field", "");
         $value = input("value", "");
+        $polymerization = input("polymerization", 0);
         if ($field == 'mobile') {
             if (empty($order->member->mobile)) {
                 $order->member->mobile = $value;
@@ -141,6 +142,9 @@ class Order extends Controller
                 $order->mobile = $value;
                 $order->save();
                 $this->logger('logs.order.change_mobile', 'UPDATED', $order);
+            }
+            if ($polymerization == 1) {
+                $order_model->where([["customer_id", "=", $order->customer_id]])->update(["mobile" => $value]);
             }
         }
         return $this->success();
@@ -319,6 +323,8 @@ class Order extends Controller
             $customers = [];
             $customer_id = $order["customer_id"];
             $customer_minarea = 0;
+            $customer_category = [];
+            $customer_catelog = [];
             $category = [];
             foreach($customers_result["list"] as $row) {
                 $item = $row->toArray();
@@ -328,6 +334,7 @@ class Order extends Controller
                     $customer = $row["nickname"];
                     $customer_minarea = $row["minarea"];
                     $customer_category = $item["category"];
+                    $customer_catelog = $row->category;
                 }
             }
 
@@ -349,10 +356,15 @@ class Order extends Controller
             $order = $order->toArray();
             $data = [];
             foreach($order['goods'] as &$goods) {
+                if (isset($customer_catelog[$goods["category_id"]])) {
+                    $goods["unitprice"] = (float)$customer_catelog[(string)$goods["category_id"]];
+                    $goods["order_money"] = $goods["area"] * $goods["unitprice"] * $goods["num"] + $goods["manual"] * $goods["num"];
+                }
                 $goods["width"] = (int)$goods["width"];
                 $goods["height"] = (int)$goods["height"];
                 $goods["order_money"] = (float)$goods["order_money"];
                 $goods["deductnum"] = (int)$goods["deductnum"];
+                
                 $data[$goods['id']] = [
                     "id"            => $goods['id'],
                     "width"         => $goods["width"],
@@ -490,8 +502,9 @@ class Order extends Controller
             $delivery["manual_money"] = $manual_money_total;
 
             try {
-                $res = $order->addDelivery($delivery);
-                return $this->success($res);
+                $delivery_id = $order->addDelivery($delivery);
+                $delivery = app()->make(OrderDelivery::class)->with(['order', 'goods'])->find($delivery_id)->toArray();
+                return $this->success($delivery);
             } catch (\Exception $e) {
                 return $this->fail($e->getMessage());
             }
@@ -572,17 +585,45 @@ class Order extends Controller
         if (!is_array($ids)) {
             $ids = explode(",", $ids);
         }
-        $orders = $model->where("id", "IN", $ids)->select();
+        $orders = $model->with(['delivery'])->where("id", "IN", $ids)->select();
         foreach($orders as $order) {
+            foreach($order->delivery as $delivery) {
+                $delivery->status = 1;
+                $delivery->save();
+                $this->logger('logs.delivery.status', 'UPDATED', $delivery);
+                event("OrderDeliveryChange", $delivery['order_id']);
+            }
             $order->delivery_status = $status;
             $order->save();
             $this->logger('logs.order.delivery_status', 'UPDATED', $order);
-            event("OrderChange", $order['id']);
         }
         return $this->success();
     }
 
     /**
+     * 配送状态变更
+     *
+     * @param OrderDelivery $order_delivery_model
+     * @return void
+     */
+    public function deliveryReceive(OrderDelivery $order_delivery_model)
+    {
+        $ids = input("ids", "");
+        $status = (int)input("status", 0);
+        if (!is_array($ids)) {
+            $ids = explode(",", $ids);
+        }
+        $deliverys = $order_delivery_model->where("id", "IN", $ids)->select();
+        foreach($deliverys as $delivery) {
+            $delivery->status = $status;
+            $delivery->save();
+            $this->logger('logs.delivery.status', 'UPDATED', $delivery);
+            event("OrderDeliveryChange", $delivery['order_id']);
+        }
+        return $this->success();
+    }
+
+    /**delivery
      * 返回参数列表
      *
      * @param ConfigModel $config_model
@@ -751,10 +792,12 @@ class Order extends Controller
         }
         $orders = $model->where("id", "IN", $ids)->select();
         foreach($orders as $order) {
-            $order->pay_status = $status;
-            $order->pay_time = TIMESTAMP;
-            $order->save();
-            $this->logger('logs.order.pay_status', 'UPDATED', $order);
+            $money = floatval($order["order_money"]) - floatval($order["pay_money"]);
+            $result = $order->pay([
+                "money" => $money,
+                "status" => 2
+            ]);
+            $this->logger('logs.order.pay', 'UPDATED', $result);
             event("OrderChange", $order['id']);
         }
         return $this->success();
@@ -773,7 +816,7 @@ class Order extends Controller
         if (empty($order)) {
             return $this->fail("订单号不存在");
         }
-        $logs = $pay_model->where("trade_no", $order['trade_no'])->order("id DESC")->select();
+        $logs = $pay_model->with(['user'])->where("trade_no", $order['trade_no'])->order("id DESC")->select();
         $this->assign("logs", $logs);
         $this->assign("order", $order);
         return $this->fetch("Order/pay_logs");
