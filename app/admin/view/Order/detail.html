@@ -310,7 +310,7 @@
             result.data = [],
             data.goods.forEach(v => {
                 if (id == v.id || id == 0) {
-                    if (v.type == 0) {
+                    if (v.type == 0 || v.type == 1) {
                         result.data.push({
                             KH: data.customer,
                             DD: data.out_trade_no,
