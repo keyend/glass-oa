@@ -65,6 +65,22 @@
     .layui-table-btn {
         margin: -9px -15px -9px -9px;
     }
+    .layui-table tr.recived {
+        background-color: #f0e5c3;
+    }
+    .layui-table td {
+        position: relative;
+    }
+    .layui-table td .layui-badge.poi i {
+        font-size: 11px;
+    }
+    .layui-table td .layui-badge.poi {
+        right: 0px;
+        top: 0px;
+        position: absolute;
+        white-space: nowrap;
+        border-bottom-left-radius: 10px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -87,10 +103,12 @@
                         <button type="button" class="layui-btn layui-btn-default layui-btn-sm" onclick="history.back();">
                             <i class="layui-icon layui-icon-return"></i>返回
                         </button>
+                        {if checkAccess("orderEdit")}
                         {if $order.delivery_status != 2 && $order.pay_status != 2}
                         <a class="layui-btn layui-btn-normal layui-btn-sm" href="{:url('orderEdit')}?order_id={$order.id}">
                             <i class="layui-icon layui-icon-edit"></i>编辑
                         </a>
+                        {/if}
                         {/if}
                     </span>
                     <span>订单号：{$order.trade_no}</span>
@@ -120,6 +138,7 @@
                     <col width="130">
                 </colgroup>
                 <thead>
+                    {if checkAccess("orderLabelPrint")}
                     <tr>
                         <td colspan="11" class="layui-btn-fill">
                             <div class="layui-btn-group" style="width: 100%;">
@@ -128,6 +147,7 @@
                             </div>
                         </td>
                     </tr>
+                    {/if}
                     <tr class="layui-table-header">
                         <th class="text-center">#</th>
                         <th>品类名称</th>
@@ -144,7 +164,7 @@
                 </thead>
                 <tbody id="order-content">
                     {foreach $order.goods as $key => $goods}
-                    <tr>
+                    <tr{if $goods['finished']} class="recived"{/if}>
                         <td class="text-center">{$key+1}</td>
                         <td>
                             {if $goods.print_label > 0}
@@ -169,11 +189,27 @@
                         <td>{$goods.unitprice}</td>
                         <td>{$goods.manual_money}</td>
                         <td>{$goods.num}</td>
-                        <td>{$goods.remark}</td>
+                        <td>
+                            {$goods.remark}
+                            {if $goods['finished']}
+                            <span class="layui-badge layui-bg-orange poi">
+                                <i class="layui-icon layui-icon-tips"></i>
+                                已配送签收
+                            </span>
+                            {/if}
+                        </td>
                         <td>
                             <div class="layui-btn-group layui-table-btn">
+                                {if checkAccess("orderLabelPrint")}
                                 <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" lay-filter="print" data-id="{$goods.id}" data-orderid="{$order.id}">打印标签</button>
+                                {/if}
+                                {if checkAccess("orderSupplement")}
+                                {if $goods['finished']}
+                                <button type="button" class="layui-btn layui-btn-sm layui-btn-primary layui-disabled">补单</button>
+                                {else}
                                 <button type="button" class="layui-btn layui-btn-sm layui-btn-black" lay-filter="smentary" data-id="{$goods.id}" data-orderid="{$order.id}">补单</button>
+                                {/if}
+                                {/if}
                             </div>
                         </td>
                     </tr>
@@ -251,8 +287,12 @@
 
 <script type="text/html" id="col-operator">
     <div class="layui-btn-group">
+        {if checkAccess("orderLabelPrint")}
         <button type="button" class="layui-btn layui-btn-xs layui-btn-normal" lay-filter="print" data-id="{{ d.id }}" data-orderid="{{ d.order_id }}">打印标签</button>
+        {/if}
+        {if checkAccess("orderSupplement")}
         <button type="button" class="layui-btn layui-btn-xs layui-btn-black" lay-filter="smentary" data-id="{{ d.id }}" data-orderid="{{ d.order_id }}">补单</button>
+        {/if}
     </div>
 </script>
 {/block}
@@ -302,7 +342,7 @@
                     var r = JSON.parse(xhr.responseText);
                     if (r.ret == 0) {
                         parent.layer.msg("SUCCESS");
-                        $.post("{:url('orderGoodsPrint')}", {ids: rds.ids});
+                        $.post("{:url('orderLabelPrint')}", {ids: rds.ids});
                     } else {
                         parent.layer.alert(r.msg)
                     }

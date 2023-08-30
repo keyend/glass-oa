@@ -56,13 +56,13 @@
 <script type="text/html" id="user-toolbar">
     <div id="toolbar-totalmoney" style="display: none;">
         <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
-            收款金额：
-            <font id="vl_pay_money">{{= pay_money}}</font>
+            订单总额：
+            <font id="vl_order_money">{{= order_money}}</font>
         </span>
 
         <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
-            优惠金额：
-            <font id="vl_discount_money">{{= discount_money}}</font>
+            结余金额：
+            <font id="vl_surplus_money">{{= surplus_money}}</font>
         </span>
     </div>
 </script>
@@ -77,8 +77,8 @@
 
 <!---->
 <script>
-    var pay_money = 0
-    ,discount_money = 0;
+    var order_money = 0
+    ,surplus_money = 0;
 
     layui.config({
         base: '/static/admin/'
@@ -94,9 +94,9 @@
         var active = {
             setTotal(data) {
                 var e = $('#toolbar-totalmoney');
-                if (data.pay_money > 0) {
-                    e.find("#vl_pay_money").text(data.pay_money),
-                    e.find("#vl_discount_money").text(data.discount_money),
+                if (data.order_money > 0) {
+                    e.find("#vl_order_money").text(data.order_money),
+                    e.find("#vl_surplus_money").text(data.surplus_money),
                     e.show()
                 }
                 total_count = data.count;
@@ -111,15 +111,17 @@
                 toolbar: '#user-toolbar',
                 cols: [[
                     {type: 'numbers', title: '#'},
-                    {title: '收款时间', field: 'pay_time', width: 160},
-                    {title: '订单号', field: 'trade_no', width: 140},
                     {title: '客户名', field: 'customer', width: 160},
-                    {title: '收款金额', field: 'pay_money', width: 100},
-                    {title: '优惠金额', field: 'discount_money', width: 100},
+                    {title: '客户手机', field: 'mobile', width: 120, edit: function(d) {
+                        if (d.mobile == '') {
+                            return 'text';
+                        }
+                    }, event: "mobile"},
+                    {title: '订单金额', field: 'order_money', width: 100},
+                    {title: '结余金额', field: 'surplus_money', width: 100},
+                    {title: '最后收款时间', field: 'pay_time', width: 160},
                     {title: '操作员', field: 'operator', width: 110},
-                    {title: '备注说明', field: 'remark', templet: function(data) {
-                        return data.pay_info.remark;
-                    }}
+                    {title: '联系地址', field: 'address'}
                 ]],
                 parseData: function(res) {
                     active.setTotal(res.data);
@@ -142,6 +144,16 @@
 
             table.on('toolbar(LAY-list-table)', function(o) {
                 active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("edit(LAY-list-table)", function(e) {
+                ns.silent("{:url('orderUpdate')}", {id: e.data.id, field: e.field, value: e.value, polymerization: 1}, res => {
+                    if (res.code == 0) {
+                        setTimeout(() => pageTable.reload(), 100)
+                    } else {
+                        top.layer.msg(res.message)
+                    }
+                })
             }),
 
             table.on("tool(LAY-list-table)", function(e) {

@@ -147,12 +147,14 @@
                         <td><span>{{= v.manual_money }}元</span></td>
                         <td><span>{{= v.delivery_num }}</span></td>
                     </tr>
+                    {if checkAccess("orderDeliveryPrint")}
                     <tr>
                         <td colspan="5" class="layui-btn-fill">
                             <input type="hidden" name="delivery_data" value="{{= JSON.stringify(v) }}" />
                             <button type="button" class="layui-btn layui-btn-normal" lay-filter="print" lay-submit>打印配送单</button>
                         </td>
                     </tr>
+                    {/if}
                 </tfoot>
             </table>
         </form>

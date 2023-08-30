@@ -64,7 +64,7 @@ class Order extends Model
      */
     public function delivery()
     {
-        return $this->hasMany(OrderDelivery::class, 'order_id', 'id');
+        return $this->hasMany(OrderDelivery::class, 'order_id', 'id')->order("id DESC");
     }
 
     /**
@@ -275,6 +275,7 @@ class Order extends Model
         }
         $customer["minarea"] = (float)$customer["minarea"];
         $order_id = $this->getAttr("id");
+        $original = $this->getData();
         $category = $customer->category;
         $addGoods = [];
         foreach($data["goods"] as $goods) {
@@ -349,6 +350,36 @@ class Order extends Model
                 $this->logger('logs.order.edit.updategoods', 'DELETE', [$originGoods, $goods->toArray()]);
             }
         }
+        $deliverys = $this->getAttr("delivery");
+        if (!empty($deliverys)) {
+            foreach($deliverys as $delivery) {
+                if ($delivery->status == 0) {
+                    $deliveryGoods = $delivery->goods;
+                    if (!empty($deliveryGoods)) {
+                        foreach($deliveryGoods as $goods) {
+                            if (isset($updateGoods[$goods["goods_id"]])) {
+                                $itm            = array_keys_filter($updateGoods[$goods['goods_id']], [
+                                    'width',
+                                    'height',
+                                    'manual',
+                                    'remark',
+                                    'unitprice'
+                                ]);
+                                $itm["width"]   = (float)$itm["width"];
+                                $itm["height"]  = (float)$itm["height"];
+                                $itm["manual"]  = (float)$itm["manual"];
+                                $itm["area"]    = round($itm["width"] * $itm["height"] / 10E5, 2);
+                                $itm["manual_money"] = $itm["manual"] * $goods["num"];
+                                $itm["order_money"] = $itm["area"] * $goods["num"] * $itm["unitprice"] + $itm["manual_money"];
+                                $originGoods = $goods->toArray();
+                                $goods->update($itm, ["id" => $goods["id"]]);
+                                $this->logger('logs.order.edit.updatedeliverygoods', 'DELETE', [$originGoods, $goods->toArray()]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         $order_goods_model = app()->make(OrderGoods::class);
         if(!empty($addGoods)) {
             $order_goods_model->insertAll($addGoods);
@@ -363,6 +394,7 @@ class Order extends Model
         $this->update_time = TIMESTAMP;
         $this->save();
         $this->commit();
+        $this->logger('logs.order.edit', 'UPDATED', [$original, $this->getData()]);
     }
 
     /**
@@ -408,6 +440,7 @@ class Order extends Model
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
         event("OrderChange", $this->getAttr("id"));
+        $this->logger('logs.order.delivery.add', 'CREATEED', $data);
         return $delivery_id;
     }
 

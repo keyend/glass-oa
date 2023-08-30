@@ -119,4 +119,17 @@ class OrderDeliveryGoods extends Model
 
         return $result;
     }
+
+    /**
+     * Undocumented function
+     *
+     * @param integer $goods_id
+     * @return integer
+     */
+    public function getReceivedGoods($goods_id) 
+    {
+        $query = self::withJoin(["delivery"], "left");
+        $query->where([ ["delivery.status", "=", 1], ["order_delivery_goods.goods_id", "=", $goods_id] ]);
+        return (int)$query->sum("num");
+    }
 }

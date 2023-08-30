@@ -108,14 +108,14 @@
                             {if checkAccess('delivery')}
                             <dd><a lay-href="{:url('delivery')}">配送列表</a></dd>
                             {/if}
-                            {if checkAccess('orderDeliveryPrintList')}
-                            <dd><a lay-href="{:url('orderDeliveryPrintList')}">配送管理</a></dd>
+                            {if checkAccess('orderDeliveryManger')}
+                            <dd><a lay-href="{:url('orderDeliveryManger')}">配送管理</a></dd>
                             {/if}
-                            {if checkAccess('orderSupplement')}
-                            <dd><a lay-href="{:url('orderSupplement')}">补单记录</a></dd>
+                            {if checkAccess('supplement')}
+                            <dd><a lay-href="{:url('supplement')}">补单记录</a></dd>
                             {/if}
-                            {if checkAccess('orderLabel')}
-                            <dd><a lay-href="{:url('orderLabel')}">标签打印</a></dd>
+                            {if checkAccess('orderLabelManager')}
+                            <dd><a lay-href="{:url('orderLabelManager')}">标签打印</a></dd>
                             {/if}
                             {if checkAccess('orderConverge')}
                             <dd><a lay-href="{:url('orderConverge')}">订单汇总</a></dd>

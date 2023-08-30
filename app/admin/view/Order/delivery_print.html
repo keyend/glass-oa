@@ -153,15 +153,19 @@
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
     <span class="layui-btn-group">
+        {if checkAccess("orderDeliveryReceive")}
         <button class="layui-btn layui-btn-sm layui-btn-primary {{= selectData.length>0?'':'layui-disabled'}}" lay-event="receive" data-type="batch">
             <i class="layui-icon layui-icon-snowflake"></i>客户已签收
         </button>
+        {/if}
+        {if checkAccess("orderDeliveryPrint")}
         <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-primary {{= selectData.length>0?'layui-border-blue':'layui-disabled'}}" lay-event="print" data-type="batch">
             <i class="layui-icon layui-icon-print"></i>打印勾选配送单
         </button>
         <button class="layui-btn layuiadmin-btn-admin layui-btn-sm" lay-event="printall" data-type="printall">
             <i class="layui-icon layui-icon-print"></i>打印全部配送单
         </button>
+        {/if}
     </span>
 </script>
 
@@ -203,7 +207,6 @@
             init() {
                 var data = this.getValue();
                 if (data != null) {
-                    console.log(data);
                     top.layer.confirm('存在未完成的打印任务，是否继绩进行？', {icon: 3}, function(index){
                         top.layer.close(index),
                         requestPrint(data, 0)

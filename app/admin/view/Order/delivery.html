@@ -176,19 +176,23 @@
                 <tfoot>
                     <tr style="background-color:#f7f7f7;">
                         <td colspan="2">
-                            <input type="checkbox" name="manual" value="1" data-id="{$delivery.id}" lay-filter="delivery" title="打印价格" lay-skin="tag" /> 
+                            {if checkAccess("orderPrint")}
+                            <input type="checkbox" name="manual" value="1" data-id="{$delivery.id}" lay-filter="delivery" title="打印价格" lay-skin="tag" />
+                            {/if}
                             <span style="margin-left: 6px;">总计应收：{:round($delivery.delivery_money + $delivery.manual_money, 2)}元</span>
                         </td>
                         <td><span>{$delivery.delivery_money}元</span></td>
                         <td><span>{$delivery.manual_money}元</span></td>
                         <td><span>{$delivery.delivery_num}</span></td>
                     </tr>
+                    {if checkAccess("orderPrint")}
                     <tr>
                         <td colspan="5" class="layui-btn-fill">
                             <input type="hidden" name="delivery_data" value='{:json_encode($delivery, JSON_UNESCAPED_UNICODE)}' />
                             <button type="button" class="layui-btn" lay-filter="print" lay-submit>打印配送单</button>
                         </td>
                     </tr>
+                    {/if}
                 </tfoot>
             </table>
         </form>

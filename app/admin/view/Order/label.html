@@ -63,10 +63,12 @@
                             <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
                             搜索结果
                         </button>
+                        {if checkAccess("orderLabelPrint")}
                         <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-danger" lay-filter="LAY-list-back-print" lay-submit>
                             <i class="layui-icon layui-icon-print layuiadmin-button-btn"></i>
                             打印所有标签
                         </button>
+                        {/if}
                         <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-filter="LAY-list-back-export" lay-submit>
                             <i class="layui-icon layui-icon-export layuiadmin-button-btn"></i>
                             导出记录
@@ -86,9 +88,11 @@
 {/block}
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
+    {if checkAccess("orderLabelPrint")}
     <button class="layui-btn layuiadmin-btn-admin layui-btn-sm layui-btn-danger" lay-event="print" data-type="print">
-        <i class="layui-icon layui-icon-print"></i>打印标签
+        <i class="layui-icon layui-icon-print"></i>打印选中标签
     </button>
+    {/if}
 </script>
 
 <script type="text/html" id="col-category">
@@ -169,7 +173,7 @@
                     var r = JSON.parse(xhr.responseText);
                     if (r.ret == 0) {
                         parent.layer.msg("SUCCESS");
-                        $.post("{:url('orderGoodsPrint')}", {ids: rds.ids});
+                        $.post("{:url('orderLabelPrint')}", {ids: rds.ids});
                     } else {
                         parent.layer.alert(r.msg)
                     }

@@ -73,13 +73,29 @@ class Order extends Controller
                 $ids = [ intval($ids) ];
             }
 
-            $orders = $order_model->where([["id", "IN", $ids]])->select();
+            $orders = $order_model->with(['goods','delivery', 'delivery.goods'])->where([["id", "IN", $ids]])->select();
             if (!empty($orders)) {
                 foreach($orders as $order) {
-                    if (in_array($order->status, [0, 2])) {
-                        $this->logger('logs.order.delete', 'DELETE', $order);
-                        $order->delete();
+                    if ($order->delivery) {
+                        foreach($order->delivery as $delivery) {
+                            if ($delivery->goods) {
+                                foreach($delivery->goods as $goods) {
+                                    $this->logger('logs.order.delete.delivery.goods', 'DELETE', $goods);
+                                    $goods->delete();
+                                }
+                                $this->logger('logs.order.delete.delivery', 'DELETE', $delivery);
+                                $delivery->delete();
+                            }
+                        }
                     }
+                    if ($order->goods) {
+                        foreach($order->goods as $goods) {
+                            $this->logger('logs.order.delete.goods', 'DELETE', $goods);
+                            $goods->delete();
+                        }
+                    }
+                    $this->logger('logs.order.delete', 'DELETE', $order);
+                    $order->delete();
                 }
             }
         }
@@ -104,7 +120,6 @@ class Order extends Controller
             if (!empty($orders)) {
                 foreach($orders as $order) {
                     if (in_array($order->status, [0, 1])) {
-                        $this->logger('logs.order.trash', 'DELETE', $order);
                         $order->is_trash = 1;
                         $order->status = -1;
                         $order->save();
@@ -169,14 +184,23 @@ class Order extends Controller
             try {
                 if (!isset($data["filt"])) {
                     throw new \Exception("INVALID_PARAM");
+                } elseif(!checkAccess('order' . ucfirst($data["filt"]))) {
+                    throw new \Exception("NO_ACCESS");
                 }
                 $data["num"] = (int)$data["num"];
                 call_user_func_array([$order, $data["filt"]], [$data["goods"]["id"], $data["num"], $data["remark"]]);
+                $this->logger("logs.order.change_{$data['filt']}", 'UPDATED', $order);
             } catch(\Exception $e) {
                 return $this->fail($e->getMessage());
             }
             return $this->success();
         } else {
+            $delivery_goods_model = new OrderDeliveryGoods();
+            foreach($order['goods'] as &$goods) {
+                $goods["recived"] = $delivery_goods_model->getReceivedGoods($goods["parent_id"]?$goods['parent_id']:$goods['id']);
+                $goods['finished'] = $goods["num"] <= $goods["recived"];
+            }
+            unset($goods);
             $this->assign("order", $order);
             return $this->fetch();
         }
@@ -302,7 +326,7 @@ class Order extends Controller
     public function edit(OrderModel $order_model, Users $user_model, Category $category_model, Craft $craft_model)
     {
         $order_id = (int)input("order_id", 0);
-        $order = $order_model->with(['goods'])->find($order_id);
+        $order = $order_model->with(['goods', 'delivery', 'delivery.goods'])->find($order_id);
         if (empty($order)) {
             $this->fail("订单记录不存在!");
         }
@@ -353,6 +377,7 @@ class Order extends Controller
             }
 
             $crafts_maps = array_column($crafts, "craft_id", "craft");
+            $delivery_goods_model = new OrderDeliveryGoods();
             $order = $order->toArray();
             $data = [];
             foreach($order['goods'] as &$goods) {
@@ -364,7 +389,8 @@ class Order extends Controller
                 $goods["height"] = (int)$goods["height"];
                 $goods["order_money"] = (float)$goods["order_money"];
                 $goods["deductnum"] = (int)$goods["deductnum"];
-                
+                $goods["recived"] = $delivery_goods_model->getReceivedGoods($goods["id"]);
+                $goods['finished'] = $goods["num"] <= $goods["recived"];
                 $data[$goods['id']] = [
                     "id"            => $goods['id'],
                     "width"         => $goods["width"],
@@ -587,15 +613,19 @@ class Order extends Controller
         }
         $orders = $model->with(['delivery'])->where("id", "IN", $ids)->select();
         foreach($orders as $order) {
+            /**
+             * 1.全部配送完成，则配送状态自动变更
+             * 2.配送单未全部完成，则不会自动变更
+             */
             foreach($order->delivery as $delivery) {
                 $delivery->status = 1;
                 $delivery->save();
                 $this->logger('logs.delivery.status', 'UPDATED', $delivery);
                 event("OrderDeliveryChange", $delivery['order_id']);
             }
-            $order->delivery_status = $status;
-            $order->save();
-            $this->logger('logs.order.delivery_status', 'UPDATED', $order);
+            // $order->delivery_status = $status;
+            // $order->save();
+            // $this->logger('logs.order.delivery_status', 'UPDATED', $order);
         }
         return $this->success();
     }

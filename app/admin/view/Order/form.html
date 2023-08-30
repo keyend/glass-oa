@@ -60,6 +60,23 @@
     .undefined-price {
         text-indent: 10px;
     }
+    .row-disabled {
+        color: #ccc;
+        background-color: #f0e5c3;
+    }
+    .row-disabled td {
+        position: relative;
+    }
+    .row-disabled td .layui-badge i {
+        font-size: 11px;
+    }
+    .row-disabled td .layui-badge {
+        right: 0px;
+        top: 0px;
+        position: absolute;
+        white-space: nowrap;
+        border-bottom-left-radius: 10px;
+    }
 </style>
 {/block}
 {block name="body"}
@@ -184,14 +201,26 @@
                 </thead> 
                 <tbody id="order-content">
                     {foreach $order.goods as $goods}
-                    <tr id="item_{$goods.id}">
+                    <tr id="item_{$goods.id}"{if $goods.finished} class="row-disabled"{/if}>
                         <td>
+                            {if !$goods.finished}
                             <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" lay-delete>
                                 <i class="layui-icon layui-icon-delete"></i>
                             </button>
+                            {else}
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm layui-disabled" disabled>
+                                <i class="layui-icon layui-icon-delete"></i>
+                            </button>
+                            {/if}
                         </td>
                         <td>
-                            <select name="category_id[{$goods.id}]" data-name="category" class="layui-select" lay-filter="category">
+                            <select 
+                                name="category_id[{$goods.id}]" 
+                                data-name="category" 
+                                class="layui-select" 
+                                lay-filter="category"
+                                {if $goods.finished}disabled{/if}
+                            >
                                 {foreach $categorys as $category}
                                 {if $goods.category_id == $category.id}
                                 <option value="{$category.id}" selected="selected">{$category.category}</option>
@@ -200,7 +229,13 @@
                             </select>
                         </td>
                         <td>
-                            <select name="craft_id[{$goods.id}]" data-name="craft" class="layui-select" lay-filter="craft">
+                            <select 
+                                name="craft_id[{$goods.id}]" 
+                                data-name="craft" 
+                                class="layui-select" 
+                                lay-filter="craft"
+                                {if $goods.finished}disabled{/if}
+                            >
                                 {foreach $crafts as $craft}
                                 {if $goods.craft == $craft.craft}
                                 <option value="{$craft.id}" selected="selected">{$craft.craft}</option>
@@ -209,21 +244,63 @@
                             </select>
                         </td>
                         <td> 
-                            <input type="number" name="manual[{$goods.id}]" data-name="manual" placeholder="0.00" class="layui-input layui-number layui-input-fill" value="{$goods.manual}" />
+                            <input
+                                type="number"
+                                name="manual[{$goods.id}]"
+                                data-name="manual"
+                                placeholder="0.00"
+                                class="layui-input layui-number layui-input-fill{if $goods.finished} layui-disabled{/if}"
+                                value="{$goods.manual}"
+                            />
                         </td>
                         <td> 
-                            <input type="number" name="width[{$goods.id}]" data-name="width" value="{$goods.width}" placeholder="宽" class="layui-input layui-number" /> X
-                            <input type="number" name="height[{$goods.id}]" data-name="height" value="{$goods.height}" placeholder="高" class="layui-input layui-number" /> X
-                            <input type="number" name="num[{$goods.id}]" data-name="num" data-min="{$goods.deductnum}" value="{$goods.num}" placeholder="数量" class="layui-input layui-number" /> =
+                            <input 
+                                type="number" 
+                                name="width[{$goods.id}]" 
+                                data-name="width" value="{$goods.width}" 
+                                placeholder="宽" 
+                                class="layui-input layui-number{if $goods.finished} layui-disabled{/if}" 
+                            /> X
+                            <input
+                                type="number"
+                                name="height[{$goods.id}]"
+                                data-name="height" 
+                                value="{$goods.height}" 
+                                placeholder="高" 
+                                class="layui-input layui-number{if $goods.finished} layui-disabled{/if}" 
+                            /> X
+                            <input 
+                                type="number" 
+                                name="num[{$goods.id}]" 
+                                data-name="num" 
+                                data-min="{$goods.deductnum}" 
+                                value="{$goods.num}" 
+                                placeholder="数量" 
+                                class="layui-input layui-number{if $goods.finished} layui-disabled{/if}" 
+                            /> =
                             <input type="hidden" name="area[{$goods.id}]" data-name="area" value="{$goods.area}" />
                             <span class="area">
                                 <font class="label-area">{$goods.area}</font>m² X 
                                 <font class="label-unitprice">{$goods.unitprice}</font>元 = 
                                 <font class="label-price">{$goods.order_money}</font>元
                             </span>
+                            {if $goods.finished}
+                            <span class="layui-badge layui-bg-orange">
+                                <i class="layui-icon layui-icon-tips"></i>
+                                已配送签收
+                            </span>
+                            {/if}
                         </td>
                         <td>
-                            <input type="text" name="remark[{$goods.id}]" data-name="remark" value="{$goods.remark}" placeholder="" class="layui-input layui-text layui-input-fill" />
+                            <input 
+                                type="text" 
+                                name="remark[{$goods.id}]" 
+                                data-name="remark" 
+                                value="{$goods.remark}" 
+                                placeholder="" 
+                                class="layui-input layui-text layui-input-fill{if $goods.finished} layui-disabled{/if}" 
+                                {if $goods.finished}readonly{/if}
+                            />
                         </td>
                         <td>
                             <span class="label-unitprice">{$goods.unitprice}</span>

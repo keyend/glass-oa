@@ -28,6 +28,33 @@
             right: 0px;
             top: 0px;
         }
+        .layui-table-fixed-r .layui-table-header {
+            margin-right: -7px;
+        }
+        .layui-table-fixed .layui-table-body {
+            overflow: hidden !important;
+        }
+        .layui-hover-block:hover {
+            background-color: #f8ebde;
+            cursor: pointer;
+        }
+        .layui-dropdown {
+            background-color: #16ba60!important;
+            border-color: #16ba60;
+            border-radius: 4px;
+        }
+        .layui-menu {
+            box-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px 0 rgba(0,0,0,.06);
+            background-color: #16ba60!important;
+        }
+        .layui-menu-body-title {
+            padding: 2px 12px;
+            font-size: 12.6666px !important;
+            color: white!important;
+        }
+        .layui-menu li:hover {
+            background-color: #2bd477!important;
+        }
     </style>
 {/block}
 {block name="body"}
@@ -35,6 +62,7 @@
     <div class="layui-card">
         <div class="layui-card-body" style="padding: 15px 10px!important;">
             <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" id="form1" name="form1" method="POST" action="{:url('orderList', ['id' => $status_id])}" enctype="application/x-www-form-urlencoded">
+                {if checkAccess("orderList")}
                 <ul class="layui-tab-title">
                     <li{if $status_id=='all'} class="layui-this"{/if}><a href="{:url('order')}">全部订单</a></li>
                     <li{if $status_id==0 && $status_id!='all'} class="layui-this"{/if}><a href="{:url('orderList', ['id' => 0])}">待配送</a></li>
@@ -43,6 +71,7 @@
                     <li{if $status_id==3} class="layui-this"{/if}><a href="{:url('orderList', ['id' => 3])}">已作廢</a></li>
                     <li{if $status_id==4} class="layui-this"{/if}><a href="{:url('orderList', ['id' => 4])}">待收款</a></li>
                 </ul>
+                {/if}
                 <div class="layui-tab-content">
                     <div class="layui-tab-item layui-show" style="margin-top: 10px;">
                         <div class="layui-form-item layui-inline" style="margin-bottom: 0px; display: none;">
@@ -95,37 +124,41 @@
 {block name="scripts"}
 <script type="text/html" id="user-toolbar">
     <span class="layui-btn-group" style="margin-left: -15px;">
+        {if checkAccess("orderAdd")}
         <button class="layui-btn layui-btn-sm layui-btn-normal layuiadmin-btn-admin" lay-event="add" data-type="add">
             <i class="layui-icon layui-icon-add-1"></i>新增订单
         </button>
+        {/if}
+        {if checkAccess("orderDeliveryUpdate")}
         <button class="layui-btn layui-btn-sm layui-btn-primary {{= selectData.length>0?'':'layui-disabled'}}" id="btn-batch-delivery" lay-event="deliveryComplete" data-type="batch">
             <i class="layui-icon layui-icon-snowflake"></i>配送完成
         </button>
+        {/if}
+        {if checkAccess("orderPay")}
         <button class="layui-btn layui-btn-sm layui-btn-primary {{= selectData.length>0?'':'layui-disabled'}}" lay-event="payComplete" data-type="batch">
             <i class="layui-icon layui-icon-note"></i>付款完成
         </button>
+        {/if}
     </span>
 </script>
 
 <script type="text/html" id="user-bar">
     <div class="layui-btn-group">
-        <a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>
+        {if checkAccess("orderDetail")}<a class="layui-badge layui-bg-blue" lay-event="detail" href="javascript:void(0);">详情</a>{/if}
+        <a class="layui-badge layui-bg-primary layui-dropmenu" id="dropdown-{{d.id}}" href="javascript:void(0);">
+            <span>操作</span><i class="layui-icon layui-icon-down layui-font-12"></i>
+        </a>
         {{# if (d.status != 0) { }}
-            <a class="layui-badge layui-bg-yellow" lay-event="copy" href="javascript:void(0);">复制</a>
             {{# if (d.delivery_status == 2) { }}
-            <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">已配送</a>
+                {if checkAccess("orderDelivery")}<a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">已配送</a>{/if}
             {{# } else if (d.delivery_status == 1) { }}
-            <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
+                {if checkAccess("orderDelivery")}<a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>{/if}
             {{# } }}
         {{# } else { }}
-            <a class="layui-badge layui-bg-red" lay-event="trash" href="javascript:void(0);">作废</a>
-            {{# if (d.delivery_status != 2 && d.pay_status != 2) { }}
-            <a class="layui-badge layui-bg-primary" lay-event="edit" href="javascript:void(0);">编辑</a>
-            {{# } }}
             {{# if (d.delivery_status == 0) { }}
-            <a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送0%</a>
+                {if checkAccess("orderDelivery")}<a class="layui-badge layui-bg-dark" lay-event="delivery" href="javascript:void(0);">待配送0%</a>{/if}
             {{# } else if (d.delivery_status == 1) { }}
-            <a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>
+                {if checkAccess("orderDelivery")}<a class="layui-badge layui-bg-green1" lay-event="delivery" href="javascript:void(0);">配送中{{ d.process }}%</a>{/if}
             {{# } }}
         {{# } }}
     </div>
@@ -174,7 +207,7 @@
     <div class="layui-form layui-form-mx" id="pop-dialog-reward" style="width: 620px; padding-right: 40px;" lay-filter="reward">
         <input type="hidden" name="id" value="{{d.id}}" />
         <div class="layui-form-item">
-            <div class="layui-inline" lay-active="copy" data-value="{{d.order_money}}" data-pay="{{d.pay_money}}">
+            <div class="layui-inline layui-hover-block" lay-active="copy" data-value="{{d.order_money}}" data-pay="{{d.pay_money}}">
                 <label class="layui-form-label">应收金额</label>
                 <div class="layui-input-inline layui-input-wrap">
                     <span>&yen; {{d.order_money}}</span>
@@ -223,19 +256,19 @@
 </script>
 <!---->
 <script>
-    var selectData = [];
+    var selectData = [], active, accessEdit = {:checkAccess("orderEdit")?1:0}, accessDelete = {:checkAccess("orderDelete")?1:0};
 
     layui.config({
         base: '/static/admin/'
-    }).use(['table', 'form', 'laydate'], function(){
+    }).use(['table', 'form', 'laydate', 'dropdown'], function(){
         var $ = layui.$
-            ,form = layui.form
-            ,table = layui.table
-            ,laydate = layui.laydate
-            ,pageTable
-            ,isLoaded = false;
-
-        var active = {
+        ,form = layui.form
+        ,table = layui.table
+        ,laydate = layui.laydate
+        ,pageTable
+        ,isLoaded = false
+        ,dropdown = layui.dropdown;
+        active = {
             add: function() {
                 location.href = "{:url('orderAdd')}";
             },
@@ -261,6 +294,22 @@
             },
             edit: function(e) {
                 location.href = "{:url('orderEdit')}?order_id=" + e.data.id
+            },
+            delete: function(e) {
+                parent.layer.confirm('您确定要删除该订单记录？本操作不可逆', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('orderDelete')}", {id: e.data.id}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                });
             },
             copy: function(e) {
                 location.href = "{:url('orderAdd')}?order_id=" + e.data.id
@@ -386,12 +435,26 @@
             },
             reward_logs: function(e) {
                 ns.open("{:url('orderPayLogs')}?id=" + e.data.id, "客户[" + e.data.customer + '] 的订单[' + e.data.trade_no + '] 收款明细')
+            },
+            getDropdown: function(d) {
+                let menu = [];
+                if (d.status != 0) {
+                    menu.push({title: "复制", id: "copy_" + d.id, event: 'copy', data: d });
+                    accessEdit == 1 && menu.push({title: "编辑", id: "edit_" + d.id, event: 'edit', data: d, disabled: d.delivery_status == 2 });
+                } else {
+                    menu.push({title: "作废", id: "trash_" + d.id, event: 'trash', data: d });
+                    accessEdit == 1 && menu.push({title: "编辑", id: "edit_" + d.id, event: 'edit', data: d, disabled: d.delivery_status == 2 });
+                }
+                accessDelete == 1 && menu.push({title: "删除", id: "del_" + d.id, event: 'delete', data: d });
+                return menu;
+            },
+            dropdown: function(o, that) {
+                active[o.event] ? active[o.event].call(that, o) : '';
             }
         };
 
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
-            console.log("button", data.elem);
             table.reload('LAY-list-table', { 
                 where: field,
                 page: {
@@ -480,6 +543,15 @@
                         ns.count = count;
                         sessionStorage.setItem("order.page", curr);
                     }
+
+                    res.data.forEach(d => {
+                        layui.dropdown.render({
+                            elem: '#dropdown-' + d.id,
+                            data: active.getDropdown(d),
+                            trigger: 'hover',
+                            click: (o,t) => active.dropdown(o, t)
+                        });
+                    })
                 },
                 page: !0,
                 limit: 20,
