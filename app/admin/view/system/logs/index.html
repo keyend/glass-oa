@@ -1,42 +1,47 @@
 {extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+{/block}
 {block name="body"}
 <div class="layui-fluid">
     <div class="layui-card">
-        <div class="layui-card-body">
-            <div class="layui-tab layui-tab-brief" lay-filter="component-tabs-brief">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" id="form1" name="form1" method="POST" enctype="application/x-www-form-urlencoded">
                 <ul class="layui-tab-title">
                     {if checkAccess('sysLogsLogin')}<li{if $rule=='sysLogsLogin'} class="layui-this"{/if}><a href="{:url('sysLogsLogin')}">账户登录</a></li>{/if}
                     {if checkAccess('sysLogsOperator')}<li{if $rule=='sysLogsOperator'} class="layui-this"{/if}><a href="{:url('sysLogsOperator')}">操作事件</a></li>{/if}
+                    {if checkAccess('sysLogsTemplate')}<li{if $rule=='sysLogsTemplate'} class="layui-this"{/if}><a href="{:url('sysLogsTemplate')}">日志模板</a></li>{/if}
                 </ul>
                 <div class="layui-tab-content">
-                    <div class="layui-tab-item layui-show">
-                        <div class="layui-form layui-card-header layuiadmin-card-header-auto layui-form-filter">
-                            <div class="layui-form-item">
-                                <div class="layui-inline">
-                                    <label class="layui-form-label" style="width: auto;">时间</label>
-                                    <div class="layui-input-block" style="margin-left: 60px;">
-                                        <input type="text" name="date" id="date" class="layui-input" readonly />
-                                    </div>
-                                </div>
-                                <div class="layui-inline">
-                                    <label class="layui-form-label">搜索</label>
-                                    <div class="layui-input-block">
-                                        <input type="hidden" name="type" value="{$type}" />
-                                        <input type="text" name="keyword" placeholder="请输入" autocomplete="off" class="layui-input" />
-                                    </div>
-                                </div>
-                                <div class="layui-inline">
-                                    <button class="layui-btn layui-btn-sm layuiadmin-btn-admin" lay-submit lay-filter="LAY-user-back-search">
-                                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
-                                    </button>
-                                </div>
+                    <div class="layui-tab-item layui-show" style="margin-top: 10px;">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">搜索</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="keyword" placeholder="请输入" autocomplete="off" class="layui-input" />
                             </div>
                         </div>
-                        <!---->
-                        <table id="LAY-user-table" lay-filter="LAY-user-table"></table>
+                        <div class="layui-inline">
+                            <label class="layui-form-label" style="width: auto;">时间</label>
+                            <div class="layui-input-block" style="margin-left: 60px;">
+                                <input type="text" name="date" id="date" class="layui-input" readonly />
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <span class="layui-btn-group">
+                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                    搜索结果
+                                </button>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <table id="LAY-list-table" lay-filter="LAY-list-table"></table>
         </div>
     </div>
 </div>
@@ -45,104 +50,65 @@
 <script type="text/html" id="username">
     <span>{{d.params.username}}</span>
 </script>
+
 <script>
-    layui.config({
-        base: '/static/admin/' //静态资源所在路径
-    }).extend({
-        index: 'lib/index' //主入口模块
-    }).use(['index', 'table'], function(){
-        var $ = layui.$ ,form = layui.form ,table = layui.table;
+    layui.config({ base: '/static/admin/' }).use(['table', 'form', 'laydate'], function(){
+        var $ = layui.$
+        ,form = layui.form
+        ,table = layui.table
+        ,pageTable
+        ,active = {};
+
         // 监听搜索
-        form.on('submit(LAY-user-back-search)', function(data){
+        form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
             // 执行重载
-            table.reload('LAY-user-table', {
-                where: field
+            table.reload('LAY-list-table', {
+                where: field,
+                page: {
+                    curr: 1
+                }
             });
-        });
-    });
+            return false;
+        }),
 
-    renderTable();
-    // 渲染表格
-    function renderTable() {
-        layui.use(['table', 'form', 'laydate'], function () {
-            var $ = layui.$ 
-                ,form = layui.form 
-                ,table = layui.table
-                ,laydate = layui.laydate
-                ,pageTable = table.render({
-                    elem: "#LAY-user-table",
-                    where: { type: "{$type}" },
-                    url: "{:url('sysLogs')}",
-                    cols: [
-                        [{
-                            field: "id",
-                            title: "ID",
-                            width: "6%"
-                        }, {
-                            field: "username",
-                            title: "用户",
-                            width: 140,
-                            templet: function(d) {
-                                return d.params.username;
-                            }
-                        }, {
-                            field: "create_time",
-                            title: "时间",
-                            width: 180
-                        }, {
-                            field: "content",
-                            title: "明细",
-                        }]
-                    ],
-                    response: {
-                        msgName: 'message'
-                    },
-                    parseData: function(res) {
-                        return {
-                            code: res.code,
-                            msg: res.message,
-                            count: res.data.count,
-                            data: res.data.list
-                        }
-                    },
-                    done: function() {
-                        ns.page = this.page.curr;
-                    },
-                    page: !0,
-                    limit: 20,
-                    height: "full-220",
-                    text: "对不起，加载出现异常！",
-                });
+        renderTable();
 
-                laydate.render({
-                    elem: '#date',
-                    range: '~'
-                }),
-
-                table.on("tool(LAY-user-table)", function(e) {
-                    if ("del" === e.event) {
-                        parent.layer.confirm('您确定要删除该用户组？', {
-                            title: '友情提示',
-                            icon: 3,
-                            btn: ['是的', '再想想']
-                        }, function(i) {
-                            parent.layer.close(i),
-                            ns.silent("{:url('sysGroupDelete')}", {id: e.data.group_id}, res => {
-                                if (res.code == 0) {
-                                    setTimeout(() => pageTable.reload(), 100)
-                                } else {
-                                    layer.alert(res.message)
-                                }
-                            })
-                        });
-                    } else if ("edit" === e.event) {
-                        ns.open("{:url('sysGroupEdit')}?id=" + e.data.group_id, '编辑用户组').then(() => {
-                            pageTable.reload();
-                        })
+        // 渲染表格
+        function renderTable() {
+            pageTable = table.render({
+                elem: "#LAY-list-table",
+                url: '{:url("sysLogs", ["type" => $type])}',
+                toolbar: '#user-toolbar',
+                cols: [[     
+                    {type: 'checkbox'},
+                    {field: "title", title: "事件", width: 240},
+                    {field: "event", title: "操作", width: 140},
+                    {field: "username", title: "操作员", width: 100}, 
+                    {field: "create_time", title: "时间", width: 160}, 
+                    {field: "content", title: "明细"}
+                ]],
+                parseData: function(res) {
+                    return {
+                        code: res.code,
+                        msg: res.message,
+                        count: res.data.count,
+                        data: res.data.list
                     }
-                });
-        })
-    }
+                },
+                done: function() {
+                    ns.page = this.page.curr;
+                },
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: { none: "无数据" }
+            });
+            table.on('toolbar(LAY-list-table)', function(o) {
+                active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+            table.on("tool(LAY-list-table)", function(e) {});
+        }
+    });
 </script>
 {/block}

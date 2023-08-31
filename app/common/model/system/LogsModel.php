@@ -15,6 +15,24 @@ class LogsModel extends Model
     protected $pk = 'id';
 
     /**
+     * 对应的日志模板
+     * @collection relation.model
+     */
+    public function template()
+    {
+        return $this->hasOne(LogsTemplateModel::class, 'name', 'content');
+    }
+
+    /**
+     * 对应的日志操作员
+     * @collection relation.model
+     */
+    public function user() 
+    {
+        return $this->hasOne(UserModel::class, 'user_id', 'user_id');
+    }
+
+    /**
      * 添加操作日志
      * @param string type 动作类型
      * @param Array  params 参数
@@ -72,21 +90,24 @@ class LogsModel extends Model
     }
 
     /**
-     * 解析日志内容中的字符
-     * @param String message 内容
-     * @return String
-     * @access protected
+     * 日志专内容解析
+     *
+     * @param array $params
+     * @return void
      */
-    public function parse($message = '', $params = [])
+    public function parse($content, $params = [], $prefix = "")
     {
+        $prefix .= $prefix!==""?".":"";
         foreach($params as $key => $value) {
-            if (!is_string($value)) {
-                $value = json_encode($value);
+            if (is_array($value)) {
+                $content = $this->parse($content, $value, $prefix.$key);
+            } elseif(is_string($value)) {
+                $content = str_replace("{" . $prefix . $key . "}", $value, $content);
+            } else {
+                $content = str_replace("{" . $prefix . $key . "}", (string)$value, $content);
             }
-            $message = str_replace("{{$key}}", $value, $message);
         }
-
-        return $message;
+        return $content;
     }
 
     /**
@@ -96,9 +117,21 @@ class LogsModel extends Model
      */
     protected function getLabelType($label)
     {
-        return lang("logs.type.{$label}");
+        return lang("logs.type." . strtolower($label));
     }
-    
+
+    /**
+     * 获取器
+     *
+     * @param [type] $value
+     * @param [type] $data
+     * @return void
+     */
+    public function getParamsAttr($value, $data)
+    {
+        return json_decode($value, true);
+    }
+
     /**
      * 返回列表
      * @param int page
@@ -108,26 +141,56 @@ class LogsModel extends Model
      */
     public function getList(int $page, int $limit, Array $filter = [])
     {
-        $query = $this->order('id DESC')->where('user_id', S1);
+        $query = self::withJoin(["template", "user"], "left");
         if ($filter['date'] !== '') {
             $query->where('create_time', 'between', getTime($filter['date']));
         }
         if (isset($filter['keyword']) && $filter['keyword'] !== '') {
-            $query->where('params', 'like', '%' . $filter['keywords'] . '%');
+            $query->where('logs_model.params|template.title', 'like', '%' . $filter['keywords'] . '%');
         }
         if (isset($filter['labels']) && !empty($filter['labels'])) {
             $query->where('label', 'IN', $filter['labels']);
         }
+        $fields = implode(",", [
+            "logs_model.label",
+            "logs_model.user_id",
+            "logs_model.params",
+            "logs_model.create_time",
+            "user.username",
+            "template.title",
+            "logs_model.content as name",
+            "template.content as template"
+        ]);
+        $result = $this->maps(function($query, $page, $limit) {
+            $cursor = $query->order("logs_model.id DESC")->cursor();
+            $sql = $query->getLastSql();
+            $list = [];
+            foreach($cursor as $row) {
+                $list[] = $this->mapsItem(function($row, $item) {
+                    $row["content"] = !empty($row["template"]) ? $this->parse($row["template"], $item->params) : "[NO_TEMPLATE]";
+                    $row["event"] = $this->getLabelType($item->label);
+                    $row["name"] = $item->getAttr("name");
+                    // unset($row["params"], $row["template"]);
+                    return $row;
+                }, $row);
+            }
+            return compact('list', 'sql', 'discount_money', 'pay_money');
+        }, [
+            "query"  => $query,
+            "filter" => $filter,
+            "fields" => $fields,
+            "page"   => $page,
+            "limit"  => $limit,
+            "headers"=> [
+                ["title" => "事件", "field" => "title", "width" => 24],
+                ["title" => "操作", "field" => "event", "width" => 16],
+                ["title" => "操作员", "field" => "username", "width" => 16],
+                ["title" => "时间", "field" => "mobile", "width" => 18],
+                ["title" => "事件明细", "field" => "content", "width" => 96]
+            ],
+            'title' => '日志明细_' . ($filter['keyword'] ?? ""),
+        ]);
 
-        $count = $query->count();
-        $list = $query->page($page, $limit)->select()->toArray();
-        array_walk($list, function(&$item) {
-            $item['label'] = $this->getLabelType($item['label']);
-            $item['params'] = json_decode($item['params'], true);
-            $item['content'] = $this->parse(lang($item['content']), $item['params']);
-            $item = array_keys_filter($item, ['id', 'label', 'content', 'params', 'create_time']);
-        });
-
-        return compact('count', 'list');
+        return $result;
     }
 }

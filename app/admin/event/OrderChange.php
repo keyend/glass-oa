@@ -21,7 +21,7 @@ class OrderChange
         }
 
         if ($order['delivery_status'] == 0 && $order['deduct_num'] > 0) {
-            $order->delivery_status = $order['deduct_num'] >= $order['order_num'] ? 2 : 1;
+            $order->delivery_status = $order['receive_num'] >= $order['order_num'] ? 2 : 1;
         } elseif($order['delivery_status'] == 1 && $order['receive_num'] >= $order['order_num']) {
             $order->delivery_status = 2;
         }
@@ -41,6 +41,10 @@ class OrderChange
                 'trade_no' => $order->trade_no,
                 'discount_money' => $preferential
             ]], 1);
+        }
+
+        if ($order->delivery_status == 2 && $order->status == 0) {
+            $order->status = 1;
         }
 
         if ($order['status'] != 2) {

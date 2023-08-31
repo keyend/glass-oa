@@ -48,6 +48,11 @@ Route::group(function() {
         Route::get('', '/index')->name('sysLogs');
         Route::rule('/operator', '/operator', 'GET|POST')->name('sysLogsOperator');
         Route::rule('/login', '/login', 'GET|POST')->name('sysLogsLogin');
+        Route::rule('/template/add', '/templateAdd', 'GET|POST')->name('sysLogsTemplateAdd');
+        Route::rule('/template/edit', '/templateEdit', 'GET|POST')->name('sysLogsTemplateEdit');
+        Route::post('/template/delete', '/templateDelete')->name('sysLogsTemplateDelete');
+        Route::post('/template/update', '/templateUpdate')->name('sysLogsTemplateUpdate');
+        Route::rule('/template', '/template', 'GET|POST')->name('sysLogsTemplate');
     })->prefix('system.logs');
     // 系统管理 -> 参数配置
     Route::group('config', function() {

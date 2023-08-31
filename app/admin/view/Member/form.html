@@ -1,6 +1,13 @@
 {extend name="base" /}
 {block name="resources"}
 <style>
+    .layui-form-wrap {
+        height: 450px;
+        overflow-y: scroll;
+        padding: 10px;
+        margin: -10px;
+        margin-bottom: 20px;
+    }
     .page-member-form .layui-tab-content {
         padding: 15px 15px 0 0!important;
     }
@@ -11,12 +18,14 @@
         width: 100px;
     }
     .layui-input-inline-group-wrap {
-        border: 1px solid #f0f0f0;
+        border: 1px solid rgb(231, 215, 215);
+        background-color: #f0e2db;
+        border-radius: 6px;
     }
     .layui-input-inline-group {
         width: 25%;
-        border-bottom: 1px solid #f0f0f0;
-        border-right: 1px solid #f0f0f0;
+        border-bottom: 1px solid #e8dbcc;
+        border-right: 1px solid #e8dbcc;
         margin-bottom: 0px!important;
         padding-top: 6px;
         padding-bottom: 6px;
@@ -28,6 +37,11 @@
     .layui-input-wrap .layui-input {
         padding: 0px!important;
         text-indent: 6px;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
 </style>
 {/block}

@@ -198,7 +198,7 @@ class Order extends Controller
             $delivery_goods_model = new OrderDeliveryGoods();
             foreach($order['goods'] as &$goods) {
                 $goods["recived"] = $delivery_goods_model->getReceivedGoods($goods["parent_id"]?$goods['parent_id']:$goods['id']);
-                $goods['finished'] = $goods["num"] <= $goods["recived"];
+                $goods['finished'] = false;//$goods["num"] <= $goods["recived"];
             }
             unset($goods);
             $this->assign("order", $order);

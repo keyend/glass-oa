@@ -415,6 +415,7 @@ class Order extends Model
             ['create_time', TIMESTAMP]
         ]));
         $deductNum = 0;
+        $order_goods_model = new OrderGoods();
         foreach($data["goods"] as &$goods) {
             $goods["delivery_id"] = $delivery_id;
             $goodsOrigin = $data["goods_list"][$goods["goods_id"]];
@@ -428,15 +429,10 @@ class Order extends Model
             } else {
                 $goodsChange["status"] = 1;
             }
-            OrderGoods::where("id", $goods["goods_id"])->inc("deductnum", $goods["num"])->update($goodsChange);
+            $order_goods_model->where("id", $goods["goods_id"])->inc("deductnum", $goods["num"])->update($goodsChange);
             $deductNum += $goods["num"];
         }
         OrderDeliveryGoods::insertAll($data["goods"]);
-        $totalNum = (int)$this->getAttr("order_num");
-        $originDeductNum = (int)$this->getAttr("deductnum");
-        $currentDeductNum = $deductNum + $originDeductNum;
-        $status = $currentDeductNum < $totalNum ? 1 : 2;
-        $this->setAttr("status", $status);
         $this->setAttr("deduct_num", Db::raw("deduct_num+{$deductNum}"));
         $this->save();
         event("OrderChange", $this->getAttr("id"));

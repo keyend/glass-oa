@@ -14,7 +14,8 @@ class OrderDeliveryChange
     public function handle($order_id)
     {
         $receive_num = (int)OrderDelivery::where("order_id", $order_id)->where("status", 1)->sum("delivery_num");
-        $order = Order::find($order_id);
+        $order_model = new Order();
+        $order = $order_model->find($order_id);
         $bubble = false;
         if (!empty($order)) {
             if ($order["order_num"] <= $receive_num) {

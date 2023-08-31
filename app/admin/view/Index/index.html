@@ -74,7 +74,7 @@
                             {if checkAccess('sysUser') || checkAccess('sysGroup') || checkAccess('sysRole') || checkAccess('sysRule')}
                             <dd><a lay-href="{:url('sysSecurity')}">账户安全</a></dd>
                             {/if}
-                            {if checkAccess('sysLogsOperator') || checkAccess('sysLogsLogin')}
+                            {if checkAccess('sysLogsOperator') || checkAccess('sysLogsLogin') || checkAccess('sysLogsTemplate')}
                             <dd><a lay-href="{:url('sysLogs')}">日志管理</a></dd>
                             {/if}
                         </dl>

@@ -140,6 +140,13 @@
         </button>
         {/if}
     </span>
+
+    <span id="checkstatus-bar" style="margin-left: 15px; display: none;">
+        <span class="layui-btn layui-btn-sm layui-btn-primary layui-border-blue">
+            订单金额：
+            <font id="vl_ordermoney">--.--</font>
+        </span>
+    </span>
 </script>
 
 <script type="text/html" id="user-bar">
@@ -450,6 +457,19 @@
             },
             dropdown: function(o, that) {
                 active[o.event] ? active[o.event].call(that, o) : '';
+            },
+            referenceTableToolbar() {
+                var bar = $('#checkstatus-bar'), totalmoney = 0;
+                if (selectData.length < 1) {
+                    return bar.hide();
+                }
+                bar.show();
+                selectData.forEach(v => {
+                    v.order_money = parseFloat(v.order_money) || 0;
+                    totalmoney += v.order_money;
+                }),
+                console.log(totalmoney);
+                bar.find('#vl_ordermoney').text(totalmoney.toFixed(2))
             }
         };
 
@@ -583,6 +603,7 @@
                 var checkStatus = table.checkStatus(id);
                 var btns = $('button[data-type="batch"]');
                 selectData = checkStatus.data;
+                active.referenceTableToolbar();
                 if (selectData.length > 0) {
                     btns.removeClass("layui-disabled");
                 } else {

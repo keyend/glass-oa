@@ -10,6 +10,7 @@ return [
         'PolicyChange'          => ['app\admin\event\PolicyChange'],
         'OpeartorSecurity'      => ['app\admin\event\OpeartorSecurity'],
         'OrderChange'           => ['app\admin\event\OrderChange'],
+        'OrderDeliveryChange'   => ['app\admin\event\OrderDeliveryChange'],
     ],
     'subscribe' => [],
 ];

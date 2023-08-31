@@ -209,7 +209,7 @@
                         })
                     });
                 } else if ("edit" === e.event) {
-                    ns.open("{:url('memberEdit')}?id=" + e.data.id, '编辑客户', ['90%', '90%']).then(() => {
+                    ns.open("{:url('memberEdit')}?id=" + e.data.id, '编辑客户', ['96%', '90%']).then(() => {
                         var ret = ns.getReload();
                         ret && pageTable.reload()
                     })
