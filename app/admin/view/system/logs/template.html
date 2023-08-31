@@ -1,0 +1,183 @@
+{extend name="base" /}
+{block name="resources"}
+    <link rel="stylesheet" href="/static/component/pear/css/pear.css" />
+{/block}
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <form class="layui-form layui-tab layui-tab-brief" lay-filter="component-tabs-brief" id="form1" name="form1" method="POST" enctype="application/x-www-form-urlencoded">
+                <ul class="layui-tab-title">
+                    {if checkAccess('sysLogsLogin')}<li{if $rule=='sysLogsLogin'} class="layui-this"{/if}><a href="{:url('sysLogsLogin')}">账户登录</a></li>{/if}
+                    {if checkAccess('sysLogsOperator')}<li{if $rule=='sysLogsOperator'} class="layui-this"{/if}><a href="{:url('sysLogsOperator')}">操作事件</a></li>{/if}
+                    {if checkAccess('sysLogsTemplate')}<li{if $rule=='sysLogsTemplate'} class="layui-this"{/if}><a href="{:url('sysLogsTemplate')}">日志模板</a></li>{/if}
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show" style="margin-top: 10px;">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">搜索</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="keyword" placeholder="请输入" autocomplete="off" class="layui-input" />
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline" style="margin-bottom: 0px;">
+                            <span class="layui-btn-group">
+                                <button class="layui-btn layui-btn-sm layuiadmin-btn-admin layui-btn-normal" lay-submit lay-filter="LAY-list-back-search">
+                                    <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                                    搜索结果
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body" style="padding: 15px 10px!important;">
+            <table id="LAY-list-table" lay-filter="LAY-list-table"></table>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="scripts"}
+<script type="text/html" id="user-toolbar">
+    <span style="margin-left: -15px;">
+        <button class="pear-btn pear-btn-primary pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="add" data-type="add">
+            <i class="layui-icon layui-icon-add-1"></i>新增模板
+        </button>
+        <button class="pear-btn pear-btn-danger pear-btn-md layui-btn layuiadmin-btn-admin" lay-event="batchRemove" data-type="batchRemove">
+            <i class="layui-icon layui-icon-delete"></i>
+            批量删除
+        </button>
+    </span>
+</script>
+
+<script type="text/html" id="user-bar">
+    <span class="layui-btn-group">
+        <a class="layui-badge layui-bg-green" lay-event="edit" href="javascript:void(0);">
+            <i class="layui-icon layui-icon-edit"></i>编辑
+        </a>
+        <a class="layui-badge layui-bg-orange" lay-event="remove" href="javascript:void(0);">
+            <i class="layui-icon layui-icon-delete"></i>删除
+        </a>
+    </span>
+</script> 
+
+<script>
+    layui.config({ base: '/static/admin/' }).use(['table', 'form'], function(){
+        var $ = layui.$
+        ,form = layui.form
+        ,table = layui.table
+        ,pageTable
+        ,active = {
+            add: function(){
+                ns.open("{:url('sysLogsTemplateAdd')}", '添加模板').then(() => {
+                    renderTable()
+                })
+            },
+            batchRemove: function(v) {
+                parent.layer.confirm('您确定要删除这些模板？', {
+                    title: '友情提示',
+                    icon: 3,
+                    btn: ['是的', '再想想']
+                }, function(i) {
+                    parent.layer.close(i),
+                    ns.silent("{:url('sysLogsTemplateDelete')}", {id: ns.tableSelected(v, "id")}, res => {
+                        if (res.code == 0) {
+                            setTimeout(() => pageTable.reload(), 100)
+                        } else {
+                            layer.alert(res.message)
+                        }
+                    })
+                });
+            }
+        };
+
+        // 监听搜索
+        form.on('submit(LAY-list-back-search)', function(data){
+            var field = data.field;
+            // 执行重载
+            table.reload('LAY-list-table', {
+                where: field,
+                page: {
+                    curr: 1
+                }
+            });
+            return false;
+        }),
+
+        form.on('switch(user-enable)', function(obj){
+            active['status'].call(this, obj.elem.value, obj.elem.checked)
+        }),
+
+        renderTable();
+
+        // 渲染表格
+        function renderTable() {
+            pageTable = table.render({
+                elem: "#LAY-list-table",
+                url: location.href,
+                toolbar: '#user-toolbar',
+                cols: [[     
+                    {type: 'checkbox'},
+                    {title: '模板标识', field: 'name', width: 160, align: 'left', edit: 'text'},
+                    {title: '模板名称', field: 'title', edit: 'text'},
+                    {title: '操作', toolbar: '#user-bar', width: 160}
+                ]],
+                parseData: function(res) {
+                    return {
+                        code: res.code,
+                        msg: res.message,
+                        count: res.data.count,
+                        data: res.data.list
+                    }
+                },
+                done: function() {
+                    ns.page = this.page.curr;
+                },
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: { none: "无数据" }
+            });
+
+            table.on('toolbar(LAY-list-table)', function(o) {
+                active[o.event] ? active[o.event].call(this, o) : '';
+            }),
+
+            table.on("edit(LAY-list-table)", function(e) {
+                ns.silent("{:url('sysLogsTemplateUpdate')}?id=" + e.data.id, {field: e.field, value: e.value}, res => {
+                    if (res.code != 0) {
+                        top.layer.msg(res.message)
+                    }
+                })
+            }),
+
+            table.on("tool(LAY-list-table)", function(e) {
+                if ("remove" === e.event) {
+                    parent.layer.confirm('您确定要删除该模板？', {
+                        title: '友情提示',
+                        icon: 3,
+                        btn: ['是的', '再想想']
+                    }, function(i) {
+                        parent.layer.close(i),
+                        ns.silent("{:url('sysLogsTemplateDelete')}", {id: e.data.id}, res => {
+                            if (res.code == 0) {
+                                setTimeout(() => pageTable.reload(), 100)
+                            } else {
+                                layer.alert(res.message)
+                            }
+                        })
+                    });
+                } else if ("edit" === e.event) {
+                    ns.open("{:url('sysLogsTemplateEdit')}?id=" + e.data.id, '编辑模板').then(() => {
+                        pageTable.reload();
+                    })
+                }
+            });
+        }
+    });
+
+</script>
+{/block}
