@@ -196,11 +196,14 @@ class Order extends Controller
             return $this->success();
         } else {
             $delivery_goods_model = new OrderDeliveryGoods();
+            $goodsList = [];
             foreach($order['goods'] as &$goods) {
                 $goods["recived"] = $delivery_goods_model->getReceivedGoods($goods["parent_id"]?$goods['parent_id']:$goods['id']);
-                $goods['finished'] = false;//$goods["num"] <= $goods["recived"];
+                $goods['finished'] = false;//$goods["num"] <= $goods["recived"];'
+                $goodsList[$goods['id']] = $goods->toArray();
             }
             unset($goods);
+            $order["goods"] = $goodsList;
             $this->assign("order", $order);
             return $this->fetch();
         }
@@ -287,6 +290,7 @@ class Order extends Controller
                             "height"        => $goods["height"],
                             "num"           => $goods["num"],
                             "manual"        => $goods["manual"],
+                            "manual_cals"   => $goods["manual_cals"],
                             "unitprice"     => $goods["unitprice"],
                             "category_id"   => $goods["category_id"],
                             "craft_id"      => isset($crafts_maps[$goods["craft"]]) ? $crafts_maps[$goods["craft"]] : 0,
@@ -378,7 +382,6 @@ class Order extends Controller
 
             $crafts_maps = array_column($crafts, "craft_id", "craft");
             $delivery_goods_model = new OrderDeliveryGoods();
-            $order = $order->toArray();
             $data = [];
             foreach($order['goods'] as &$goods) {
                 if (isset($customer_catelog[$goods["category_id"]])) {
@@ -397,6 +400,7 @@ class Order extends Controller
                     "height"        => $goods["height"],
                     "num"           => $goods["num"],
                     "manual"        => $goods["manual"],
+                    "manual_cals"   => $goods["manual_cals"],
                     "unitprice"     => $goods["unitprice"],
                     "category_id"   => $goods["category_id"],
                     "craft_id"      => isset($crafts_maps[$goods["craft"]]) ? $crafts_maps[$goods["craft"]] : 0,
@@ -407,7 +411,7 @@ class Order extends Controller
             }
 
             $this->assign("data",       json_encode($data, JSON_UNESCAPED_UNICODE));
-            $this->assign("order",      $order);
+            $this->assign("order",      $order->toArray());
             $this->assign("customers",  $customers);
             $this->assign("categorys",  $categorys);
             $this->assign("crafts",     $crafts);
@@ -505,19 +509,19 @@ class Order extends Controller
                 $delivery_money = $goods["area"] * $goods["unitprice"] * $num;
                 $manual_money = $goods["manual"] * $num;
                 $delivery["goods"][] = [
-                    "goods_id"  => $goods["id"],
-                    "order_id"  => $goods["order_id"],
-                    "category"  => $goods["category"],
-                    "craft"     => $goods["craft"],
-                    "craft_thumb" => $goods["craft_thumb"],
-                    "width"     => $goods["width"],
-                    "height"    => $goods["height"],
-                    "area"      => $goods["area"],
-                    "unitprice" => $goods["unitprice"],
-                    "manual"    => $goods["manual"],
-                    "num"       => $num,
+                    "goods_id"       => $goods["id"],
+                    "order_id"       => $goods["order_id"],
+                    "category"       => $goods["category"],
+                    "craft"          => $goods["craft"],
+                    "craft_thumb"    => $goods["craft_thumb"],
+                    "width"          => $goods["width"],
+                    "height"         => $goods["height"],
+                    "area"           => $goods["area"],
+                    "unitprice"      => $goods["unitprice"],
+                    "manual"         => $goods["manual"],
+                    "num"            => $num,
                     "delivery_money" => $delivery_money,
-                    "manual_money" => $manual_money
+                    "manual_money"   => $manual_money
                 ];
                 $delivery_money_total += $delivery_money;
                 $delivery_num_total   += $num;
@@ -679,6 +683,7 @@ class Order extends Controller
     public function print(OrderDelivery $order_delivery_model, ConfigModel $config_model, OrderGoods $order_goods)
     {
         $id = input("id", 0);
+        $isprint = input("print", 'yes');
         $delivery = $order_delivery_model->with(['goods', 'order', 'order.member'])->find($id);
         if (empty($delivery)) {
             return $this->fail("配送记录不存在!");
@@ -691,6 +696,7 @@ class Order extends Controller
         $this->assign("delivery", $delivery);
         $this->assign("delivery_string", json_encode($delivery, JSON_UNESCAPED_UNICODE));
         $this->assign('option', $options);
+        $this->assign('isprint', $isprint);
         return $this->fetch('Order/printer');
     }
 

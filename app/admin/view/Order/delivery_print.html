@@ -178,9 +178,9 @@
 </script>
 
 <script type="text/html" id="col-trade_no">
-    <font>{{ d.trade_no }}</font>
+    <a href="{:url('orderPrint')}?id={{ d.id }}&manual=1&print=no" target="_blank" style="color: #1e9fff;">{{ d.trade_no }}</a>
     {{# if (d.print_times > 0) { }}
-    <span class="layui-badge cricel" title="已打印{{ d.print_times }}次">{{ d.print_times }}</span>
+    <i class="layui-badge cricel" title="已打印{{ d.print_times }}次">{{ d.print_times }}</i>
     {{# } }}
 </script>
 

@@ -150,7 +150,7 @@ class OrderPay extends Model
             }
         }
         $query->where("delivery_status", ">", 0);
-        $query->where("pay_status", "<>", 2);
+        // $query->where("pay_status", "<>", 2);
         $query->group("customer_id");
         $query->having("SUM(order_money)>0");
         $fields = [

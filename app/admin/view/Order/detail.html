@@ -187,7 +187,7 @@
                         <td>{$goods.height|floatval}</td>
                         <td>{$goods.area}</td>
                         <td>{$goods.unitprice}</td>
-                        <td>{$goods.manual_money}</td>
+                        <td data-name="manual" data-id="{$goods.id}" style="cursor: pointer;">{$goods.manual}</td>
                         <td>{$goods.num}</td>
                         <td>
                             {$goods.remark}
@@ -297,25 +297,27 @@
 </script>
 {/block}
 {block name="scripts"}
+{include file="Order/component/calculate" /}
 <script>
-    var goodsList = {:json_encode($order["goods"], JSON_UNESCAPED_UNICODE)};
+    var data = {:json_encode($order["goods"], JSON_UNESCAPED_UNICODE)};
 
     layui.config({ base: '/static/admin/' }).use(['form', 'laytpl', 'table', 'util'], function(){
-        var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table, laytpl = layui.laytpl, poper, poperField;
+        var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table, laytpl = layui.laytpl, poper, poperField
+        ,context = $('#order-content');
 
-        function getPrintArr(data, id) {
+        function getPrintArr(order, id) {
             var result = {};
             id = id || 0,
             result.ids = [];
             result.data = [],
-            data.goods.forEach(v => {
+            order.goods.forEach(v => {
                 if (id == v.id || id == 0) {
                     if (v.type == 0 || v.type == 1) {
                         result.data.push({
-                            KH: data.customer,
-                            DD: data.out_trade_no,
+                            KH: order.customer,
+                            DD: order.out_trade_no,
                             MC: v.category,
-                            GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + data.order_num,
+                            GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + order.order_num,
                             GY: v.craft,
                             XH: v.remark
                         }),
@@ -351,8 +353,8 @@
         }
 
         form.on('submit(form1)', function(obj) {
-            var field = JSON.parse(obj.field.delivery_data) ,data = getPrintArr(field);
-            requestPrint(getPrintArr(field));
+            var field = JSON.parse(obj.field.delivery_data), dataList = getPrintArr(field);
+            requestPrint(dataList);
         }),
 
         $('button[lay-filter="print"]').on("click", function(e) {
@@ -362,7 +364,7 @@
 
         $('button[lay-filter="smentary"]').on("click", function(e) {
             var that = $(this), field = {}, content;
-            goodsList.forEach(v => {
+            data.forEach(v => {
                 if (v.id == that.data("id")) {
                     field.goods = v
                 }
@@ -402,16 +404,21 @@
 
         table.init('parse-table-demo', {
             done(res) {
-                console.log(res);
                 table.on("toolbar(parse-table-demo)", function(e) {
                     console.log(e);
                 })
             }
         }),
+
         table.on('edit(parse-table-demo)', function(obj) {
             console.log(obj);
             // 更新单元格
-        });
+        }),
+
+        handleCalculate(context, 'td[data-name="manual"]', function(dom) {
+            dom.find('input[type="number"]').addClass('layui-disabled').attr("disabled", true),
+            dom.find('button').addClass('layui-disabled').attr("disabled", true)
+        })
     })
 </script>
 {/block}

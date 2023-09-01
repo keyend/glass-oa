@@ -250,7 +250,9 @@
             });
         }
 
-        requestPrint(getPrintArr(delivery))
+        if ("{$isprint}" == "yes") {
+            requestPrint(getPrintArr(delivery))
+        }
     })
 </script>
 {/block}

@@ -229,6 +229,7 @@ class Order extends Model
             $itm["unitprice"]       = (float)$category[$itm["category_id"]];
             $itm["manual_money"]    = $itm["manual"] * $itm["num"];
             $itm["order_money"]     = $itm["area"] * $itm["num"] * $itm["unitprice"] + $itm["manual_money"];
+            $itm["manual_cals"]     = json_encode($row['manual_cals'], JSON_UNESCAPED_UNICODE);
             $goods[] = $itm;
         }
 
@@ -291,6 +292,7 @@ class Order extends Model
                 $itm["num"]             = (int)$goods["num"];
                 $itm["manual"]          = (float)$goods["manual"];
                 $itm["category_id"]     = (int)$goods["category_id"];
+                $itm["manual_cals"]     = $goods["manual_cals"];
                 $itm["area"]            = round($itm["width"] * $itm["height"] / 10E5, 2);
                 $itm["create_time"]     = TIMESTAMP;
                 if ($itm["category_id"] === 0) {
@@ -330,21 +332,23 @@ class Order extends Model
                 $goods->save();
             } else {
                 $goods["unitprice"] = (float)$goods["unitprice"];
-                $itm            = array_keys_filter($updateGoods[$goods['id']], [
+                $itm                = array_keys_filter($updateGoods[$goods['id']], [
                     'width',
                     'height',
                     'manual',
+                    'manual_cals',
                     'num',
                     'remark',
                     'unitprice'
                 ]);
-                $itm["num"]     = (int)$itm["num"];
-                $itm["width"]   = (float)$itm["width"];
-                $itm["height"]  = (float)$itm["height"];
-                $itm["manual"]  = (float)$itm["manual"];
-                $itm["area"]    = round($itm["width"] * $itm["height"] / 10E5, 2);
+                $itm["num"]         = (int)$itm["num"];
+                $itm["width"]       = (float)$itm["width"];
+                $itm["height"]      = (float)$itm["height"];
+                $itm["manual"]      = (float)$itm["manual"];
+                $itm["area"]        = round($itm["width"] * $itm["height"] / 10E5, 2);
                 $itm["manual_money"] = $itm["manual"] * $itm["num"];
                 $itm["order_money"] = $itm["area"] * $itm["num"] * $itm["unitprice"] + $itm["manual_money"];
+                $itm["manual_cals"] = json_encode($itm['manual_cals'], JSON_UNESCAPED_UNICODE);
                 $originGoods = $goods->toArray();
                 $goods->update($itm, ["id" => $goods["id"]]);
                 $this->logger('logs.order.edit.updategoods', 'DELETE', [$originGoods, $goods->toArray()]);

@@ -16,6 +16,18 @@ class OrderGoods extends Model
     }
 
     /**
+     * 获取器
+     *
+     * @param [type] $value
+     * @param [type] $data
+     * @return void
+     */
+    public function getManualCalsAttr($value, $data)
+    {
+        return json_decode($value, true);
+    }
+
+    /**
      * 汇总
      *
      * @param int page

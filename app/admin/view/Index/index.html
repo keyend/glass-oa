@@ -1,6 +1,73 @@
 {extend name="base" /}
 {block name="resources"}
-    <style>#LAY_app {zoom: .96;}</style>
+    <style>
+        #LAY_app {zoom: .96;}
+        .layui-form-calculate .layui-form-label {
+            width: 100px;
+            text-align: left;
+        }
+        .layui-form-calculate .layui-form-item {
+            margin-bottom: 0;
+            display: flex;
+            flex: 24 1 auto;
+        }
+        .layui-form-calculate .layui-form-item .layui-input {
+            text-align: center;
+            padding-left: 0px;
+        }
+        .layui-form-calculate .layui-form-item ::-webkit-inner-spin-button,
+        .layui-form-calculate .layui-form-item ::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .layui-form-calculate .layui-form-header .layui-input {
+            padding: 0 16px;
+            height: 50px;
+            line-height: 50px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+        .layui-form-calculate .layui-form-header .layui-input::placeholder {
+            color: #666;
+        }
+        .layui-form-calculate .layui-form-header .layui-form-mid {
+            position: absolute;
+            right: 0px;
+            top: 10px;
+            right: 5px;
+            color: #999;
+        }
+        .layui-form-calculate .layui-form-item.layui-form-header {
+            display: unset;
+            margin-bottom: 15px;
+        }
+        .layui-form-calculate .layui-form-item.layui-form-header .layui-input {
+            text-align: unset;
+        }
+        .layui-form-calculate .layui-form-item .layui-inline {
+            background-color: #f0f0f0;
+            margin-right: 6px;
+            padding: 12px 0;
+            margin-bottom: 6px;
+            border-radius: 4px;
+        }
+        .layui-form-calculate .layui-form-item .layui-inline.layui-commit {
+            flex: 1;
+            flex-grow: 1;
+            border: 0px;
+            color: white;
+            background: #8558fa;
+        }
+        .layui-form-calculate .layui-form-item button.layui-inline {
+            margin-right: 0px;
+        }
+        .layui-form-calculate .layui-form-item button.layui-inline:focus {
+            border: 1px solid #333!important;
+        }
+        .layui-form-calculate .layui-input-inline {
+            width: 100px;
+        }
+    </style>
 {/block}
 {block name="body"}
 <div id="LAY_app">
