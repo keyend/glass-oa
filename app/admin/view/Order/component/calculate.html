@@ -1,0 +1,185 @@
+<script id="pop-manual" type="text/html">
+    <div class="layui-form layui-form-calculate" id="pop-dialog-calculate" style="width: 620px;" lay-filter="calculate">
+        <div class="layui-form-item layui-form-header">
+            <div class="layui-block" style="margin-bottom: 15px;">
+                <input type="number" name="manual_money" value="{{d.manual_money}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" readonly />
+            </div>
+            <div class="layui-form-mid">实际加工费</div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-block">
+                <div class="layui-inline">
+                    <label class="layui-form-label">实际单块金额</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="actual_money" value="{{d.actual_money||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" autofocus="true" tabindex="1" />
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">当前单块金额</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="block_money" value="{{d.block_money||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" tabindex="-1" readonly />
+                    </div>
+                </div>
+            </div>
+            <button type="reset" class="layui-inline" lay-submit lay-filter="poper-calculate-cancel" style="flex-grow: 1; border: 0px;" tabindex="8">
+                <span>取消</span>
+            </button>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-block">
+                <div class="layui-block">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">单块打胶金额</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="gluin_money" value="{{d.gluin_money||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" autofocus="true" tabindex="2" />
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">平方单价</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="gluin_square" value="{{d.gluin_square||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" tabindex="3" />
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-block">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">单块异形金额</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="deformation_money" value="{{d.deformation_money||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" autofocus="true" tabindex="4" />
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">平方单价</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="deformation_square" value="{{d.deformation_square||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" tabindex="5" />
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-block">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">单块其它金额</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="other_money" value="{{d.other_money||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" autofocus="true" tabindex="6" />
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">平方单价</label>
+                        <div class="layui-input-inline">
+                            <input type="number" name="other_square" value="{{d.other_square||''}}" placeholder="0.00" step="0.01" autocomplete="off" class="layui-input" tabindex="7" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="layui-inline layui-commit" lay-submit lay-filter="poper-calculate-commit" tabindex="9">
+                <span>确认</span><br />
+                [Enter]
+            </button>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+    function roundDecimal(val, num) {
+        let pow = Math.pow(10, num);
+        return Math.round(val * pow) / pow
+    }
+
+    function float(val) {
+        val = parseFloat(val);
+        if (isNaN(val)) {
+            return 0;
+        }
+        return val;
+    }
+
+    function calculateUpdate(id) {
+        var ds = data[id], cals = ds.manual_cals || {}, actual_money, block_money, master_money;
+        cals['block_money'] = roundDecimal(ds.area * ds.unitprice, 2) || 0,
+        cals['actual_money'] = parseFloat(cals['actual_money'] || 0);
+        cals['gluin_money'] = parseFloat(cals['gluin_money'] || 0);
+        cals['gluin_square'] = parseFloat(cals['gluin_square'] || 0);
+        cals['deformation_money'] = parseFloat(cals['deformation_money'] || 0);
+        cals['deformation_square'] = parseFloat(cals['deformation_square'] || 0);
+        cals['other_money'] = parseFloat(cals['other_money'] || 0);
+        cals['other_square'] = parseFloat(cals['other_square'] || 0);
+        block_money = cals['block_money'];
+        actual_money = cals['actual_money'] < block_money ? block_money : cals['actual_money'];
+        master_money = actual_money - block_money;
+        master_money = master_money < 0 ? 0 : master_money;
+        cals['manual_money'] = roundDecimal(master_money + cals['gluin_money'] + cals['deformation_money'] + cals['other_money'], 2);
+        data[id].manual_cals = cals,
+        data[id].manual = cals.manual_money;
+        return cals;
+    }
+
+    function handleCalculate(context, filt, callback) {
+        context.find(filt).unbind().on("focus click", function() {
+            var id = this.getAttribute("data-id")
+            , that = $(this)
+            , ds = data[id]
+            , cals = ds.manual_cals
+            , content = laytpl(document.getElementById("pop-manual").innerHTML).render(cals)
+            , block_money
+            , actual_money
+            , master_money
+            , poper = parent.layer.open({
+                title: '加工费计算器',
+                move: false,
+                shadeClose: true,
+                content: content,
+                btn: [],
+                success(dom, index) {
+                    dom.find('input[type="number"]').on('focus', function() {
+                        this.select()
+                    }),
+                    dom.find('input[type="number"]').on("input propertychange", function() {
+                        cals.actual_money = float(dom.find('input[name="actual_money"]').val()),
+                        cals.gluin_money = float(dom.find('input[name="gluin_money"]').val()),
+                        cals.gluin_square = float(dom.find('input[name="gluin_square"]').val()),
+                        cals.deformation_money = float(dom.find('input[name="deformation_money"]').val()),
+                        cals.deformation_square = float(dom.find('input[name="deformation_square"]').val()),
+                        cals.other_money = float(dom.find('input[name="other_money"]').val()),
+                        cals.other_square = float(dom.find('input[name="other_square"]').val());
+                        if ('gluin_square' == this.name) {
+                            cals.gluin_money = roundDecimal(cals.gluin_square * ds.area, 2)
+                        } else if('deformation_square' == this.name) {
+                            cals.deformation_money = roundDecimal(cals.deformation_square * ds.area, 2)
+                        } else if('other_square' == this.name) {
+                            cals.other_money = roundDecimal(cals.other_square * ds.area, 2)
+                        }
+                        block_money = cals['block_money'];
+                        actual_money = cals['actual_money'] < block_money ? block_money : cals['actual_money'];
+                        master_money = actual_money - block_money;
+                        master_money = master_money < 0 ? 0 : master_money;
+                        cals['manual_money'] = roundDecimal(master_money + cals['gluin_money'] + cals['deformation_money'] + cals['other_money'], 2);
+                        dom.find('input[name="manual_money"]').val(cals.manual_money),
+                        dom.find('input[name="deformation_money"]').val(cals.deformation_money),
+                        dom.find('input[name="gluin_money"]').val(cals.gluin_money)
+                        dom.find('input[name="other_money"]').val(cals.other_money)
+                    }),
+                    parent.layui.form.on('submit(poper-calculate-cancel)', function() {
+                        parent.layui.layer.close(index);
+                        return false;
+                    }),
+                    parent.layui.form.on('submit(poper-calculate-commit)', function() {
+                        data[id].manual_cals = cals,
+                        calculateUpdate(id),
+                        that.val(cals.manual_money),
+                        parent.layui.layer.close(index);
+                        return false;
+                    }),
+                    dom.on("keypress", function(ev) {
+                        if (ev.keyCode == 13) {
+                            dom.find('button[lay-filter="poper-calculate-commit"]').trigger('click')
+                        } else if(ev.keyCode == 27) {
+                            dom.find('button[lay-filter="poper-calculate-calcel"]').trigger('click')
+                        }
+                    }),
+                    typeof(callback) == 'function' && callback(dom)
+                }
+            })
+        })
+    }
+</script>
