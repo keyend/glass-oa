@@ -204,10 +204,11 @@
                 RQ: "{:date('Y-m-d',strtotime($delivery['create_time']))}",
                 MX: {$manual},
                 data: []
-            };
+            }, total_money;
             id = id || 0,
             result.data = [],
             data.goods.forEach(v => {
+                total_money = parseFloat(v.manual_money) + parseFloat(v.delivery_money),
                 result.data.push({
                     name: v.category + v.craft,
                     w: parseFloat(v.width),
@@ -216,7 +217,7 @@
                     area: v.area,
                     price: v.unitprice,
                     fee: v.manual_money,
-                    total: parseFloat(v.manual_money) + parseFloat(v.delivery_money),
+                    total: total_money.toFixed(2),
                     desc: v.remark
                 })
             });

@@ -247,7 +247,7 @@
                 })
             },
             getData(data) {
-                var ds = {}, dates;
+                var ds = {}, dates, total_money;
                 data.length > 0 && data.forEach(v => {
                     dates = v.create_time.split(' ');
                     ds[v.id] = {
@@ -259,6 +259,7 @@
                         data: []
                     },
                     v.goods.forEach(d => {
+                        total_money = parseFloat(d.manual_money) + parseFloat(d.delivery_money),
                         ds[v.id].data.push({
                             name: d.category + d.craft,
                             w: d.width,
@@ -267,7 +268,7 @@
                             area: d.area,
                             price: d.unitprice,
                             fee: d.manual_money,
-                            total: d.manual_money + d.delivery_money,
+                            total: total_money.toFixed(2),
                             desc: d.remark
                         })
                     })
