@@ -352,8 +352,8 @@
 
                         layero.find('input[name="money"]').on('input propertychange', function() {
                             var value = parseFloat(this.value) || 0
-                            , pay_money = parseFloat(this.getAttribute('data-pay')) || 0
-                            , order_money = parseFloat(this.getAttribute('data-value')) || 0;
+                            , pay_money = parseFloat(this.getAttribute('data-pay').replace(",", "")) || 0
+                            , order_money = parseFloat(this.getAttribute('data-value').replace(",", "")) || 0;
                             if (value < 0) {
                                 this.value = "";
                                 return false;
@@ -375,7 +375,7 @@
 
                         parent.layui.util.event("lay-active", {
                             copy(e) {
-                                var order_money = parseFloat(e.data("value")) || 0, pay_money = parseFloat(e.data("pay")) || 0;
+                                var order_money = parseFloat(e.data("value").replace(",", "")) || 0, pay_money = parseFloat(e.data("pay").replace(",", "")) || 0;
                                 layero.find('input[name="money"]').val(order_money - pay_money);
                                 layero.find('input[name="money"]').trigger("input")
                             }
@@ -459,27 +459,28 @@
                 active[o.event] ? active[o.event].call(that, o) : '';
             },
             referenceTableToolbar() {
-                var bar = $('#checkstatus-bar'), totalmoney = 0;
+                var bar = $('#checkstatus-bar'), totalmoney = 0, ids = [];
                 if (selectData.length < 1) {
                     return bar.hide();
                 }
                 bar.show();
                 selectData.forEach(v => {
+                    ids.push(v.id),
                     v.order_money = parseFloat(v.order_money) || 0;
                     totalmoney += v.order_money;
                 }),
-                console.log(totalmoney);
+                sessionStorage.setItem("order.checkStatus", ids.join(',')),
                 bar.find('#vl_ordermoney').text(totalmoney.toFixed(2))
             }
         };
 
         form.on('submit(LAY-list-back-search)', function(data){
             var field = data.field;
+            sessionStorage.removeItem("order.checkStatus");
+            sessionStorage.removeItem("order.page");
             table.reload('LAY-list-table', { 
                 where: field,
-                page: {
-                    curr: 1
-                }
+                page: { curr: 1 }
             });
             return false;
         }),
@@ -535,9 +536,14 @@
                     {title: '操作', toolbar: '#user-bar', width: 230}
                 ]],
                 parseData: function(res) {
+                    let ids = sessionStorage.getItem("order.checkStatus") || '';
+                    ids = ids.split(','),
                     res.data.list.forEach((v, index) => {
-                        res.data.list[index].LAY_DISABLED = v.status == 2 || v.status == -1
+                        res.data.list[index].LAY_DISABLED = v.status == 2 || v.status == -1,
+                        res.data.list[index].LAY_CHECKED = ids.includes(v.id.toString()),
+                        res.data.list[index].LAY_CHECKED && (selectData.push(v))
                     });
+                    active.referenceTableToolbar();
 
                     return {
                         code: res.code,
@@ -555,13 +561,15 @@
                                 search_time: $('input[name="search_time"]').val()
                             },
                             page: {
-                                curr: sessionStorage.getItem("order.page")
+                                curr: sessionStorage.getItem("order.page"),
+                                limit: sessionStorage.getItem("order.limit")
                             }
                         });
                     } else {
                         ns.page = curr;
                         ns.count = count;
-                        sessionStorage.setItem("order.page", curr);
+                        sessionStorage.setItem("order.page", curr),
+                        sessionStorage.setItem("order.limit", this.limit)
                     }
 
                     res.data.forEach(d => {
@@ -576,16 +584,23 @@
                 page: !0,
                 limit: 20,
                 limits: [20, 50, 200, 500, 1000, 5000],
+                pagebar: '#pagebar',
                 height: "full-220",
                 text: { none: "无数据" }
             });
 
             table.on('toolbar(LAY-list-table)', function(o) {
+                console.log(o);
                 active[o.event] ? active[o.event].call(this, o) : '';
             }),
 
             table.on("tool(LAY-list-table)", function(e) {
+                console.log(e);
                 active[e.event] ? active[e.event].call(this, e) : '';
+            }),
+
+            table.on("pagebar(LAY-list-table)", function(e) {
+                console.log(e);
             }),
 
             table.on("edit(LAY-list-table)", function(e) {
@@ -609,7 +624,7 @@
                 } else {
                     btns.addClass("layui-disabled");
                 }
-            });
+            })
         }
 
         window.addEventListener("load", function() {
@@ -617,6 +632,7 @@
                 isLoaded = true;
                 sessionStorage.removeItem("order.search_value");
                 sessionStorage.removeItem("order.search_time");
+                sessionStorage.removeItem("order.checkStatus");
                 sessionStorage.removeItem("order.page");
             }
             renderTable()

@@ -143,6 +143,7 @@ Route::group(function() {
     Route::get('index/clear_cache', 'index/clearCache')->name('sysClearCache');
     Route::get('security', '/index')->prefix('system.security')->name('sysSecurity');
 })->middleware('ConsoleAuthorize', false);
+Route::get('index/test', 'index/test');
 
 // 定义MISS
 Route::miss('Index/miss');

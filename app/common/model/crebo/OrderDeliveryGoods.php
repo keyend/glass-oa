@@ -94,6 +94,8 @@ class OrderDeliveryGoods extends Model
                 $list[] = $this->mapsItem(function($row, $item) {
                     $row["height"] = (int)$row["height"];
                     $row["width"] = (int)$row["width"];
+                    $row["area"] = (float)$row["area"];
+                    $row["area"] = round($row["area"] * $row["num"], 2);
                     $row["customer"] = $item->order["customer"];
                     $row["trade_no"] = $item->order["trade_no"];
                     $row["remark"] = $item->goods["remark"];

@@ -341,11 +341,20 @@ class Order extends Model
                     'remark',
                     'unitprice'
                 ]);
+                $craft_id = (float)$updateGoods[$goods['id']]["craft_id"];
+                $craft_data = Craft::where("id", $craft_id)->find();
+                if (!empty($craft_data)) {
+                    $itm["craft"] = $craft_data["craft"];
+                    $itm["craft_thumb"] = $craft_data["thumb"];
+                }
                 $itm["num"]         = (int)$itm["num"];
                 $itm["width"]       = (float)$itm["width"];
                 $itm["height"]      = (float)$itm["height"];
                 $itm["manual"]      = (float)$itm["manual"];
                 $itm["area"]        = round($itm["width"] * $itm["height"] / 10E5, 2);
+                if ($itm["area"] < $customer["minarea"]) {
+                    $itm["area"] = $customer["minarea"];
+                }
                 $itm["manual_money"] = $itm["manual"] * $itm["num"];
                 $itm["order_money"] = $itm["area"] * $itm["num"] * $itm["unitprice"] + $itm["manual_money"];
                 $itm["manual_cals"] = json_encode($itm['manual_cals'], JSON_UNESCAPED_UNICODE);
@@ -373,6 +382,9 @@ class Order extends Model
                                 $itm["height"]  = (float)$itm["height"];
                                 $itm["manual"]  = (float)$itm["manual"];
                                 $itm["area"]    = round($itm["width"] * $itm["height"] / 10E5, 2);
+                                if ($itm["area"] < $customer["minarea"]) {
+                                    $itm["area"] = $customer["minarea"];
+                                }
                                 $itm["manual_money"] = $itm["manual"] * $goods["num"];
                                 $itm["order_money"] = $itm["area"] * $goods["num"] * $itm["unitprice"] + $itm["manual_money"];
                                 $originGoods = $goods->toArray();

@@ -19,6 +19,9 @@
     .layui-table {
         width: 100%!important;
     }
+    .layui-table tbody tr:hover {
+        background-color: #dcecfc !important;
+    }
     .layui-table td.edit {
         padding: 0px!important;
     }
@@ -53,6 +56,14 @@
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+    .layui-input-inline > input[type=text][readonly],
+    .layui-input-inline > input[type=text]:read-only,
+    td > input[type=text][readonly],
+    td > input[type=text]:read-only {
+        color: #bbb;
+        border-color: #cecece;
+        background-color: #f0f0f0;
     }
     .layui-input[type=number] {
         padding-left: 0px;
@@ -237,7 +248,11 @@
                                 {if $goods.finished}disabled{/if}
                             >
                                 {foreach $crafts as $craft}
+                                {if $goods.craft == $craft.craft}
                                 <option value="{$craft.id}" selected="selected">{$craft.craft}</option>
+                                {else}
+                                <option value="{$craft.id}">{$craft.craft}</option>
+                                {/if}
                                 {/foreach}
                             </select>
                         </td>

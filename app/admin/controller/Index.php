@@ -4,6 +4,7 @@ use app\admin\Controller;
 use app\common\model\crebo\Users;
 use app\common\model\crebo\Order;
 use app\common\model\crebo\OrderDelivery;
+use mashroom\Dlt645;
 
 /**
  * 后台管理首页
@@ -20,6 +21,18 @@ class Index extends Controller
     public function index()
     {
         return $this->fetch();
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function test()
+    {
+        $com = new Dlt645();
+        $ret = $com->parse("6825040302010068110433333433E116");
+        var_dump($ret);
     }
 
     /**

@@ -163,7 +163,8 @@
                     </tr>
                 </thead>
                 <tbody id="order-content">
-                    {foreach $order.goods as $key => $goods}
+                    {php}$key = 0;{/php}
+                    {foreach $order.goods as $goods}
                     <tr{if $goods['finished']} class="recived"{/if}>
                         <td class="text-center">{$key+1}</td>
                         <td>
@@ -213,17 +214,18 @@
                             </div>
                         </td>
                     </tr>
+                    {php}$key ++;{/php}
                     {/foreach}
                 </tbody>
                 <tfoot>
                     <tr style="background-color:#f7f7f7;">
-                        <td colspan="11">
+                        <td colspan="11" style="font-weight: bold;">
                             <span>总计应收：</span>
-                            <span>{$order.order_money}元</span>
+                            <span>{:round($order.order_money - $order.manual_money)}元</span>
                             <span> + </span>
                             <span>{$order.manual_money}元</span>
                             <span> = </span>
-                            <span>{:round($order.order_money + $order.manual_money, 2)}元</span>
+                            <span>{:round($order.order_money, 2)}元</span>
                         </td>
                     </tr>
                 </tfoot>
@@ -305,19 +307,19 @@
         var $ = layui.$, goodsNums = {}, form = layui.form, util = layui.util, table = layui.table, laytpl = layui.laytpl, poper, poperField
         ,context = $('#order-content');
 
-        function getPrintArr(order, id) {
+        function getPrintArr(od, id) {
             var result = {};
             id = id || 0,
             result.ids = [];
             result.data = [],
-            order.goods.forEach(v => {
+            Object.values(od.goods).forEach(v => {
                 if (id == v.id || id == 0) {
                     if (v.type == 0 || v.type == 1) {
                         result.data.push({
-                            KH: order.customer,
-                            DD: order.out_trade_no,
+                            KH: od.customer,
+                            DD: od.out_trade_no,
                             MC: v.category,
-                            GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + order.order_num,
+                            GG: parseFloat(v.width) + "宽X" + parseFloat(v.height) + "高=" + v.num + "/" + od.order_num,
                             GY: v.craft,
                             XH: v.remark
                         }),
@@ -364,7 +366,7 @@
 
         $('button[lay-filter="smentary"]').on("click", function(e) {
             var that = $(this), field = {}, content;
-            data.forEach(v => {
+            Object.values(data).forEach(v => {
                 if (v.id == that.data("id")) {
                     field.goods = v
                 }
