@@ -12,7 +12,7 @@ use think\facade\Log;
 
 class JobManager
 {
-    const name = "EntityMQService";
+    const name = "JobManager_102";
 
     /**
      * 消费消息

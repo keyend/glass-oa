@@ -54,7 +54,7 @@ class User extends Controller
         $user = $user_model->where('user_id', $id)->with(['group', 'attr'])->find();
         if (!$user) {
             return $this->fail(lang('no exist'));
-        } elseif (isSuperUser($user->group)) {
+        } elseif (super($user->group->group_range)) {
             return $this->fail(lang('no access'));
         }
         $user->update($data);
@@ -147,7 +147,7 @@ class User extends Controller
             $res = $user_model->addUser($data, $attrs);
             return $this->success($res);
         } else {
-            $item = ['is_delete' => 1, 'parent_id' => S1];
+            $item = ['is_delete' => 1, 'parent_id' => S1, 'group' => []];
             $userGroupModel = app()->make(UserGroupModel::class);
             $userGroup = $userGroupModel->getList();
             $userAttrModel = app()->make(UserAttrModel::class);

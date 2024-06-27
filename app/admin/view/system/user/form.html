@@ -22,9 +22,13 @@
                             <div class="layui-col-lg6">
                                 <label class="layui-form-label">用户分组：</label>
                                 <div class="layui-input-block">
-                                    <select name="group_id" lay-filter="group" {if $item.is_delete==0}disabled="true"{/if}>
-                                        {foreach name="userGroup" id="group"}
-                                        <option value="{$group.group_id}">{$group.group}</option>
+                                    <select name="group_id" lay-filter="group" {if $item.group.group_range=='platform.super'}disabled="true"{/if}>
+                                        {foreach name="userGroup.list" id="group"}
+                                        {if $item.group_id == $group.group_id}
+                                        <option value="{$group.group_id}" data-range="{$group.group_range}" selected="selected">{$group.group}</option>
+                                        {elseif $group.group_range != 'platform.super'}
+                                        <option value="{$group.group_id}" data-range="{$group.group_range}">{$group.group}</option>
+                                        {/if}
                                         {/foreach}
                                     </select>
                                     <input type="hidden" name="parent_id" value="{$item.parent_id}" />

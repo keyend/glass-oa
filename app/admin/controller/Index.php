@@ -4,6 +4,7 @@ use app\admin\Controller;
 use app\common\model\crebo\Users;
 use app\common\model\crebo\Order;
 use app\common\model\crebo\OrderDelivery;
+use app\common\model\system\UserModel;
 use mashroom\Dlt645;
 
 /**
@@ -18,8 +19,10 @@ class Index extends Controller
      *
      * @return void
      */
-    public function index()
+    public function index(UserModel $user_model)
     {
+        $user = $user_model->getUser([["user_id", "=", S1]]);
+        $this->assign("admin", $user);
         return $this->fetch();
     }
 

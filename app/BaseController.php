@@ -48,6 +48,7 @@ abstract class BaseController
         $this->request = $this->app->request;
         // 控制器初始化
         $this->initialize();
+        if (!defined('IS_AJAX')) define('IS_AJAX', false);
     }
 
     // 初始化
